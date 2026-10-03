@@ -333,6 +333,9 @@ html.theme-anim body,html.theme-anim body *{transition:background-color .45s eas
 .stepper button:hover{box-shadow:inset 0 0 0 1.5px var(--panel-ink)}
 .stepper button:disabled{opacity:.35;cursor:default}
 .stepper output{min-width:44px;text-align:center;font:500 18px var(--mono)}
+.price-box{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.price{font:600 30px/1 var(--sans);letter-spacing:-.03em;color:var(--panel-ink);font-variant-numeric:tabular-nums}
+.price-for{font:500 12px var(--mono);color:var(--panel-ink-2)}
 .seats{display:flex;gap:6px;flex-wrap:wrap}
 .seat{width:14px;height:14px;box-shadow:inset 0 0 0 1.5px var(--panel-line)}
 .seat.on{box-shadow:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
@@ -690,6 +693,13 @@ footer .brand{font-size:18px}
             </div>
           </div>
           <div class="seats" id="seats" aria-hidden="true"></div>
+          <div class="cfg-row">
+            <span class="cfg-lbl" id="priceLbl">Price</span>
+            <div class="price-box">
+              <output class="price" id="sPrice" aria-labelledby="priceLbl" aria-live="polite">$0.588</output>
+              <span class="price-for" id="sPriceFor">4 people · 1 hour</span>
+            </div>
+          </div>
         </div>
         <ul class="feat">
           <li>Up to 10 people</li>
@@ -1691,14 +1701,26 @@ window.VeilFox = (function(){
   let people = 4;
   const seats = $('#seats'), pVal = $('#pVal'), pMinus = $('#pMinus'), pPlus = $('#pPlus'), peekFox = $('#foxPeek');
   for(let i=0;i<10;i++){ const d = document.createElement('span'); d.className = 'seat'; seats.appendChild(d); }
+  // Super Room price: base covers 2 people, each extra person adds a fixed amount.
+  const PRICE = { 3600: {base:0.49, extra:0.049, label:'1 hour'}, 86400: {base:1.49, extra:0.009, label:'24 hours'} };
+  const sPrice = $('#sPrice'), sPriceFor = $('#sPriceFor');
+  function updPrice(){
+    const life = ($('input[name="life"]:checked') || {}).value || 3600;
+    const t = PRICE[life] || PRICE[3600];
+    let s = (t.base + t.extra*(people - 2)).toFixed(3);
+    if(s.endsWith('0')) s = s.slice(0, -1);
+    sPrice.textContent = '$' + s;
+    sPriceFor.textContent = people + ' people · ' + t.label;
+  }
   function updSeats(){
     pVal.textContent = people;
     $$('.seat', seats).forEach((d,i)=>{ d.className = 'seat' + (i === 0 ? ' host' : (i < people ? ' on' : '')); });
     pMinus.disabled = people <= 2; pPlus.disabled = people >= 10;
+    updPrice();
   }
   pMinus.addEventListener('click', ()=>{ people = Math.max(2, people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
   pPlus.addEventListener('click', ()=>{ people = Math.min(10, people+1); updSeats(); Fox.flash(peekFox, 'excited', 700); });
-  $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>Fox.flash(peekFox, 'excited', 700)));
+  $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>{ updPrice(); Fox.flash(peekFox, 'excited', 700); }));
   updSeats();
 
   /* ---------- protocol terminal ---------- */
