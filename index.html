@@ -317,6 +317,13 @@ body.menu-open{overflow:hidden}
 .pillar p{color:var(--ink-2);margin:0;font-size:15.5px}
 @media (max-width:1060px){.pillars{grid-template-columns:repeat(2,minmax(0,1fr))}.pillar:nth-child(3){padding-left:0;border-left:0}}
 @media (max-width:900px){.sec-top{grid-template-columns:1fr}}
+/* phones: shorter stage, bigger fox, lock beside it (less empty space) */
+@media (max-width:760px){
+  .sec-top{gap:8px}
+  .sec-art{height:330px;margin-inline:-4vw}
+  .sec-fox{left:0;width:64%;height:100%}
+  .sec-lock{right:0;top:22%;width:40%;height:58%}
+}
 @media (max-width:600px){.pillars{grid-template-columns:1fr}.pillar + .pillar{padding-left:0;border-left:0;border-top:1px solid var(--line)}}
 
 /* FUTURE */
