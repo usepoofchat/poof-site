@@ -198,13 +198,15 @@ body.menu-open{overflow:hidden}
 @keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 @media (prefers-reduced-motion:reduce){.scrollcue i{animation:none}}
 @media (max-width:900px){
-  .hero{display:block;padding-top:8px}
-  /* phones: the fox is a block above the copy (whole head visible), so it never covers the text */
-  .hero-fox{position:relative;left:-9vw;top:auto;width:100%;height:38svh}
-  .hero-grid{grid-template-columns:1fr}
-  .hero-copy{grid-column:1;padding:14px 0 12vh}
+  /* phones: copy first, then the fox as a block under the trust list (whole head visible, never over the text) */
+  .hero{display:flex;flex-direction:column;min-height:0;padding-top:28px}
+  .hero-grid{order:1;grid-template-columns:1fr}
+  .hero-fox{order:2;position:relative;left:-9vw;top:auto;width:100%;height:38svh;margin-top:28px}
+  .hero-copy{grid-column:1;padding:0}
+  .lede{font-size:16px}
+  .identity{padding-top:40px}                   /* the fox now fills the gap above this section */
   .scrollcue{display:none}
-  .f-shard{top:9vh;right:3vw;width:90px;height:120px}
+  .f-shard{top:auto;bottom:250px;right:2vw;width:70px;height:95px}   /* next to the fox head, clear of the headline */
 }
 @media (max-width:760px){
   .hero .actions .btn{display:none}             /* room buttons live in the sticky bar on phones */
@@ -1642,7 +1644,7 @@ window.VeilFox = (function(){
       heroCopy.style.transform = drift ? 'translate3d(0,' + (-hp*50).toFixed(1) + 'px,0)' : '';
       Fox.param(heroFox, 'headY', -hp*0.5);
       Fox.param(heroFox, 'headX', hp*0.12);
-      Fox.param(heroFox, 'fadeMin', clamp((hp-0.42)/0.45, 0, 1));
+      Fox.param(heroFox, 'fadeMin', drift ? clamp((hp-0.42)/0.45, 0, 1) : 0);   // phones: the fox sits at the end of the hero, keep it
       Fox.param(heroFox, 'dissolve', drift ? null : [0, 0, 0.26, 0]);   // phones: chest dissolves into pixels instead of a hard cut
       if(heroField) heroField.cv.style.opacity = (0.17*(1-hp)).toFixed(3);
     }
