@@ -113,6 +113,8 @@ section{position:relative;padding-block:clamp(110px,16vh,200px)}
 .wd>span{display:inline-block;transform:translate3d(0,108%,0);transition:transform 1.05s var(--ease) calc(var(--i) * 42ms)}
 .in .wd>span{transform:none}
 @media (prefers-reduced-motion:reduce){.wd>span{transform:none;transition:none}}
+/* phones: text reveals run faster (headline words, struck list) */
+@media (max-width:900px){.wd>span{transition-duration:.6s;transition-delay:calc(var(--i) * 22ms)}}
 
 /* buttons */
 .btn{--h:54px;position:relative;display:inline-flex;align-items:center;gap:12px;height:var(--h);padding:0 24px;border:0;border-radius:999px;background:var(--rust);color:var(--on-rust);font:550 16px/1 var(--sans);letter-spacing:-.01em;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .25s,color .25s;will-change:transform}
@@ -349,6 +351,7 @@ body.menu-open{overflow:hidden}
 .struck{list-style:none;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:14px 34px;margin:30px auto 60px;max-width:980px;font-size:clamp(23px,2.6vw,38px);font-weight:550;letter-spacing:-.035em;color:var(--ink-3)}
 .struck li{position:relative}
 .struck li::after{content:"";position:absolute;left:-.04em;right:-.04em;top:55%;height:.07em;background:var(--rust);transform:scaleX(0);transform-origin:left;transition:transform .8s var(--ease) calc(var(--i) * 150ms)}
+@media (max-width:900px){.struck li::after{transition-duration:.5s;transition-delay:calc(var(--i) * 80ms)}}   /* phones: faster strike */
 .struck.on li::after{transform:scaleX(1)}
 .oneroom .big{font-size:clamp(34px,4.4vw,72px);line-height:1;font-weight:600;letter-spacing:-.048em;margin:0 auto;max-width:18ch}
 .oneroom .big span{display:block;color:var(--ink-3)}
@@ -1534,12 +1537,13 @@ window.VeilFox = (function(){
     el.innerHTML = words.map(w=>'<span class="sw">'+w+'</span>').join(' ');
   });
   if('IntersectionObserver' in window){
-    const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:0.2});
+    const fastText = matchMedia('(max-width:900px)').matches;   // phones: reveals start sooner and run faster
+    const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold: fastText ? 0.05 : 0.2});
     $$('[data-split]').forEach(el=>io.observe(el));
     if(!reduce){
       const rv = $$('[data-reveal]');
       rv.forEach(el=>Dither.set(el, 0));
-      const io2 = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io2.unobserve(e.target); Dither.animate(e.target, 0, 16, 700); } }), {threshold:0.12, rootMargin:'0px 0px -6% 0px'});
+      const io2 = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io2.unobserve(e.target); Dither.animate(e.target, 0, 16, fastText ? 380 : 700); } }), fastText ? {threshold:0.04} : {threshold:0.12, rootMargin:'0px 0px -6% 0px'});
       rv.forEach(el=>io2.observe(el));
     }
   } else { $$('[data-split]').forEach(el=>el.classList.add('in')); }
