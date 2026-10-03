@@ -5,7 +5,7 @@ import { Client } from "basic-ftp";
 import fs from "node:fs";
 import path from "node:path";
 
-const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", "docs/index.html"];
+const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html"];
 const dry = process.argv.includes("--dry");
 // Another target: node deploy.mjs --env=.env.staging  (default .env)
 const ENV_FILE = (process.argv.find(a => a.startsWith("--env=")) || "--env=.env").slice(6);

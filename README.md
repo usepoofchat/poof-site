@@ -5,6 +5,7 @@ Landing page and documentation for [usepoof.chat](https://usepoof.chat): a priva
 - `index.html`: the landing page (HTML, CSS and JS in one file)
 - `docs/index.html`: the documentation, served at `/docs/`
 - `favicon.svg`, `apple-touch-icon.png`, `og-image.png`, `robots.txt`
+- `.htaccess`: cache rules (HTML always revalidated, images cached for a day)
 - `brand/`: logo, mark and social assets (not deployed)
 - `deploy.mjs`: uploads the site to the hosting over FTPS
 

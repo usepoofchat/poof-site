@@ -1,0 +1,14 @@
+# Caching rules for usepoof.chat
+# HTML is always revalidated, so visitors get the latest version right after a deploy.
+# Images, icons and robots.txt may be cached for a day.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(png|jpg|jpeg|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+  <FilesMatch "^robots\.txt$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
