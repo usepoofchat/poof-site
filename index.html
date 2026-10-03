@@ -12,7 +12,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://usepoof.chat/">
 <meta property="og:title" content="Poof | Private by default. Temporary by design.">
-<meta property="og:description" content="A private chatroom that doesn't need to know who you are. Create a room. Share it. Then poof.">
+<meta property="og:description" content="A private chatroom that doesn't need to know who you are. Create a quant-room. Share it. Then poof.">
 <meta property="og:site_name" content="Poof">
 <meta property="og:image" content="https://usepoof.chat/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -463,6 +463,39 @@ body.menu-open{overflow:hidden}
 .why[open] summary::after{content:"−"}
 .why p{color:var(--panel-ink-2);font-size:15px;margin:10px 0 0}
 @media (max-width:900px){.rooms-grid{grid-template-columns:1fr}.feat{grid-template-columns:1fr}.classic{margin-bottom:200px}}
+/* AI: uncensored model inside a Super Quant-Room */
+.ai-grid{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(32px,5vw,90px);align-items:center}
+.ai-kick{display:inline-flex;align-items:center;gap:10px;font:500 12.5px var(--mono);color:var(--rust);margin:0 0 20px}
+.ai-kick::before{content:"";width:10px;height:10px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/5px 5px}
+.ai h2{font-size:clamp(40px,5vw,84px);line-height:.98;letter-spacing:-.05em;margin:0 0 22px}
+.ai-lede{font-size:clamp(18px,1.5vw,21px);color:var(--ink-2);max-width:46ch}
+.ai-points{list-style:none;padding:0;margin:28px 0;display:grid;gap:14px;max-width:52ch}
+.ai-points li{position:relative;padding-left:24px;color:var(--ink-2)}
+.ai-points li::before{content:"";position:absolute;left:0;top:.55em;width:10px;height:10px;background:var(--rust)}
+.ai-points b{color:var(--ink)}
+.ai-price{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+.ai-price span{display:inline-flex;align-items:baseline;gap:8px;padding:10px 16px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line-strong);font:500 13px var(--mono);color:var(--ink-2)}
+.ai-price b{font:600 18px var(--sans);color:var(--ink);letter-spacing:-.02em}
+.ai-note{font:500 12.5px/1.6 var(--mono);color:var(--ink-3);max-width:58ch;margin-top:22px}
+.ai-demo{position:relative}
+.ai-demo .chat{background:var(--surface);border-color:var(--line)}
+.ai-demo .chat-body{min-height:330px;justify-content:flex-end}
+.ai-demo .msg{opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.ai-demo .msg.in{opacity:1;transform:none}
+.msg.bot{align-self:flex-start;background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rust);border-bottom-left-radius:4px}
+.msg.bot::before{content:"AI";display:block;font:600 10.5px var(--mono);letter-spacing:.08em;color:var(--rust-text);margin-bottom:3px}
+.ai-on{color:var(--rust-text)}
+@media (max-width:900px){.ai-grid{grid-template-columns:1fr}}
+/* AI switch in the Super Quant-Room card */
+.ai-toggle{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.ai-toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.ai-toggle .sw{position:relative;flex:none;width:42px;height:24px;margin-top:1px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--panel-line);transition:background .25s}
+.ai-toggle .sw::after{content:"";position:absolute;left:4px;top:4px;width:16px;height:16px;background:var(--panel-ink-2);transition:left .25s var(--ease),background .25s}
+.ai-toggle input:checked + .sw{background:var(--rust);box-shadow:none}
+.ai-toggle input:checked + .sw::after{left:22px;background:#1d1f2b}
+.ai-toggle input:focus-visible + .sw{outline:2px solid var(--rust);outline-offset:3px}
+.ai-toggle b{display:block;font-weight:600;font-size:15px;line-height:1.3}
+.ai-toggle small{display:block;margin-top:3px;font:500 11.5px/1.5 var(--mono);color:var(--panel-ink-2)}
 @media (max-width:760px){.oneroom{padding-bottom:56px}.rooms{padding-top:56px;padding-bottom:56px}.rooms-grid{margin-top:36px}.protocol{padding-top:56px}}
 /* phones: compact Super Room card, the whole card fits between the header and the bottom bar */
 @media (max-width:760px){
@@ -593,7 +626,7 @@ footer .brand{font-size:18px}
     <a class="brand" href="#top" aria-label="Poof, back to top"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#security">Security</a>
-      <a href="#rooms">Rooms</a>
+      <a href="#rooms">Quant-Rooms</a>
       <a href="#protocol">Protocol</a>
       <a href="/docs/">Docs</a>
       <a href="/stats/">Stats</a>
@@ -602,8 +635,8 @@ footer .brand{font-size:18px}
       <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
       <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
     </button>
-    <button class="btn btn-sm btn-ghost nav-join" data-join>Join a room</button>
-    <button class="btn btn-sm" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a room</button>
+    <button class="btn btn-sm btn-ghost nav-join" data-join>Join quant-room</button>
+    <button class="btn btn-sm" data-create="classic"><span class="pip" aria-hidden="true"></span>Create quant-room</button>
     <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav">
       <svg class="i-menu" viewBox="0 0 14 14" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="2" width="4" height="2"/><rect x="5" y="2" width="4" height="2"/><rect x="10" y="2" width="4" height="2"/><rect x="0" y="6" width="4" height="2"/><rect x="5" y="6" width="4" height="2"/><rect x="10" y="6" width="4" height="2"/><rect x="0" y="10" width="4" height="2"/><rect x="5" y="10" width="4" height="2"/><rect x="10" y="10" width="4" height="2"/></svg>
       <svg class="i-close" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect class="px" x="3" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg>
@@ -612,14 +645,14 @@ footer .brand{font-size:18px}
   <div class="mnav" id="mnav" hidden>
     <nav class="mnav-links" aria-label="Menu">
       <a href="#security"><span>Security</span><i>01</i></a>
-      <a href="#rooms"><span>Rooms</span><i>02</i></a>
+      <a href="#rooms"><span>Quant-Rooms</span><i>02</i></a>
       <a href="#protocol"><span>Protocol</span><i>03</i></a>
       <a href="/docs/"><span>Docs</span><i>04</i></a>
       <a href="/stats/"><span>Stats</span><i>05</i></a>
     </nav>
     <div class="mnav-cta">
-      <button class="btn" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a room</button>
-      <button class="btn btn-ghost" data-join>Join a room</button>
+      <button class="btn" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a quant-room</button>
+      <button class="btn btn-ghost" data-join>Join a quant-room</button>
     </div>
     <div class="mnav-theme">
       <span class="mt-lbl" id="mtLbl">Theme</span>
@@ -636,16 +669,16 @@ footer .brand{font-size:18px}
 <!-- HERO -->
 <section class="hero" id="top" data-tone="light" data-bg="#e7e8e3" data-bg-dark="#13141b" data-glow="232,102,31,.26" data-glow-pos="18,44" aria-labelledby="h1">
   <canvas class="field" id="heroField" data-cell="15" data-fx=".2" data-fy=".46" data-sigma=".3" aria-hidden="true"></canvas>
-  <div class="fox-slot hero-fox" id="foxHero" data-frame="bust" data-yaw="0.55" data-pose="idle" data-look data-lookbias="0.12" data-lookmax="0.2" data-bleed="0 .2 0 0" data-px="4" role="img" aria-label="Close-up of Poof's fox mascot looking toward the headline"><div class="hero-chat" aria-hidden="true"><p class="hc-msg" id="hcMsg">Create a room.</p></div></div>
+  <div class="fox-slot hero-fox" id="foxHero" data-frame="bust" data-yaw="0.55" data-pose="idle" data-look data-lookbias="0.12" data-lookmax="0.2" data-bleed="0 .2 0 0" data-px="4" role="img" aria-label="Close-up of Poof's fox mascot looking toward the headline"><div class="hero-chat" aria-hidden="true"><p class="hc-msg" id="hcMsg">Create a quant-room.</p></div></div>
   <div class="fox-slot frag f-shard" data-scene="frag" data-shape="shard" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
       <h1 id="h1" data-split>A private chatroom that doesn't need to know who you are.</h1>
       <p class="lede" data-reveal>No email. No phone number. No account.</p>
       <div class="actions" data-reveal>
-        <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a room</button>
-        <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a room</button>
-        <p class="flow">Create a room. Share the link. Talk privately. <span class="vanish" id="vanish">Then poof. It’s gone.</span></p>
+        <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a quant-room</button>
+        <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a quant-room</button>
+        <p class="flow">Create a quant-room. Share the link. Talk privately. <span class="vanish" id="vanish">Then poof. It’s gone.</span></p>
       </div>
       <ul class="assure" data-reveal>
         <li>E2E encrypted</li>
@@ -664,7 +697,7 @@ footer .brand{font-size:18px}
       <h2 id="idh" data-split>Privacy shouldn't require an identity.</h2>
       <p data-reveal>The internet has made it easy to communicate. It has also made it easy to be identified, tracked and remembered.</p>
       <p data-reveal>Poof takes a different approach. You don't build a profile. You don't establish a permanent identity. You don't create a history before you can have a conversation.</p>
-      <p class="enter" data-reveal>You simply enter the room.</p>
+      <p class="enter" data-reveal>You simply enter the quant-room.</p>
       <div class="fox-slot id-fox" id="foxId" data-pose="shrug" data-frame="full" aria-hidden="true"></div>
     </div>
     <div class="id-right">
@@ -680,7 +713,7 @@ footer .brand{font-size:18px}
         <li>No account waiting for you when you come back.</li>
       </ul>
       <div class="enough" id="enough">
-        <p class="big" data-split>A room is enough.</p>
+        <p class="big" data-split>A quant-room is enough.</p>
         <ol class="steps" data-reveal>
           <li>Create it.</li>
           <li>Share it.</li>
@@ -688,7 +721,7 @@ footer .brand{font-size:18px}
         </ol>
         <div class="chat-wrap" aria-hidden="true" data-reveal>
           <div class="chat">
-            <div class="chat-head"><span>room <b id="hcId">k7q2</b></span><span>closes in <b id="hcT">00:16</b></span></div>
+            <div class="chat-head"><span>quant-room <b id="hcId">k7q2</b></span><span>closes in <b id="hcT">00:16</b></span></div>
             <div class="chat-body" id="hcBody"></div>
           </div>
         </div>
@@ -778,7 +811,7 @@ footer .brand{font-size:18px}
       <article class="pillar" data-reveal>
         <pre class="ascii" data-ascii="eph" aria-hidden="true"></pre>
         <h3>Ephemeral by design</h3>
-        <p>Rooms have defined lifetimes rather than becoming permanent communication spaces.</p>
+        <p>Quant-rooms have defined lifetimes rather than becoming permanent communication spaces.</p>
       </article>
     </div>
   </div>
@@ -809,7 +842,7 @@ footer .brand{font-size:18px}
 <!-- ONE ROOM -->
 <section class="oneroom" data-tone="dark" data-bg="#15161e" data-glow="232,102,31,.18" data-glow-pos="50,46" aria-labelledby="orh">
   <div class="wrap">
-    <h2 id="orh" data-split>One room. One purpose.</h2>
+    <h2 id="orh" data-split>One quant-room. One purpose.</h2>
     <p class="sub" data-reveal>Poof doesn't try to become your new social network.</p>
     <div class="fox-slot cube" data-scene="frag" data-shape="cube" data-spin=".35" aria-hidden="true"></div>
     <ul class="struck" id="struck">
@@ -829,8 +862,8 @@ footer .brand{font-size:18px}
     <div class="rooms-grid">
       <article class="room classic" data-reveal>
         <p class="over">Free, for two.</p>
-        <h3>Classic Room</h3>
-        <p class="desc">A simple private room for two.</p>
+        <h3>Quant-Room</h3>
+        <p class="desc">A simple private quant-room for two.</p>
         <p class="clock" id="clock" aria-hidden="true">10:00</p>
         <dl class="specs">
           <dt>Lifetime</dt><dd>10 minutes</dd>
@@ -843,14 +876,14 @@ footer .brand{font-size:18px}
           <li>Zero-knowledge architecture</li>
         </ul>
         <p class="price">Free</p>
-        <button class="btn" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create Classic Room</button>
+        <button class="btn" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create Quant-Room</button>
       </article>
 
       <article class="room super" data-reveal>
         <div class="fox-slot peek-fox" id="foxPeek" data-pose="peek" data-frame="peek" data-look aria-hidden="true"></div>
         <p class="over">Sometimes you need more.</p>
-        <h3>Super Room</h3>
-        <p class="desc">Upgrade your room when the conversation needs more time, more people or more functionality.</p>
+        <h3>Super Quant-Room</h3>
+        <p class="desc">Upgrade your quant-room when the conversation needs more time, more people or more functionality.</p>
         <div class="config">
           <div class="cfg-row">
             <span class="cfg-lbl" id="lifeLbl">Lifetime</span>
@@ -869,6 +902,8 @@ footer .brand{font-size:18px}
             </div>
           </div>
           <div class="seats" id="seats" aria-hidden="true"></div>
+          <label class="ai-toggle"><input type="checkbox" id="aiOn"><span class="sw" aria-hidden="true"></span>
+            <span><b>Include an uncensored AI model</b><small>+$2 for 1 hour, +$5 for 24 hours. With the AI, you can talk to it alone.</small></span></label>
           <div class="cfg-row">
             <span class="cfg-lbl" id="priceLbl">Price</span>
             <div class="price-box">
@@ -880,18 +915,49 @@ footer .brand{font-size:18px}
         <ul class="feat">
           <li>Up to 10 people</li>
           <li>File sharing</li>
-          <li>Extended room lifetime</li>
-          <li>Additional room controls</li>
+          <li>Extended quant-room lifetime</li>
+          <li>Additional quant-room controls</li>
+          <li>Optional uncensored AI model</li>
         </ul>
         <p class="burn">Burn Poof tokens to unlock. All built on the same privacy architecture.</p>
-        <button class="btn" data-create="super" data-magnetic><span class="pip" aria-hidden="true"></span>Create Super Room</button>
+        <button class="btn" data-create="super" data-magnetic><span class="pip" aria-hidden="true"></span>Create Super Quant-Room</button>
         <details class="why">
           <summary>Why tokens?</summary>
-          <p>Poof doesn't need your personal information to give you more. Super Rooms use a simple token mechanism instead.</p>
+          <p>Poof doesn't need your personal information to give you more. Super Quant-Rooms use a simple token mechanism instead.</p>
           <p>You burn tokens when you need additional capacity. More time. More people. More functionality.</p>
           <p>No identity upgrade required.</p>
         </details>
       </article>
+    </div>
+  </div>
+</section>
+
+<!-- AI -->
+<section class="ai" id="ai" data-tone="dark" data-bg="#101118" data-glow="232,102,31,.22" data-glow-pos="78,44" aria-labelledby="aih">
+  <div class="wrap ai-grid">
+    <div class="ai-copy">
+      <p class="ai-kick">New in Super Quant-Rooms</p>
+      <h2 id="aih" data-split>Talk to an uncensored AI. Inside a quant-room.</h2>
+      <p class="ai-lede" data-reveal>Ask what you would never type into a search bar. The model answers inside your quant-room, under the same post-quantum encryption, and forgets everything when the room poofs.</p>
+      <ul class="ai-points" data-reveal>
+        <li><b>No third party.</b> The model runs on Poof's own servers. Nobody else sees a word.</li>
+        <li><b>No logs, no memory.</b> Nothing is stored, nothing is used for training, nothing carries over to the next quant-room.</li>
+        <li><b>Alone or together.</b> Talk to it on your own, or bring up to 9 people into the same quant-room.</li>
+      </ul>
+      <div class="ai-price" data-reveal><span><b>+$2</b>1-hour quant-room</span><span><b>+$5</b>24-hour quant-room</span></div>
+      <a class="btn" href="/room/#/new?plan=super&amp;ai=1" data-magnetic><span class="pip" aria-hidden="true"></span>Create an AI quant-room</a>
+      <p class="ai-note" data-reveal>With the AI on, the model is one more participant: it reads what is sent in that quant-room. Without it, nothing changes and no server ever sees your messages.</p>
+    </div>
+    <div class="ai-demo chat-wrap" aria-hidden="true">
+      <div class="chat">
+        <div class="chat-head"><span>quant-room <b>m4x9</b> · <b class="ai-on">AI on</b></span><span>closes in <b id="aiT">59:12</b></span></div>
+        <div class="chat-body" id="aiBody">
+          <div class="msg me">Be honest. Is my business plan any good?</div>
+          <div class="msg bot">Honestly? The idea works, the margins don't. Cut the second product and charge for setup.</div>
+          <div class="msg me">And nobody else ever sees this?</div>
+          <div class="msg bot">Nobody. I run inside Poof, I keep no logs, and when this quant-room poofs, I forget it.</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -928,12 +994,12 @@ footer .brand{font-size:18px}
     <div class="open">
       <div class="open-copy">
         <h2 class="giant" id="fih">Talk freely.<br>Then poof.</h2>
-        <p>Create a private room in seconds.</p>
+        <p>Create a private quant-room in seconds.</p>
         <p class="nos">No account. &nbsp;No email. &nbsp;No phone. &nbsp;No identity.</p>
-        <p class="just">Just a room.</p>
+        <p class="just">Just a quant-room.</p>
         <div class="open-actions">
-          <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a Room</button>
-          <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a room</button>
+          <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a quant-room</button>
+          <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a quant-room</button>
         </div>
       </div>
       <div class="final-fox">
@@ -968,8 +1034,8 @@ footer .brand{font-size:18px}
 </footer>
 
 <div class="mbar" id="mbar" data-tone="dark">
-  <button class="btn" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a room</button>
-  <button class="btn btn-ghost" data-join>Join a room</button>
+  <button class="btn" data-create="classic"><span class="pip" aria-hidden="true"></span>Create quant-room</button>
+  <button class="btn btn-ghost" data-join>Join quant-room</button>
 </div>
 
 <!-- ROOM DIALOG -->
@@ -980,33 +1046,33 @@ footer .brand{font-size:18px}
     </button>
     <div class="fox-slot" id="foxDlg" data-pose="work" data-frame="full" data-modal aria-hidden="true"></div>
     <div class="dlg-body">
-      <p class="demo-note">Preview. Rooms go live soon - this one is a demo.</p>
+      <p class="demo-note">Preview. Quant-rooms go live soon - this one is a demo.</p>
       <div class="state" data-state="loading">
-        <h2 id="dlgTitle" tabindex="-1">Sealing your room…</h2>
+        <h2 id="dlgTitle" tabindex="-1">Sealing your quant-room…</h2>
         <pre class="genlog" id="genLog" aria-live="polite"></pre>
       </div>
       <div class="state" data-state="join" hidden>
-        <h2 tabindex="-1">Join a room.</h2>
+        <h2 tabindex="-1">Join a quant-room.</h2>
         <p>Enter the four-word phrase you were given. No account, no name.</p>
-        <div class="phrase" role="group" aria-label="Room phrase, four words">
+        <div class="phrase" role="group" aria-label="Quant-room phrase, four words">
           <input class="pw" aria-label="Word 1 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
           <input class="pw" aria-label="Word 2 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
           <input class="pw" aria-label="Word 3 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
           <input class="pw" aria-label="Word 4 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
         </div>
         <p class="copy-msg" id="joinMsg" role="status"></p>
-        <div><button class="btn" id="joinBtn"><span class="pip" aria-hidden="true"></span>Join room</button></div>
+        <div><button class="btn" id="joinBtn"><span class="pip" aria-hidden="true"></span>Join quant-room</button></div>
       </div>
       <div class="state" data-state="ready" hidden>
-        <h2 tabindex="-1" id="readyTitle">Your room is open.</h2>
+        <h2 tabindex="-1" id="readyTitle">Your quant-room is open.</h2>
         <p id="readyText">Share the link or the four-word phrase. Both stop working when the timer ends.</p>
-        <div class="phrase-show"><span class="cfg-lbl">Room phrase</span><b id="roomPhrase">amber otter quiet lantern</b><button class="btn btn-sm btn-ghost" id="copyPhrase">Copy</button></div>
+        <div class="phrase-show"><span class="cfg-lbl">Quant-room phrase</span><b id="roomPhrase">amber otter quiet lantern</b><button class="btn btn-sm btn-ghost" id="copyPhrase">Copy</button></div>
         <div class="link-row" id="linkRow">
-          <input id="roomLink" readonly aria-label="Room link">
+          <input id="roomLink" readonly aria-label="Quant-room link">
           <button class="btn btn-sm" id="copyBtn">Copy link</button>
         </div>
         <p class="copy-msg" id="copyMsg" role="status"></p>
-        <div class="room-meta"><span id="roomType">Classic Room</span><span>closes in <b id="roomTimer">10:00</b></span></div>
+        <div class="room-meta"><span id="roomType">Quant-Room</span><span>closes in <b id="roomTimer">10:00</b></span></div>
         <div class="mini" id="mini" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
         <div class="composer">
           <input id="msgIn" aria-label="Message" placeholder="Write a message" autocomplete="off">
@@ -1015,9 +1081,9 @@ footer .brand{font-size:18px}
         <button class="btn btn-ghost" id="endBtn">Poof it now</button>
       </div>
       <div class="state" data-state="gone" hidden>
-        <h2 tabindex="-1">Poof. This room no longer exists.</h2>
+        <h2 tabindex="-1">Poof. This quant-room no longer exists.</h2>
         <p>Nothing was kept. Not the messages, not the link.</p>
-        <div><button class="btn" id="againBtn"><span class="pip" aria-hidden="true"></span>Create another room</button></div>
+        <div><button class="btn" id="againBtn"><span class="pip" aria-hidden="true"></span>Create another quant-room</button></div>
       </div>
     </div>
   </div>
@@ -1876,7 +1942,7 @@ window.VeilFox = (function(){
   /* ---------- phone hero: the fox's chat bubble ---------- */
   const phoneHero = matchMedia('(max-width:900px)');
   const hcMsg = $('#hcMsg');
-  const HERO_LINES = ['Create a room.', 'Share the link.', 'Talk privately.', 'Then poof.'];
+  const HERO_LINES = ['Create a quant-room.', 'Share the link.', 'Talk privately.', 'Then poof.'];
   let heroSeen = false;
   if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>{ heroSeen = e.isIntersecting; }), {threshold:0.1}).observe(heroFox);
   if(!reduce) (async function(){
@@ -1902,7 +1968,7 @@ window.VeilFox = (function(){
   const rid = n => Array.from({length:n}, ()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
   const fmt = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
     const p = v => String(v).padStart(2,'0'); return h ? h + ':' + p(m) + ':' + p(x) : p(m) + ':' + p(x); };
-  const SCRIPT = [['them','Got the link. Do I need an account?'],['me','No account. Just this room.'],['them','Good. About the draft we discussed…'],['me',"Say it here. It won't stay."]];
+  const SCRIPT = [['them','Got the link. Do I need an account?'],['me','No account. Just this quant-room.'],['them','Good. About the draft we discussed…'],['me',"Say it here. It won't stay."]];
   function bubble(parent, who, text){ const b = document.createElement('div'); b.className = 'msg ' + who; b.textContent = text; parent.appendChild(b); return b; }
   let chatVis = false;
   if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>chatVis = e.isIntersecting)).observe(hcBody); else chatVis = true;
@@ -1964,9 +2030,9 @@ window.VeilFox = (function(){
     pq(){ let o = ''; for(let y=0;y<4;y++){ let row = y%2 ? ' ' : ''; for(let x=0;x<12;x++) row += Math.random() < 0.08 ? '<span class="hi">+</span> ' : '· '; o += row + '\n'; } return o; },
     zk(){ const q = n => rnd(n, '?░▒'); return 'who     ' + q(9) + '\nwhat    ' + q(9) + '\nwhere   ' + q(9) + '\nkept    <span class="hi">nothing</span>'; },
     eph(f){ const total = 60, k = f % (total + 14);
-      if(k >= total) return 'room k7q2\n\n[' + ' '.repeat(16) + ']\n<span class="hi">poof. nothing kept.</span>';
+      if(k >= total) return 'quant-room k7q2\n\n[' + ' '.repeat(16) + ']\n<span class="hi">poof. nothing kept.</span>';
       const fill = Math.round(16*(1 - k/total));
-      return 'room k7q2\n\n[' + '▓'.repeat(fill) + '░'.repeat(16-fill) + '] ' + fmt(600*(1-k/total)); }
+      return 'quant-room k7q2\n\n[' + '▓'.repeat(fill) + '░'.repeat(16-fill) + '] ' + fmt(600*(1-k/total)); }
   };
   const asciiEls = $$('[data-ascii]');
   asciiEls.forEach(el=>{ el._f = 0; el.innerHTML = ASCII[el.dataset.ascii](0); });
@@ -2014,7 +2080,9 @@ window.VeilFox = (function(){
   }
 
   /* ---------- super room configurator ---------- */
-  let people = 4;
+  let people = 4, ai = false;
+  const AI_PRICE = {3600:2, 86400:5};                         // uncensored AI model, per quant-room
+  const minPeople = () => ai ? 1 : 2;                          // alone only with the AI
   const seats = $('#seats'), pVal = $('#pVal'), pMinus = $('#pMinus'), pPlus = $('#pPlus'), peekFox = $('#foxPeek');
   for(let i=0;i<10;i++){ const d = document.createElement('span'); d.className = 'seat'; seats.appendChild(d); }
   // Super Room price: base covers 2 people, each extra person adds a fixed amount.
@@ -2023,18 +2091,19 @@ window.VeilFox = (function(){
   function updPrice(){
     const life = ($('input[name="life"]:checked') || {}).value || 3600;
     const t = PRICE[life] || PRICE[3600];
-    let s = (t.base + t.extra*(people - 2)).toFixed(3);
+    let s = (t.base + t.extra*Math.max(0, people - 2) + (ai ? AI_PRICE[life] : 0)).toFixed(3);
     if(s.endsWith('0')) s = s.slice(0, -1);
     sPrice.textContent = '$' + s;
-    sPriceFor.textContent = people + ' people · ' + t.label;
+    sPriceFor.textContent = (people === 1 ? 'you' : people + ' people') + ' · ' + t.label + (ai ? ' · AI' : '');
   }
   function updSeats(){
     pVal.textContent = people;
     $$('.seat', seats).forEach((d,i)=>{ d.className = 'seat' + (i === 0 ? ' host' : (i < people ? ' on' : '')); });
-    pMinus.disabled = people <= 2; pPlus.disabled = people >= 10;
+    pMinus.disabled = people <= minPeople(); pPlus.disabled = people >= 10;
     updPrice();
   }
-  pMinus.addEventListener('click', ()=>{ people = Math.max(2, people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
+  $('#aiOn').addEventListener('change', e=>{ ai = e.target.checked; if(!ai && people < 2) people = 2; updSeats(); Fox.flash(peekFox, ai ? 'excited' : 'idle', 800); });
+  pMinus.addEventListener('click', ()=>{ people = Math.max(minPeople(), people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
   pPlus.addEventListener('click', ()=>{ people = Math.min(10, people+1); updSeats(); Fox.flash(peekFox, 'excited', 700); });
   // the peeking fox sits behind the Super Room card on every screen size
   Fox.param(peekFox, 'back', true);
@@ -2049,6 +2118,17 @@ window.VeilFox = (function(){
     why.addEventListener('toggle', ()=>{ if(!why.open){ classicCard.style.minHeight = ''; classicCard.style.alignSelf = ''; } });
   }
   updSeats();
+
+  /* AI section: the demo conversation types itself out when it comes into view */
+  (function(){
+    const body = $('#aiBody'); if(!body) return;
+    const ms = $$('.msg', body); let played = false;
+    const play = async ()=>{ if(played) return; played = true;
+      for(const m of ms){ await sleep(reduce ? 0 : 900); m.classList.add('in'); } };
+    if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) play(); }), {threshold:.4}).observe(body);
+    else play();
+    let s = 59*60 + 12; setInterval(()=>{ s = s > 0 ? s - 1 : 3600; $('#aiT').textContent = fmt(s); }, 1000);
+  })();
 
   /* ---------- protocol terminal ---------- */
   const termOut = $('#termOut');
@@ -2150,10 +2230,10 @@ window.VeilFox = (function(){
     }
     const id = ++run;
     show('loading');
-    $('#dlgTitle').textContent = 'Finding your room…';
+    $('#dlgTitle').textContent = 'Finding your quant-room…';
     Fox.setPose(dlgFox, 'work');
     genLog.textContent = '';
-    for(const l of ['› looking up the phrase', '› deriving the room key', '› identity required … none', '› joining', '› in']){
+    for(const l of ['› looking up the phrase', '› deriving the quant-room key', '› identity required … none', '› joining', '› in']){
       await sleep(400); if(id !== run) return; genLog.textContent += l + '\n';
     }
     await sleep(250); if(id !== run) return;
@@ -2164,7 +2244,7 @@ window.VeilFox = (function(){
   }
   function enterRoom(ph, secs, typeLabel){
     $('#roomPhrase').textContent = ph;
-    $('#readyTitle').textContent = guest ? 'You’re in.' : 'Your room is open.';
+    $('#readyTitle').textContent = guest ? 'You’re in.' : 'Your quant-room is open.';
     $('#readyText').textContent = guest ? 'Nothing here outlives the timer. Not even you.' : 'Share the link or the four-word phrase. Both stop working when the timer ends.';
     $('#linkRow').hidden = guest;
     roomType.textContent = typeLabel;
@@ -2195,7 +2275,7 @@ window.VeilFox = (function(){
   }
   // Create a room opens the room page; the Super Room card passes the lifetime and people already picked
   $$('[data-create]').forEach(b=>b.addEventListener('click', ()=>{
-    location.href = '/room/#/new' + (b.dataset.create === 'super' ? '?plan=super&life=' + lifetime() + '&people=' + people : '');
+    location.href = '/room/#/new' + (b.dataset.create === 'super' ? '?plan=super&life=' + lifetime() + '&people=' + people + (ai ? '&ai=1' : '') : '');
   }));
   $$('[data-join]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openJoin(); }));
   $('#joinBtn').addEventListener('click', tryJoin);

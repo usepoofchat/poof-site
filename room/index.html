@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Create a room | Poof</title>
-<meta name="description" content="Pick a Classic Room (free, 10 minutes) or a Super Room (more time, more people). No account, no email, no phone. Then poof.">
+<title>Create a quant-room | Poof</title>
+<meta name="description" content="Pick a Quant-Room (free, 10 minutes) or a Super Quant-Room: more time, more people, an optional uncensored AI. No account, no email, no phone.">
 <link rel="canonical" href="https://usepoof.chat/room/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Poof">
-<meta property="og:title" content="Create a private room.">
-<meta property="og:description" content="Pick a Classic Room (free, 10 minutes) or a Super Room (more time, more people). No account, no email, no phone. Then poof.">
+<meta property="og:title" content="Create a private quant-room.">
+<meta property="og:description" content="Pick a Quant-Room (free, 10 minutes) or a Super Quant-Room: more time, more people, an optional uncensored AI. No account, no email, no phone.">
 <meta property="og:url" content="https://usepoof.chat/room/">
 <meta property="og:image" content="https://usepoof.chat/og/room.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Create a private room.">
+<meta property="og:image:alt" content="Create a private quant-room.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@usepoofchat">
-<meta name="twitter:title" content="Create a private room.">
-<meta name="twitter:description" content="Pick a Classic Room (free, 10 minutes) or a Super Room (more time, more people). No account, no email, no phone. Then poof.">
+<meta name="twitter:title" content="Create a private quant-room.">
+<meta name="twitter:description" content="Pick a Quant-Room (free, 10 minutes) or a Super Quant-Room: more time, more people, an optional uncensored AI. No account, no email, no phone.">
 <meta name="twitter:image" content="https://usepoof.chat/og/room.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -247,6 +247,22 @@ html.fox-live .fox-slot img{visibility:hidden}
 .big-clock{font:600 clamp(54px,6vw,84px)/1 var(--mono);letter-spacing:-.06em;margin:14px 0 4px;font-variant-numeric:tabular-nums}
 .plan.super .big-clock{color:var(--panel-ink)}
 
+/* uncensored AI option (Super Quant-Rooms) */
+.ai-row{display:block}
+.ai-toggle{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.ai-toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.ai-toggle .sw{position:relative;flex:none;width:42px;height:24px;margin-top:1px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--panel-line);transition:background .25s}
+.ai-toggle .sw::after{content:"";position:absolute;left:4px;top:4px;width:16px;height:16px;background:var(--panel-ink-2);transition:left .25s var(--ease),background .25s}
+.ai-toggle input:checked + .sw{background:var(--rust);box-shadow:none}
+.ai-toggle input:checked + .sw::after{left:22px;background:#1d1f2b}
+.ai-toggle input:focus-visible + .sw{outline:2px solid var(--rust);outline-offset:3px}
+.ai-toggle b{display:block;font-weight:600;font-size:15.5px;line-height:1.3}
+.ai-toggle small{display:block;margin-top:3px;font:500 11.5px/1.5 var(--mono);color:var(--panel-ink-2)}
+.msg.ai{align-self:flex-start;background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rust);border-bottom-left-radius:4px}
+.msg.ai::before{content:"AI";display:block;font:600 10.5px var(--mono);letter-spacing:.08em;color:var(--rust-text);margin-bottom:3px}
+.room-grid.solo{grid-template-columns:minmax(0,1fr)}
+.room-grid.solo .share{display:none}
+
 /* receipt look for the payment */
 .checkout{position:relative;background-image:linear-gradient(var(--surface),var(--surface))}
 .checkout::before{content:"poof / receipt";display:block;font:500 12px var(--mono);color:var(--ink-3);padding-bottom:14px;margin-bottom:18px;border-bottom:1.5px dashed var(--line)}
@@ -307,9 +323,9 @@ html.fox-live .fox-slot img{visibility:hidden}
     <div class="new-head">
       <div class="fox-slot new-fox" id="foxAscii" data-layer="back" data-mode="ascii" data-px="12" data-alpha=".55" data-frame="full" data-pose="idle" data-look data-yaw="-0.5" aria-hidden="true"></div>
       <div>
-        <p class="demo-note">Preview. Rooms go live soon; this one runs only in your browser.</p>
-        <p class="kick"><span>› new room</span><span>identity required … <b>none</b></span></p>
-        <h1 id="newTitle" tabindex="-1">Create a <span class="r">room.</span></h1>
+        <p class="demo-note">Preview. Quant-rooms go live soon; this one runs only in your browser.</p>
+        <p class="kick"><span>› new quant-room</span><span>identity required … <b>none</b></span></p>
+        <h1 id="newTitle" tabindex="-1">Create a <span class="r">quant-room.</span></h1>
         <p class="lead" id="newLead">Choose how long it lives and how many people can join. No account, ever.</p>
       </div>
     </div>
@@ -317,8 +333,8 @@ html.fox-live .fox-slot img{visibility:hidden}
       <article class="plan classic" data-plan="classic" role="radio" aria-checked="true" tabindex="0">
         <span class="sel" aria-hidden="true">Selected</span>
         <p class="over">Free, for two.</p>
-        <h2>Classic Room</h2>
-        <p class="desc">A simple private room for two.</p>
+        <h2>Quant-Room</h2>
+        <p class="desc">A simple private quant-room for two.</p>
         <p class="big-clock" aria-hidden="true">10:00</p>
         <dl class="specs">
           <dt>Lifetime</dt><dd>10 minutes</dd>
@@ -330,7 +346,7 @@ html.fox-live .fox-slot img{visibility:hidden}
       <article class="plan super" data-plan="super" role="radio" aria-checked="false" tabindex="-1">
         <span class="sel" aria-hidden="true">Select</span>
         <p class="over">Sometimes you need more.</p>
-        <h2>Super Room</h2>
+        <h2>Super Quant-Room</h2>
         <p class="desc">More time, more people, file sharing. Same privacy.</p>
         <p class="big-clock" id="superClock" aria-hidden="true">1:00:00</p>
         <div class="config">
@@ -350,6 +366,10 @@ html.fox-live .fox-slot img{visibility:hidden}
               <button type="button" id="pPlus" aria-label="More people">+</button>
             </div>
           </div>
+          <div class="cfg-row ai-row">
+            <label class="ai-toggle"><input type="checkbox" id="aiOn"><span class="sw" aria-hidden="true"></span>
+              <span><b>Include an uncensored AI model</b><small>Runs on Poof's own servers. No logs, no memory after the poof. +$2 for 1 hour, +$5 for 24 hours. With the AI, you can also talk to it alone.</small></span></label>
+          </div>
           <div class="cfg-row">
             <span class="cfg-lbl">Price</span>
             <div class="price-box"><b id="sPrice">$0.588</b><span class="price-for" id="sPriceFor">4 people · 1 hour</span></div>
@@ -358,27 +378,29 @@ html.fox-live .fox-slot img{visibility:hidden}
         <ul class="feat">
           <li>Up to 10 people</li>
           <li>File sharing</li>
-          <li>Extended room lifetime</li>
-          <li>Additional room controls</li>
+          <li>Extended quant-room lifetime</li>
+          <li>Additional quant-room controls</li>
+          <li>Optional uncensored AI model</li>
         </ul>
       </article>
     </div>
     <div class="go">
-      <p class="sum" id="goSum"><b>Classic Room</b> · 10 minutes · 2 people · Free</p>
-      <button class="btn btn-lg" id="goBtn" type="button"><span class="pip" aria-hidden="true"></span><span id="goTxt">Create Classic Room</span></button>
+      <p class="sum" id="goSum"><b>Quant-Room</b> · 10 minutes · 2 people · Free</p>
+      <button class="btn btn-lg" id="goBtn" type="button"><span class="pip" aria-hidden="true"></span><span id="goTxt">Create Quant-Room</span></button>
     </div>
   </section>
 
   <!-- 2. pay for a Super Room -->
   <section class="view" data-view="pay" hidden aria-labelledby="payTitle">
     <button class="link" type="button" id="payBack">← Back</button>
-    <h1 id="payTitle" tabindex="-1" style="margin-top:18px">Unlock your Super Room.</h1>
-    <p class="lead">Paid by burning Poof tokens. No account and no card, and the payment is never linked to the room.</p>
+    <h1 id="payTitle" tabindex="-1" style="margin-top:18px">Unlock your Super Quant-Room.</h1>
+    <p class="lead">Paid by burning Poof tokens. No account and no card, and the payment is never linked to the quant-room.</p>
     <div class="checkout">
       <dl class="sumlist">
-        <dt>Room</dt><dd>Super Room</dd>
+        <dt>Quant-room</dt><dd>Super Quant-Room</dd>
         <dt>Lifetime</dt><dd id="payLife">1 hour</dd>
         <dt>People</dt><dd id="payPpl">up to 4</dd>
+        <dt id="payAiL" hidden>AI model</dt><dd id="payAi" hidden>uncensored, +$2</dd>
         <dt class="total">Total</dt><dd class="total" id="payTotal">$0.588</dd>
       </dl>
       <button class="btn btn-lg" id="payBtn" type="button" style="width:100%"><span class="pip" aria-hidden="true"></span>Burn tokens and unlock</button>
@@ -392,7 +414,7 @@ html.fox-live .fox-slot img{visibility:hidden}
     <div class="busy">
       <div class="fox-slot" id="foxWork" data-pose="work" data-frame="full" data-px="3" aria-hidden="true"><img class="t-light" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa0AAAH6CAYAAAC03RN4AAAQjUlEQVR42u3dMYgV1xoH8LuPTRG0CRG0iCwEAgEbGyuDIARs0rlNILBNIqSKlRAUgqAErEwVUJuAYLN2aQRBkFjZ2CwEhMCihQGDTcTCYl/hhfDem+/uO8OZOefM/H7lOPc6d+be/XPgz3fWFlCJoxvH9lLOf7a7s+auwbz8yy0AQGgBgNACQGgBgNACgDzW3QLGFrUEr10933n+hYvX3TTASgsAoQUAQgsAoQUAQgsAcirWHowaZObJTYeWIGClBYDQAgChBQBCCwChBQCVqm72YGrj7MuvvtE2rNQfv//Wefyv744H5z/pPP7xp5+5mYCVFgBCCwCEFgBCCwCEFgDkVKx5F7UEU2kV1uvFuY3OZ/zhT086z49ahZEjN3Y9Y7DSAgChBQBCCwChBQBCCwD6KDZ7MHX3Wrvd1iu1JRjJ1SoErLQAQGgBgNACQGgBgNACgH0Uaw+mtv42z252Hj/98Erwiu5Gm3l1AFZaACC0AEBoASC0AEBoATB7xdqDz3Z3Olt80Ry7SOq8uuj9tQr39/bNq72Uew1gpQWA0AIAoQUAQgsAoQUAlaquMZdrF9xIatNNq3C8Z+OZAVZaAAgtABBaACC0ABBaADCSdbfgnagB92JxvMiswmjO32KxWGzf3e48Hu3uHLXvUuc2Dt0SBLDSAkBoAYDQAgChBYDQAoCRNDN7MFJqJmHq9eRq8I3xf9TWKjR7ELDSAkBoAYDQAkBouQUACC0AyKy62YNR8yu1VZiqpUZebddktiFgpQUAQgsAoQUAQgsAhBYAjbFz8VKuBtyDU5c6j59uaPbg0Pco9f0BrLQAEFoAILQAEFpuAQBCCwCEFgBzNbvK++DDXe9uD/v+i/kNzE2+Rzc+8MsGKy0AEFoAILQAEFoAILQAYJW1Vi70xbmNvRzv03pjrs9rwiG+D69ku6YWHLmxu+YnD1ZaACC0AEBoASC0AEBoAcBiwu3Byc7VW7TVdBzymeWiVQhWWgAgtAAQWgAgtABAaAEwO7ObPZhqqo05/qE9CFZaACC0ABBaACC0AEBoATA7zbSm3r551dkebH2WYEuzB6MdkC9cvJ70LB+f+buJ75xWIVhpAYDQAkBoAYDQAgChBcBkVdeOKjVjMJeWZgmeuHew8/i1q+c7j0+1JRjRHgQrLQAQWgAILQAQWgAgtACYrPVWLjS1lRc14yKpjbno/NMNzR6MRJ+59TYgYKUFAEILAIQWAEILAIQWACzNbvZgaqsw1ZQbdr/uvO48/sWxA1nOr43Zg2ClBQBCCwChBQBCCwCEFgCTtT63D2x+3v6iGYYH7m53Hj8Rzip0LwErLQCEFgAILQAQWgAILQCo0rpb8E7qTMI/fv+t83jqLsE1+vjTz5q4zrnNQgSstAAQWgAgtAAQWgAgtAAgG+3BnqKG3RTm7dU2nzGahbiV+D7R+VNofIKVFgAILQAQWgAILQAQWgCQRHtwKWrMRTMJczXsombcqkbbg1OXOo+ffngl2/+RQ+qsv+g6Aay0ABBaACC0ABBabgEAQgsAMltr5UJfnNvYm9ODWdWk27673Xl88+xm5/HaZuu10hJ87/0P1vyJACstABBaAAgtABBaACC0AJikZtpRb9+8ytIebGWX2mjm4WKxWPzx+29ZPlvqbMDo/MjW/adV3dOodfnlV99oCYKVFgAILQCEFgAILQAQWgDMy+x2Lk6de5erkXfg2x87j1+4eL3z+LWr58P/4+NPP+s8/vhM2mfeSrx3XwT3IrVVmCpq/QFWWgAgtABAaAEgtABAaAFAT7ObPZjLL59/knT+5eeHB7+maCZhbZ95VTMyxeufv+88HjU1zRgEKy0AEFoAILQAEFoAILQAYEl7MLOoYRft4hvNEVxl6JZgdE0/fPRn0vvkmrcYnf9sd0cbEKy0AEBoAYDQAkBoAYDQAoA+mm9f3bl9s7NVmKuhljonL3Ue3ubZzc7jY+zWG11rJJolmNoqTH1/LUHASgsAoQUAQgsAoeUWACC0ACCz2bWyjm4c62wb5moVRudHDbs+jbzU1wx9/hfHDhR5lkdu7GoVgpUWAAgtABBaAAgtABBaANCH9tU+bp08NOiOyVHz7ted19le08r5qbQHwUoLAIQWAAgtAIQWAAgtAOhpvbYLinYijnb4/eu7453HP/zpSefx997/IEvjbOjG3Nb9p+G//fL5J0WuaejzAay0ABBaACC0AEBoASC0AGAkg89ue3FuI2l2X9T6S20Jpp4fNfJSlWzMtT57MFfLMXUmYanvaK4max9v37zaW0xQyXuKlRYACC0AhBYACC0AEFoANCVb0yZqIw3d+it1fktq23G41OeN5jnW9p3L2YCbakswlVahlRYACC0AEFoACC0AEFoA8F+yNWpS57e1IrUR9uDUpc7jpx9eyfL+fV/TpfWWYKlnXFLqXEXtwX60Da20AEBoASC0AEBoAYDQAmDyirUHW589WOr8nP9H68yv/IdW4Ti0Cq20AEBoASC0AEBoAYDQAmAyZjd7cOiG1xiNs1KzB4eeVWgWYn/ag2VpFVppAYDQAkBoAYDQAgChBUBzmmkPtjQbsDZmFU6f9mCdv7HU54KVFgBCCwCEFgAILQCEFgCMJrnZ0sqMwVxaagmmGrolaJbgePdHe7Ct35JWoZUWAEILAIQWAAgtAIQWABQ3eHswV0PKLMH+Ss1nHForsxNLtiijlpr2YN7fUup31E7HVloACC0AEFoAILQAEFoAUFzYYBl6xmBtc+mm3B5MVap9V9t3IvV6ovMjJWcwRq3CO7dvdv7uN89u+q4XfC5YaQEgtABAaAGA0AJAaAFAduutXGiuOXNaguWfQWTr/tNB3z+XllqCqbQEy/4Gota2VqGVFgBCCwCEFgAILQCEFgBktzb0jMFIqTlz2oP91dbiq01tsxP7qG2n41Z20S71XKy0AEBoAYDQAkBoAYDQAoDewtmDudo5WoLzNbeGV+qOxmO0ClOfQdQm3r673Xl+rlmFqd+JVmYJYqUFgNACAKEFAEILAKEFANUKZw+euHewyAU9PvN3lvfRHsxPo6qfaG7crZOHOn97NbYKae/7ZaUFAEILAIQWAEILAIQWAKy0Hs1Fe3ym+wVRq/Da1fOdxy9cvJ50/uLhFU+lUhpneX396GV3q3CxCHcJztUs9Myw0gIAoQUAQgsAoQUAQguAmUueWXV049jekBdk9mB7ptpEy7XjcDQbbujfUs7fE+2Z6kxCKy0AhBYACC0AhBYACC0AyCRbuyS1CRXNHjydOHtQS7Be5tu9k2teZ5/X5GoP5mpSMh7tQQAQWgAgtAAQWgAgtABgpcHbJamtwtS2k/ZgvVpvD6Y25qKWYI1++OjPzuOXnx/uPP5sd6fzb8WLcxt7vul10h4EAKEFAEILAKEFAEILAFZaH/o/iFpHY+zaCv+P1JZgdP5i0U578OtHL4Nm2UtfCKy0AEBoASC0AEBoAYDQAmAO1kv9x1Gr8MS97lZhNJMwmm9nJuH05Wr95Tr/8vP67lH0O2P6vwMrLQAQWgAgtAAQWgAgtABgpfXaLihuO9khlf9UqiVY4w7FWoJ+B//j0TTnSFppASC0AEBoASC0AEBoAUAm661c6JEbu53tqBfntAqnotQswdTrGXqHYk1A8nxPrbQAQGgBgNACQGgBgNACgBUm21KKWoV2NC7vl88/6TxeapZgdP7l54cHvQ9TaAlq79YralxbaQGA0AIAoQWA0AIAoQUAi8WiodmDqaJG2JZn3tv23e0iz6zU+bk8PvN35/EjN9p59rdOHtISbOxvnZUWAAgtABBaAAgtABBaALDS7HZIjVpQW/ef+jYsRS3BzbObWc6PZg+myrVDcfQ+UItV3+no+2v2IAAILQAQWgAILQAQWgCw0uzag9FOqw9OXeo8P1djLvX8PnJdUy6vf/6+yDOechswdVfm2t6f/Pc/es3Xj15qDwKA0AIAoQWA0AIAoQUAsXW34J3TD690Hk/t143RKqytJZhKE638vdMSLCv1/veZPbh49NJKCwCEFgAILQCEFgAILQCIaQ/uI2oVnrh3sPP4tavnO49Hu/Ue+PbHpPP7vCY6/8LF60mfIZolGDaeKnuWuRpbJRt8tX0G+j3jMb4TVloAILQAQGgBILQAQGgBwEp2Lh5JtDNyaoNvsYhbfFFLMPX8qDHZijk25rQEp/28VjUEp7pDsZUWAEILAIQWAAgtAIQWAAxMe7BSfXYqbb1BVtv1Dz3nb4zZg9T5nchJexAAhBYACC0AhBYACC0A6EV7MDPtrv73aOv+087jf313vInrH7pV2Od79OFPT5q4p618R4duCZo9aKUFgNACAKEFAEILAKEFAKPRHsxsjFljrWt9lqB7Oh2tPOO5NQSttAAQWgAgtABAaAEgtABgBNqDI4laSpefH+48/sNHfzZzT+fWXDN7cL7PLNdvI/V6jtzYHfxv9dGNY51/G5/t7lSVE1ZaADRDaAEgtABAaAEgtACgduZZLd06eaizOZOrGTfGjLPUJmLq+a23BKcwF9KMwWk/4+g3uarBl9r6a6UlaKUFQPOEFgBCCwCEFgBCCwBqpz24dOf2zc5Gzeufv6/uWvs0jHKobW7jGLP+UoyxA7L24DS+Q6m/4ajx1+c1rbQErbQAaJ7QAkBoAYDQAkBoAUDttAeXVrVzalNb+yea21hK1MyK5JrNmOs6V72/XaJX34faZg/magnmnD1opQUAQgsAhBYAQgsAhBYACC0A2qLyvhQNzL1w8Xrn+deunl+knJ9TbVXWqHI79D0a+v1zVdtTzXEormp7v/Nr/HtgpQUAQgsAoQUAQgsAoQUAjdAeXJrjwNycDaaWpX7eXAN2hx7Iu8rQrbxSrb9SQ46HbgnOrSFopQWA0AIAoQUAQgsAoQUAI9BIWUqdPVjS0E2iUq3CkvMcc3zeoVuIfV5Tan5iqRafluB4Sn0GKy0AmiG0ABBaACC0ABBaAFA77cGlOc4enPI9ynE/h26E9Wlf5Wwipig1bzHX9bfyjMdo5LX+ma20AGiG0AJAaAGA0AJAaAFA7bQHl1JnD5ack1fbfLKo/ZN6j4Y+v9R9zjnLsVTrrPXW3FSvf47PwEoLgGYILQCEFgAILQCEFgDUTntwyezBad2jHPezpdmDU52t53zfCSstAJoltAAQWgAgtAAQWgBQu+bbg0PPvUs19Fy9Va+prf2TquQ8x1bup9ac8+f+ma20AGiG0AJAaAGA0AJAaAFA7ZppD7ayO25tu+8uFsO3eaa6Q7E5c873nTB7EAB6E1oACC0AEFoACC0AqF117cG5zRKssSUYuXP75l4LzyDX+5dshOX63ZTa5Xro66/tGdQ4e3Cqz8BKC4BmCC0AhBYACC0AhBYA1K66ZlGuhlrJFt/QWmkJTnWeY0tz5ubG7ME6rslKCwCEFgBCCwCEFgBCCwAaMNnZg60r2SCzS/Tq+6nBB1ZaACC0ABBaACC0AEBoAdC85ttOq3b0LKGlnUpz3VOzBAErLQAQWgAILQAQWgAgtABojBbUPlrf5XOMexGpbV6kliBYaQGA0AIAoQWA0AIAoQUAS9pRDKbUXMih5z9qFYKVFgAILQCEFgAILQAQWgA0TwuK0Q3d4tP6AystABBaACC0ABBaACC0AGAf/wYZJjduXcBBvAAAAABJRU5ErkJggg==" alt=""><img class="t-dark" src="data:image/png;base64,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" alt=""></div>
       <div>
-        <h1 id="sealTitle" tabindex="-1">Sealing your room…</h1>
+        <h1 id="sealTitle" tabindex="-1">Sealing your quant-room…</h1>
         <pre class="genlog" id="sealLog" aria-live="polite"></pre>
       </div>
     </div>
@@ -402,10 +424,10 @@ html.fox-live .fox-slot img{visibility:hidden}
   <section class="view" data-view="room" hidden aria-labelledby="roomTitle">
     <div class="room-head">
       <div>
-        <p class="over" id="roomType">Classic Room · 2 people</p>
-        <h1 class="sr" id="roomTitle" tabindex="-1">Your room is open.</h1>
+        <p class="over" id="roomType">Quant-Room · 2 people</p>
+        <h1 class="sr" id="roomTitle" tabindex="-1">Your quant-room is open.</h1>
         <p class="timer" id="timer" aria-hidden="true">10:00</p>
-        <p class="small" id="timerSr" style="margin:0">until this room disappears</p>
+        <p class="small" id="timerSr" style="margin:0">until this quant-room disappears</p>
       </div>
       <button class="btn btn-sm btn-ghost" id="endBtn" type="button">Poof it now</button>
     </div>
@@ -413,11 +435,11 @@ html.fox-live .fox-slot img{visibility:hidden}
       <div class="chat-wrap">
       <div class="fox-slot chat-fox" id="foxChat" data-layer="back" data-pose="peek" data-frame="peek" data-look aria-hidden="true"></div>
       <div class="card chat">
-        <div class="chat-bar"><span>room <b id="rid">k7q2</b></span><span class="live" id="liveTxt">waiting for someone to join</span></div>
+        <div class="chat-bar"><span>quant-room <b id="rid">k7q2</b></span><span class="live" id="liveTxt">waiting for someone to join</span></div>
         <div class="notice" id="notice" role="status" hidden>
           <span class="np" aria-hidden="true"></span>
-          <p><b>3 minutes left.</b> <span>Then this room and everything in it disappears.</span></p>
-          <button class="btn" id="upBtn" type="button">Upgrade room</button>
+          <p><b>3 minutes left.</b> <span>Then this quant-room and everything in it disappears.</span></p>
+          <button class="btn" id="upBtn" type="button">Upgrade quant-room</button>
           <button class="x" id="noticeX" type="button" aria-label="Dismiss">×</button>
         </div>
         <div class="msgs" id="msgs" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
@@ -428,20 +450,20 @@ html.fox-live .fox-slot img{visibility:hidden}
       </div>
       </div>
       <div class="card share">
-        <p class="lbl"><span>Room link</span></p>
+        <p class="lbl"><span>Quant-room link</span></p>
         <div class="link-row">
           <div class="link-box masked" id="linkBox">
             <span class="link-text" id="linkText" aria-hidden="true"></span>
-            <button class="reveal" id="revealBtn" type="button">Click to reveal room link</button>
+            <button class="reveal" id="revealBtn" type="button">Click to reveal quant-room link</button>
           </div>
-          <button class="icon-btn" id="copyLink" type="button" aria-label="Copy room link" title="Copy link">
+          <button class="icon-btn" id="copyLink" type="button" aria-label="Copy quant-room link" title="Copy link">
             <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6" y="6" width="9.5" height="9.5" rx="2"/><path d="M12 3.5H4.5a1 1 0 0 0-1 1V12"/></svg>
           </button>
           <button class="icon-btn" id="qrBtn" type="button" aria-label="Show QR code" aria-expanded="false" aria-controls="qrPop" title="QR code">
             <svg viewBox="0 0 18 18" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 2h6v6H2zM3.5 3.5v3h3v-3zM10 2h6v6h-6zM11.5 3.5v3h3v-3zM2 10h6v6H2zM3.5 11.5v3h3v-3zM10 10h2v2h-2zM14 10h2v2h-2zM12 12h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2z"/></svg>
           </button>
         </div>
-        <div class="qr-pop" id="qrPop" hidden><div class="qr-box" id="qrBox" role="img" aria-label="QR code of the room link"></div><p>Scan to join from another device. It stops working when the timer ends.</p></div>
+        <div class="qr-pop" id="qrPop" hidden><div class="qr-box" id="qrBox" role="img" aria-label="QR code of the quant-room link"></div><p>Scan to join from another device. It stops working when the timer ends.</p></div>
         <p class="copy-msg" id="linkMsg" role="status"></p>
 
         <div class="sep"></div>
@@ -469,9 +491,9 @@ html.fox-live .fox-slot img{visibility:hidden}
       <div class="fox-slot" id="foxDoze" data-pose="doze" data-frame="full" data-px="3" aria-hidden="true"><img class="t-light" src="data:image/png;base64,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" alt=""><img class="t-dark" src="data:image/png;base64,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" alt=""></div>
       <div>
         <h1 id="goneTitle" tabindex="-1">Poof.</h1>
-        <p class="lead" id="goneText">This room no longer exists. Nothing was kept: not the messages, not the link, not the phrase.</p>
+        <p class="lead" id="goneText">This quant-room no longer exists. Nothing was kept: not the messages, not the link, not the phrase.</p>
         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:24px">
-          <a class="btn" href="#/new" id="againBtn"><span class="pip" aria-hidden="true"></span>Create another room</a>
+          <a class="btn" href="#/new" id="againBtn"><span class="pip" aria-hidden="true"></span>Create another quant-room</a>
           <a class="btn btn-ghost" href="/">Back to usepoof.chat</a>
         </div>
       </div>
@@ -1026,28 +1048,33 @@ window.VeilFox = (function(){
     views.forEach(v=>v.hidden = v.dataset.view !== name);
     window.scrollTo(0, 0);
     const h = $('[data-view="' + name + '"] h1'); if(h) h.focus({preventScroll:true});
-    document.title = ({new:'Create a room', pay:'Unlock a Super Room', seal:'Sealing your room', room:'Your room', gone:'Room gone'})[name] + ' | Poof';
+    document.title = ({new:'Create a quant-room', pay:'Unlock a Super Quant-Room', seal:'Sealing your quant-room', room:'Your quant-room', gone:'Quant-room gone'})[name] + ' | Poof';
   }
 
   /* ---------- 1. choose ---------- */
   const PRICE = {3600:{base:0.49, extra:0.049}, 86400:{base:1.49, extra:0.009}};
   const money = v => { let s = v.toFixed(3); if(s.endsWith('0')) s = s.slice(0, -1); return '$' + s; };   // same format as the site: $0.588, $0.49
   const plans = $$('.plan'), pVal = $('#pVal'), pMinus = $('#pMinus'), pPlus = $('#pPlus');
-  const st = {plan:'classic', life:3600, people:4, upgrading:false};
+  const st = {plan:'classic', life:3600, people:4, upgrading:false, ai:false};
+  const AI_PRICE = {3600:2, 86400:5};                       // uncensored AI model, per room
+  const minPeople = () => st.ai ? 1 : 2;                     // alone only makes sense with the AI
   const lifeTxt = s => s === 3600 ? '1 hour' : '24 hours';
-  const superPrice = () => { const p = PRICE[st.life]; return p.base + Math.max(0, st.people - 2)*p.extra; };
+  const superPrice = () => { const p = PRICE[st.life]; return p.base + Math.max(0, st.people - 2)*p.extra + (st.ai ? AI_PRICE[st.life] : 0); };
+  const pplTxt = n => n === 1 ? 'just you' : 'up to ' + n + ' people';
   function syncChoose(){
     plans.forEach(p=>{ const on = p.dataset.plan === st.plan; p.setAttribute('aria-checked', String(on)); p.tabIndex = on ? 0 : -1; $('.sel', p).textContent = on ? 'Selected' : 'Select'; });
     $('#superClock').textContent = st.life === 3600 ? '1:00:00' : '24:00:00';
-    pVal.textContent = st.people; pMinus.disabled = st.people <= 2; pPlus.disabled = st.people >= 10;
+    if(st.people < minPeople()) st.people = minPeople();
+    pVal.textContent = st.people; pMinus.disabled = st.people <= minPeople(); pPlus.disabled = st.people >= 10;
+    $('#aiOn').checked = st.ai;
     $$('input[name="life"]').forEach(i=>i.checked = +i.value === st.life);
     $('#sPrice').textContent = money(superPrice());
-    $('#sPriceFor').textContent = st.people + ' people · ' + lifeTxt(st.life);
+    $('#sPriceFor').textContent = (st.people === 1 ? 'you' : st.people + ' people') + ' · ' + lifeTxt(st.life) + (st.ai ? ' · AI' : '');
     if(st.plan === 'classic'){
-      $('#goSum').innerHTML = '<b>Classic Room</b> · 10 minutes · 2 people · Free';
-      $('#goTxt').textContent = 'Create Classic Room';
+      $('#goSum').innerHTML = '<b>Quant-Room</b> · 10 minutes · 2 people · Free';
+      $('#goTxt').textContent = 'Create quant-room';
     }else{
-      $('#goSum').innerHTML = '<b>Super Room</b> · ' + lifeTxt(st.life) + ' · up to ' + st.people + ' people · ' + money(superPrice());
+      $('#goSum').innerHTML = '<b>Super Quant-Room</b> · ' + lifeTxt(st.life) + ' · ' + pplTxt(st.people) + (st.ai ? ' · uncensored AI' : '') + ' · ' + money(superPrice());
       $('#goTxt').textContent = 'Continue to payment';
     }
   }
@@ -1070,7 +1097,8 @@ window.VeilFox = (function(){
     Fox.flash($('#foxAscii'), name === 'super' ? 'excited' : 'sad', 900);
   }
   $$('input[name="life"]').forEach(i=>i.addEventListener('change', ()=>{ st.life = +i.value; pickPlan('super'); syncChoose(); Fox.flash($('#foxAscii'), 'excited', 700); }));
-  pMinus.addEventListener('click', ()=>{ st.people = Math.max(2, st.people - 1); pickPlan('super'); syncChoose(); Fox.flash($('#foxAscii'), 'sad', 600); });
+  $('#aiOn').addEventListener('change', e=>{ st.ai = e.target.checked; if(!st.ai && st.people < 2) st.people = 2; pickPlan('super'); syncChoose(); Fox.flash($('#foxAscii'), st.ai ? 'excited' : 'idle', 900); });
+  pMinus.addEventListener('click', ()=>{ st.people = Math.max(minPeople(), st.people - 1); pickPlan('super'); syncChoose(); Fox.flash($('#foxAscii'), 'sad', 600); });
   pPlus.addEventListener('click', ()=>{ st.people = Math.min(10, st.people + 1); pickPlan('super'); syncChoose(); Fox.flash($('#foxAscii'), 'excited', 600); });
   $('#goBtn').addEventListener('click', ()=>{ if(st.plan === 'classic') seal(); else go('#/pay'); });
 
@@ -1078,15 +1106,17 @@ window.VeilFox = (function(){
   let payRun = 0;
   function preparePay(){
     $('#payLife').textContent = lifeTxt(st.life);
-    $('#payPpl').textContent = 'up to ' + st.people;
+    $('#payPpl').textContent = pplTxt(st.people);
+    $('#payAiL').hidden = $('#payAi').hidden = !st.ai;
+    $('#payAi').textContent = 'uncensored, +$' + AI_PRICE[st.life];
     $('#payTotal').textContent = money(superPrice());
-    $('#payTitle').textContent = st.upgrading ? 'Upgrade your room.' : 'Unlock your Super Room.';
+    $('#payTitle').textContent = st.upgrading ? 'Upgrade your quant-room.' : 'Unlock your Super Quant-Room.';
     $('#payLog').textContent = ''; $('#payBtn').disabled = false;
   }
   $('#payBack').addEventListener('click', ()=>history.back());
   $('#payBtn').addEventListener('click', async ()=>{
     const id = ++payRun; $('#payBtn').disabled = true; const log = $('#payLog'); log.textContent = '';
-    for(const l of ['› connecting your wallet … preview', '› burning ' + money(superPrice()) + ' in Poof tokens … simulated', '› receipt is not linked to the room', '› unlocked']){
+    for(const l of ['› connecting your wallet … preview', '› burning ' + money(superPrice()) + ' in Poof tokens … simulated', '› receipt is not linked to the quant-room', '› unlocked']){
       await sleep(520); if(id !== payRun) return; log.textContent += l + '\n';
     }
     await sleep(350); if(id !== payRun) return;
@@ -1099,7 +1129,7 @@ window.VeilFox = (function(){
     const id = ++sealRun;
     go('#/seal', true);
     const log = $('#sealLog'); log.textContent = '';
-    for(const l of ['› opening a room', '› generating room keys in this browser', '› identity required … none', '› sealing the room', '› ready']){
+    for(const l of ['› opening a quant-room', '› generating quant-room keys in this browser', '› identity required … none', '› sealing the quant-room', '› ready']){
       await sleep(420); if(id !== sealRun) return; log.textContent += l + '\n';
     }
     await sleep(300); if(id !== sealRun) return;
@@ -1109,13 +1139,28 @@ window.VeilFox = (function(){
   /* ---------- 4. room ---------- */
   const WORDS = 'amber otter quiet lantern maple cobalt river echo velvet harbor pine ember falcon meadow silver tide orbit cedar willow north copper lunar moss ivory canyon delta garnet hollow juniper linen nectar opal pebble quartz raven saffron thistle vapor wren yarrow basil comet dune fable glade heron indigo jasper kettle lotus marble nimbus onyx prism quill ripple sable tundra umber violet walnut zephyr'.split(' ');
   const pickWord = () => WORDS[crypto.getRandomValues(new Uint32Array(1))[0] % WORDS.length];
-  const room = {id:'', link:'', left:0, total:0, type:'classic', people:2, timer:null, warned:false, phrase:'', phraseLeft:0};
+  const room = {id:'', link:'', left:0, total:0, type:'classic', people:2, ai:false, timer:null, warned:false, phrase:'', phraseLeft:0};
   const timerEl = $('#timer'), notice = $('#notice'), msgs = $('#msgs');
   const PHRASE_SECS = 180, WARN_SECS = 180;
-  function typeLabel(){ return room.type === 'super' ? 'Super Room · up to ' + room.people + ' people · ' + lifeTxt(room.total) : 'Classic Room · 2 people'; }
+  function typeLabel(){ return room.type === 'super' ? 'Super Quant-Room · ' + pplTxt(room.people) + ' · ' + lifeTxt(room.total) + (room.ai ? ' · AI on' : '') : 'Quant-Room · 2 people'; }
+  // the AI is one more participant: it reads what is sent in this room (preview: it can't answer yet)
+  function aiSetup(){
+    $('.room-grid').classList.toggle('solo', room.ai && room.people === 1);
+    $('#liveTxt').textContent = room.ai ? (room.people === 1 ? 'you and the AI model' : 'AI model in the quant-room') : 'waiting for someone to join';
+    if(room.ai) sys('An uncensored AI model joined. It reads what is sent here, runs on Poof\'s own servers and forgets everything when the quant-room poofs.');
+  }
+  function aiReply(){
+    if(!room.ai) return;
+    setTimeout(()=>{
+      if(!room.timer) return;
+      const b = document.createElement('div'); b.className = 'msg ai';
+      b.textContent = 'Preview: I am not connected yet. When quant-rooms go live, I answer here, inside this room, and nothing leaves it.';
+      msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+    }, reduce ? 0 : 900);
+  }
   function openRoom(){
     const test = +(new URLSearchParams(location.search).get('t')) || 0;   // preview helper: ?t=200 starts the timer at 3:20
-    room.type = st.plan; room.people = st.plan === 'super' ? st.people : 2;
+    room.type = st.plan; room.people = st.plan === 'super' ? st.people : 2; room.ai = st.plan === 'super' && st.ai;
     room.total = st.plan === 'super' ? st.life : 600;
     room.left = test > 0 ? Math.min(test, room.total) : room.total;
     room.warned = false;
@@ -1130,13 +1175,14 @@ window.VeilFox = (function(){
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
     msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    aiSetup();
     clearInterval(room.timer); room.timer = setInterval(()=>{ room.left--; tick(); }, 1000);
     go('#/r/' + room.id, true);
     tick();
   }
   function tick(){
     timerEl.textContent = fmt(room.left);
-    $('#timerSr').textContent = 'until this room disappears';
+    $('#timerSr').textContent = 'until this quant-room disappears';
     timerEl.classList.toggle('low', room.left <= WARN_SECS);
     if(room.type === 'classic' && room.left <= WARN_SECS && room.left > 0 && !room.warned){ room.warned = true; notice.hidden = false; Fox.flash($('#foxChat'), 'sad', 1800); }
     if(room.left <= 0) endRoom();
@@ -1145,7 +1191,7 @@ window.VeilFox = (function(){
   function endRoom(){
     clearInterval(room.timer); room.timer = null; stopPhrase();
     room.link = ''; room.phrase = ''; room.id = '';
-    $('#goneText').textContent = 'This room no longer exists. Nothing was kept: not the messages, not the link, not the phrase.';
+    $('#goneText').textContent = 'This quant-room no longer exists. Nothing was kept: not the messages, not the link, not the phrase.';
     go('#/gone', true);
   }
   $('#endBtn').addEventListener('click', endRoom);
@@ -1156,6 +1202,7 @@ window.VeilFox = (function(){
     const b = document.createElement('div'); b.className = 'msg me'; b.textContent = v; msgs.appendChild(b);
     msgs.scrollTop = msgs.scrollHeight; $('#msgIn').value = '';
     Fox.flash($('#foxChat'), 'excited', 700);
+    aiReply();
   });
 
   /* the classic room nudge: 3 minutes before the end */
@@ -1163,10 +1210,12 @@ window.VeilFox = (function(){
   $('#upBtn').addEventListener('click', ()=>{ st.upgrading = true; st.plan = 'super'; go('#/upgrade'); });
   function applyUpgrade(){
     st.upgrading = false;
-    room.type = 'super'; room.people = st.people; room.total = st.life; room.left = st.life;
+    const hadAi = room.ai;
+    room.type = 'super'; room.people = Math.max(2, st.people); room.total = st.life; room.left = st.life; room.ai = st.ai;
     notice.hidden = true;
     $('#roomType').textContent = typeLabel();
-    sys('Upgraded to a Super Room. ' + lifeTxt(st.life) + ' from now, then poof.');
+    sys('Upgraded to a Super Quant-Room. ' + lifeTxt(st.life) + ' from now, then poof.');
+    if(room.ai && !hadAi) aiSetup();
     Fox.flash($('#foxChat'), 'raise', 1800);
     go('#/r/' + room.id, true);
     tick();
@@ -1232,17 +1281,18 @@ window.VeilFox = (function(){
       st.upgrading = false;
       const q = new URLSearchParams(h.split('?')[1] || '');
       if(q.get('plan') === 'super') st.plan = 'super';
+      if(q.get('ai') === '1'){ st.plan = 'super'; st.ai = true; }
       if(q.get('life') === '86400' || q.get('life') === '3600') st.life = +q.get('life');
-      if(+q.get('people') >= 2 && +q.get('people') <= 10) st.people = +q.get('people');
+      if(+q.get('people') >= 1 && +q.get('people') <= 10) st.people = +q.get('people');
       if(q.toString()) history.replaceState(null, '', '#/new');
-      $('#newTitle').innerHTML = 'Create a <span class="r">room.</span>';
+      $('#newTitle').innerHTML = 'Create a <span class="r">quant-room.</span>';
       $('#newLead').textContent = 'Choose how long it lives and how many people can join. No account, ever.';
       $('.plan.classic').hidden = false; $('.plans').classList.remove('solo');
       syncChoose(); show('new');
     }
     else if(h === '#/upgrade' && room.timer){
-      $('#newTitle').innerHTML = 'Upgrade your <span class="r">room.</span>';
-      $('#newLead').textContent = 'Keep talking: give the room more time or more people. The link and the people in it stay the same.';
+      $('#newTitle').innerHTML = 'Upgrade your <span class="r">quant-room.</span>';
+      $('#newLead').textContent = 'Keep talking: give the quant-room more time, more people or the AI model. The link and the people in it stay the same.';
       $('.plan.classic').hidden = true; $('.plans').classList.add('solo'); st.plan = 'super';
       syncChoose(); show('new');
     }
@@ -1250,15 +1300,15 @@ window.VeilFox = (function(){
     else if(h === '#/seal'){ show('seal'); }
     else if(h.startsWith('#/r/') && room.timer && h === '#/r/' + room.id){ $('.plan.classic').hidden = false; show('room'); }
     else if(h.startsWith('#/j/')){
-      $('#goneTitle').textContent = 'This room isn’t here.';
-      $('#goneText').textContent = 'Rooms go live soon. This link comes from a preview room, and preview rooms exist only in the browser that opened them.';
+      $('#goneTitle').textContent = 'This quant-room isn’t here.';
+      $('#goneText').textContent = 'Quant-rooms go live soon. This link comes from a preview, and preview quant-rooms exist only in the browser that opened them.';
       show('gone');
     }
     else if(h === '#/gone'){ $('#goneTitle').textContent = 'Poof.'; show('gone'); }
     else if(h.startsWith('#/r/')){
       // a reload or an old link: the room lived only in the tab that opened it
       $('#goneTitle').textContent = 'Poof.';
-      $('#goneText').textContent = 'This room no longer exists. Rooms live only in the tab that opened them, and nothing is kept.';
+      $('#goneText').textContent = 'This quant-room no longer exists. Quant-rooms live only in the tab that opened them, and nothing is kept.';
       show('gone');
     }
     else { history.replaceState(null, '', '#/new'); route(); }
