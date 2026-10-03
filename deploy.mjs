@@ -18,7 +18,7 @@ const BRAND = [
   "telegram/welcome.jpg", "telegram/welcome.mp4",
   "poof-brand-kit.zip",
 ].map(f => "brand/" + f);
-const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", ...BRAND];
+const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", "room/index.html", ...BRAND];
 const dry = process.argv.includes("--dry");
 // Another target: node deploy.mjs --env=.env.staging  (default .env)
 const ENV_FILE = (process.argv.find(a => a.startsWith("--env=")) || "--env=.env").slice(6);
