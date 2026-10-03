@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "deploy": "node deploy.mjs",
-    "deploy:dry": "node deploy.mjs --dry"
+    "deploy:dry": "node deploy.mjs --dry",
+    "brand-zip": "node scripts/brand-zip.mjs"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5"

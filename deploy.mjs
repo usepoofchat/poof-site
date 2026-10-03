@@ -1,11 +1,24 @@
-// Uploads the Poof website to Namecheap hosting over FTPS.
+// Uploads the Poof website to the hosting over FTPS.
 // Usage: npm run deploy        (upload)
 //        npm run deploy:dry    (only check the connection and list what would be uploaded)
 import { Client } from "basic-ftp";
 import fs from "node:fs";
 import path from "node:path";
 
-const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html"];
+// Brand kit files shown and offered for download on usepoof.chat/docs/#/brandkit (served from /brand/).
+const BRAND = [
+  "svg/poof-logo-for-dark-bg.svg", "svg/poof-logo-for-light-bg.svg", "svg/poof-logo-currentcolor.svg",
+  "svg/poof-mark.svg", "svg/poof-mark-padded.svg",
+  "png-transparent/poof-logo-for-dark-bg-1600w.png", "png-transparent/poof-logo-for-dark-bg-800w.png",
+  "png-transparent/poof-logo-for-light-bg-1600w.png", "png-transparent/poof-logo-for-light-bg-800w.png",
+  "png-transparent/poof-mark-512.png", "png-transparent/poof-mark-1024.png", "png-transparent/poof-mark-2048.png",
+  "poof-logo-on-dark.png", "x-avatar-400x400.png", "x-profile/poof-x-avatar-1000.png",
+  "x-cover-1500x500.png", "x-cover-3000x1000.png",
+  "telegram/avatar-ink.png", "telegram/avatar-rust.png", "telegram/portal.jpg", "telegram/portal.mp4",
+  "telegram/welcome.jpg", "telegram/welcome.mp4",
+  "poof-brand-kit.zip",
+].map(f => "brand/" + f);
+const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", ...BRAND];
 const dry = process.argv.includes("--dry");
 // Another target: node deploy.mjs --env=.env.staging  (default .env)
 const ENV_FILE = (process.argv.find(a => a.startsWith("--env=")) || "--env=.env").slice(6);
@@ -17,7 +30,7 @@ function loadEnv() {
     if (process.env[k]) env[k] = process.env[k];
   }
   if (!fs.existsSync(ENV_FILE) && !env.FTP_HOST) {
-    console.error(`Missing ${ENV_FILE}. Copy .env.example to ${ENV_FILE} and fill in the FTP details from cPanel.`);
+    console.error(`Missing ${ENV_FILE}. Copy .env.example to ${ENV_FILE} and fill in the FTP details.`);
     process.exit(1);
   }
   const lines = fs.existsSync(ENV_FILE) ? fs.readFileSync(ENV_FILE, "utf8").split(/\r?\n/) : [];
@@ -63,10 +76,10 @@ try {
 } catch (err) {
   console.error("Deploy failed:", err.message);
   if (/certificate|altnames|self.signed/i.test(err.message)) {
-    console.error("Tip: FTP_HOST must be the server name shown in cPanel (e.g. server123.web-hosting.com), not the domain.");
+    console.error("Tip: FTP_HOST must be the FTP server name given by the hosting, not the domain.");
   }
   if (/530|login|authentication/i.test(err.message)) {
-    console.error("Tip: check FTP_USER (the full form shown in cPanel, e.g. deploy@yourdomain) and FTP_PASSWORD in .env.");
+    console.error("Tip: check FTP_USER (the full username, e.g. deploy@yourdomain) and FTP_PASSWORD in .env.");
   }
   process.exitCode = 1;
 } finally {
