@@ -17,6 +17,7 @@ const BRAND = [
   "telegram/avatar-ink.png", "telegram/avatar-rust.png", "telegram/portal.jpg", "telegram/portal.mp4",
   "telegram/welcome.jpg", "telegram/welcome.mp4",
   "poof-brand-kit.zip",
+  ...fs.readdirSync("brand/telegram/emoji").filter(f => f.endsWith(".webm")).map(f => "telegram/emoji/" + f),
 ].map(f => "brand/" + f);
 // Link previews: one image per page in og/, plus a small page per docs section (docs/<page>/index.html) and /join/
 const listDir = (dir, test) => fs.existsSync(dir) ? fs.readdirSync(dir).filter(test).map(f => path.posix.join(dir, f)) : [];

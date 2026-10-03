@@ -30,10 +30,12 @@ const FILES = [
   ["social/telegram/poof-tg-portal.mp4", "brand/telegram/portal.mp4"],
   ["social/telegram/poof-tg-welcome.jpg", "brand/telegram/welcome.jpg"],
   ["social/telegram/poof-tg-welcome.mp4", "brand/telegram/welcome.mp4"],
+  // animated custom emoji (100 x 100 WEBM, Telegram format)
+  ...fs.readdirSync("brand/telegram/emoji").filter(f => f.endsWith(".webm")).map(f => ["social/telegram/emoji/poof-emoji-" + f.replace(/^\d+-/, ""), "brand/telegram/emoji/" + f]),
 ];
 
 const README = `Poof brand kit
-usepoof.chat/docs/#/brandbook
+usepoof.chat/docs/brandbook/
 
 Colors
   Rust    #e8661f   primary accent
