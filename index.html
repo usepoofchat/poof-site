@@ -154,6 +154,30 @@ html.theme-anim body,html.theme-anim body *{transition:background-color .45s eas
 .nav .theme-btn{width:33px;height:33px}
 .nav .theme-btn svg{width:15px;height:15px}
 @media (max-width:760px){.nav-links,.nav-join{display:none}.nav .wrap{gap:10px}.nav .theme-btn{margin-left:auto}.nav .btn{margin-left:0}}
+/* mobile menu: pixel menu icon in the header, full-screen sheet under it */
+.menu-btn{display:none;flex:none;width:40px;height:40px;margin-left:auto;border:0;border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;place-items:center;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22);transition:background .25s,box-shadow .25s}
+.menu-btn:hover{background:rgba(255,255,255,.08)}
+.menu-btn svg{width:16px;height:16px;fill:currentColor}
+.menu-btn .px{fill:var(--rust)}
+.menu-btn .i-close,.menu-btn[aria-expanded="true"] .i-menu{display:none}
+.menu-btn[aria-expanded="true"] .i-close{display:block}
+.mnav{position:absolute;left:0;right:0;top:100%;height:calc(100dvh - var(--nav-h) - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;
+  display:flex;flex-direction:column;padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));background:#16171f;color:var(--ink);border-top:1px solid rgba(255,255,255,.08)}
+.mnav[hidden]{display:none}
+.mnav-links a{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.08);color:var(--ink);text-decoration:none;font:600 30px/1 var(--sans);letter-spacing:-.035em}
+.mnav-links a i{font:500 12px var(--mono);font-style:normal;color:var(--ink-3)}
+.mnav-links a:active,.mnav-links a:hover{color:var(--rust-text)}
+.mnav-cta{display:grid;gap:10px;margin-top:28px}
+.mnav-cta .btn{--h:54px;width:100%;justify-content:center;padding:0 24px;gap:12px;font-size:16px}
+.mnav-cta .btn .pip{width:12px;height:12px;background-size:6px 6px}
+.mnav-theme{margin-top:auto;padding-top:24px;display:flex;align-items:center;justify-content:space-between}
+.mt-lbl{font:500 12.5px var(--mono);color:var(--ink-3)}
+.mt-seg{display:flex;gap:6px}
+.mt-seg button{min-height:40px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;font:550 14px var(--sans);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.mt-seg button[aria-pressed="true"]{background:var(--rust);color:#1d1f2b;box-shadow:none}
+body.menu-open{overflow:hidden}
+@media (max-width:760px){.nav .theme-btn,.nav .wrap > .btn{display:none}.menu-btn{display:grid}}
 
 /* HERO */
 .hero{min-height:100svh;padding:0;display:flex;align-items:center}
@@ -457,6 +481,29 @@ footer .brand{font-size:18px}
     </button>
     <button class="btn btn-sm btn-ghost nav-join" data-join>Join a room</button>
     <button class="btn btn-sm" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a room</button>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav">
+      <svg class="i-menu" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="1" width="7" height="1"/><rect x="0" y="3" width="4" height="1"/><rect class="px" x="5" y="3" width="1" height="1"/><rect x="0" y="5" width="7" height="1"/></svg>
+      <svg class="i-close" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect class="px" x="3" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg>
+    </button>
+  </div>
+  <div class="mnav" id="mnav" hidden>
+    <nav class="mnav-links" aria-label="Menu">
+      <a href="#security"><span>Security</span><i>01</i></a>
+      <a href="#rooms"><span>Rooms</span><i>02</i></a>
+      <a href="#protocol"><span>Protocol</span><i>03</i></a>
+      <a href="/docs/"><span>Docs</span><i>04</i></a>
+    </nav>
+    <div class="mnav-cta">
+      <button class="btn" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a room</button>
+      <button class="btn btn-ghost" data-join>Join a room</button>
+    </div>
+    <div class="mnav-theme">
+      <span class="mt-lbl" id="mtLbl">Theme</span>
+      <div class="mt-seg" role="group" aria-labelledby="mtLbl">
+        <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -1387,6 +1434,47 @@ window.VeilFox = (function(){
     }
     return {set, animate};
   })();
+
+  /* ---------- mobile menu ---------- */
+  const menuBtn = $('#menuBtn'), mnav = $('#mnav');
+  let menuOpen = false;
+  function syncMenuTheme(){
+    const d = modeDark();
+    $$('[data-theme-set]', mnav).forEach(b=>b.setAttribute('aria-pressed', String((b.dataset.themeSet === 'dark') === d)));
+  }
+  function openMenu(){
+    if(menuOpen) return; menuOpen = true;
+    mnav.hidden = false; syncMenuTheme();
+    menuBtn.setAttribute('aria-expanded', 'true'); menuBtn.setAttribute('aria-label', 'Close menu');
+    document.body.classList.add('menu-open'); Fox.setModal(true);   // keep the live foxes from drawing over the sheet
+    Dither.set(mnav, 0); Dither.animate(mnav, 0, 16, 360);
+  }
+  function closeMenu(instant){
+    if(!menuOpen) return; menuOpen = false;
+    menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.setAttribute('aria-label', 'Open menu');
+    document.body.classList.remove('menu-open'); Fox.setModal(false);
+    if(instant){ Dither.set(mnav, 16); mnav.hidden = true; return; }
+    Dither.animate(mnav, 16, 0, 260).then(()=>{ if(!menuOpen){ mnav.hidden = true; Dither.set(mnav, 16); } });
+  }
+  menuBtn.addEventListener('click', ()=> menuOpen ? closeMenu() : openMenu());
+  // links and room buttons close the sheet first (capture phase, so the room dialog opens on a clean page)
+  mnav.addEventListener('click', e=>{
+    const a = e.target.closest('a[href^="#"]');
+    if(a){                                   // in-page link: unlock the page first, then scroll to the section
+      const target = document.querySelector(a.getAttribute('href'));
+      if(target){ e.preventDefault(); closeMenu(true); history.pushState(null, '', a.getAttribute('href'));
+        setTimeout(()=>target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'}), 0); }
+      return;
+    }
+    if(e.target.closest('a, [data-create], [data-join]')) closeMenu(true);
+  }, true);
+  $$('[data-theme-set]', mnav).forEach(b=>b.addEventListener('click', ()=>{
+    if((b.dataset.themeSet === 'dark') !== modeDark()) themeBtn.click();
+    syncMenuTheme();
+  }));
+  darkMQ.addEventListener && darkMQ.addEventListener('change', syncMenuTheme);
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && menuOpen){ closeMenu(); menuBtn.focus(); } });
+  matchMedia('(min-width:761px)').addEventListener('change', e=>{ if(e.matches) closeMenu(true); });
 
   /* ---------- grain ---------- */
   (function(){
