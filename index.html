@@ -366,6 +366,20 @@ body.menu-open{overflow:hidden}
 }
 
 /* ONE ROOM */
+/* phones: a dissolving pixel trail ("a message that poofs") bridges the future and one-room sections */
+.trail{display:none}
+@media (max-width:760px){
+  .future{padding-bottom:36px}
+  .oneroom{padding-top:36px}
+  .trail{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:64px}
+  .trail-px{display:flex;align-items:center;gap:4px;height:26px}
+  .trail-px i{width:6px;height:6px;flex:none;background:var(--ink);opacity:var(--o);transform:translateY(var(--y));margin-left:var(--g)}
+  .trail-px i.r{background:var(--rust)}
+  .trail-px i:nth-child(n+9){animation:trailPoof 4.2s steps(1) infinite;animation-delay:calc(var(--k) * 140ms)}
+  .trail-cap{margin:0;font:500 12px/1 var(--mono);color:var(--ink-3);letter-spacing:.02em}
+}
+@keyframes trailPoof{0%,72%{opacity:var(--o)}80%{opacity:0}90%{opacity:calc(var(--o) * .5)}}
+@media (prefers-reduced-motion:reduce){.trail-px i{animation:none !important}}
 .oneroom{text-align:center}
 .oneroom h2{font-size:clamp(40px,5.4vw,92px)}
 .oneroom .sub{font-size:clamp(19px,1.6vw,23px);color:var(--ink-2)}
@@ -731,6 +745,7 @@ footer .brand{font-size:18px}
     <div class="timeline" aria-hidden="true"><pre id="futPre"></pre></div>
     <p class="mind" data-reveal>Poof is designed with that future in mind.</p>
     <p class="big" data-split>Temporary conversations.<br>Long-term<br>cryptographic<br>thinking.</p>
+    <div class="trail" aria-hidden="true"><div class="trail-px"><i style="--o:1;--y:0px;--g:0px;--k:0"></i><i style="--o:1;--y:0px;--g:0px;--k:1"></i><i style="--o:1;--y:0px;--g:0px;--k:2"></i><i style="--o:1;--y:0px;--g:0px;--k:3"></i><i style="--o:1;--y:0px;--g:0px;--k:4"></i><i style="--o:1;--y:0px;--g:0px;--k:5"></i><i style="--o:1;--y:0px;--g:0px;--k:6"></i><i style="--o:1;--y:0px;--g:0px;--k:7"></i><i style="--o:0.85;--y:0px;--g:2px;--k:8"></i><i style="--o:0.75;--y:-3px;--g:4px;--k:9"></i><i style="--o:0.65;--y:2px;--g:6px;--k:10"></i><i style="--o:0.55;--y:-5px;--g:8px;--k:11"></i><i style="--o:0.45;--y:4px;--g:10px;--k:12"></i><i style="--o:0.35;--y:-7px;--g:14px;--k:13"></i><i style="--o:0.28;--y:6px;--g:18px;--k:14"></i><i style="--o:0.2;--y:-9px;--g:22px;--k:15"></i><i class="r" style="--o:1;--y:-2px;--g:26px;--k:16"></i></div><p class="trail-cap">nothing is kept.</p></div>
   </div>
 </section>
 
