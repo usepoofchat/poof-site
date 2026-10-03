@@ -1336,7 +1336,8 @@ window.VeilFox = (function(){
     const r = {left:r0.left-bL, top:r0.top-bT, right:r0.right+bR, bottom:r0.bottom+bB, width:r0.width+bL+bR, height:r0.height+bT+bB};
     if(r.width<8 || r.height<8 || r.bottom<0 || r.top>innerHeight || r.right<0 || r.left>innerWidth) return;
     if(!s.seen){ s.seen = true; s.fade = 1; fadeTo(s, 0, 1100); }
-    let top = Math.max(r.top, (!s.back && !s.modal) ? navB : 0), bot = Math.min(r.bottom, (!s.back && !s.modal) ? barT : innerHeight);
+    const back = s.p.back != null ? (s.p.back && !!RB) : s.back;   // Fox.param(el, 'back', true) draws the slot on the back layer (under the content)
+    let top = Math.max(r.top, (!back && !s.modal) ? navB : 0), bot = Math.min(r.bottom, (!back && !s.modal) ? barT : innerHeight);
     let left = Math.max(r.left, 0), right = Math.min(r.right, innerWidth);
     if(s.clipRight && innerWidth > 900){ const cr = s.clipRight.getBoundingClientRect(); right = Math.min(right, cr.left - 6); }
     if(s.clipEl){ const c = s.clipEl.getBoundingClientRect(); top = Math.max(top, c.top); bot = Math.min(bot, c.bottom); left = Math.max(left, c.left); right = Math.min(right, c.right); }
@@ -1377,7 +1378,7 @@ window.VeilFox = (function(){
     }
     if(bT || bR || bB || bL) camera.setViewOffset(r0.width, r0.height, -bL, -bT, r.width, r.height);
 
-    const R = s.R;
+    const R = back ? RB : RF;
     const dpr = R.getPixelRatio();
     const cellPx = s.px*dpr;
     const lw = Math.max(1, Math.floor(r.width*dpr/cellPx)), lh = Math.max(1, Math.floor(r.height*dpr/cellPx));
@@ -1939,6 +1940,10 @@ window.VeilFox = (function(){
   }
   pMinus.addEventListener('click', ()=>{ people = Math.max(2, people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
   pPlus.addEventListener('click', ()=>{ people = Math.min(10, people+1); updSeats(); Fox.flash(peekFox, 'excited', 700); });
+  // phones: the peeking fox sits behind the Super Room card (desktop keeps its paws over the edge)
+  const peekBehind = matchMedia('(max-width:900px)');
+  const setPeekLayer = ()=>Fox.param(peekFox, 'back', peekBehind.matches);
+  setPeekLayer(); peekBehind.addEventListener('change', setPeekLayer);
   $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>{ updPrice(); Fox.flash(peekFox, 'excited', 700); }));
 
   // "Why tokens?" grows the Super Room card; keep the Classic Room card at its closed height meanwhile
