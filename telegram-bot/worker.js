@@ -97,15 +97,45 @@ async function imageUrl(name) {
   return r.ok ? IMG + name : IMG_FALLBACK;
 }
 
-async function postPortal(env) {
-  const photo = await imageUrl('portal.jpg');
-  const sent = await tg(env, 'sendPhoto', {
-    chat_id: PORTAL,
-    photo,
-    caption: TEXT.portal,
-    parse_mode: 'HTML',
-    reply_markup: { inline_keyboard: [[btn('Verify and join', VERIFY_URL)], ...LINK_ROWS] },
-  });
+// multipart call, used to upload the portal animation from the repo
+async function tgForm(env, method, fields, file) {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(fields)) fd.append(k, typeof v === 'string' ? v : JSON.stringify(v));
+  if (file) fd.append(file.field, file.blob, file.name);
+  const r = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/${method}`, { method: 'POST', body: fd });
+  return r.json();
+}
+
+// Updates the pinned portal post in place. Media, in order: a file Jason sent to the bot with /postportal as caption,
+// else brand/telegram/portal.mp4 from the repo, else the portal image. If there is no pinned post from the bot yet,
+// publishes a new one and pins it.
+async function postPortal(env, given) {
+  const markup = { inline_keyboard: [[btn('Verify and join', VERIFY_URL)], ...LINK_ROWS] };
+  let blob = null;
+  if (!given) {
+    const vid = await fetch(IMG + 'portal.mp4');
+    blob = vid.ok ? await vid.blob() : null;
+  }
+  const media = given
+    ? { type: given.type, media: given.id, caption: TEXT.portal, parse_mode: 'HTML' }
+    : blob
+      ? { type: 'animation', media: 'attach://anim', caption: TEXT.portal, parse_mode: 'HTML' }
+      : { type: 'photo', media: await imageUrl('portal.jpg'), caption: TEXT.portal, parse_mode: 'HTML' };
+  const file = blob ? { field: 'anim', blob, name: 'portal.mp4' } : null;
+
+  const chat = await tg(env, 'getChat', { chat_id: PORTAL });
+  const pinned = chat.ok && chat.result.pinned_message;
+  const me = await tg(env, 'getMe', {});
+  if (pinned && me.ok && pinned.from && pinned.from.id === me.result.id) {
+    const r = await tgForm(env, 'editMessageMedia', { chat_id: PORTAL, message_id: String(pinned.message_id), media, reply_markup: markup }, file);
+    if (r.ok || /not modified/.test(r.description || '')) return { ok: true, edited: true };
+  }
+  const sendMethod = { photo: 'sendPhoto', animation: 'sendAnimation', video: 'sendVideo' }[media.type];
+  const sent = given
+    ? await tg(env, sendMethod, { chat_id: PORTAL, [media.type]: given.id, caption: TEXT.portal, parse_mode: 'HTML', reply_markup: markup })
+    : blob
+    ? await tgForm(env, 'sendAnimation', { chat_id: PORTAL, caption: TEXT.portal, parse_mode: 'HTML', reply_markup: markup }, { field: 'animation', blob, name: 'portal.mp4' })
+    : await tg(env, 'sendPhoto', { chat_id: PORTAL, photo: media.media, caption: TEXT.portal, parse_mode: 'HTML', reply_markup: markup });
   if (sent.ok) {
     await tg(env, 'pinChatMessage', { chat_id: PORTAL, message_id: sent.result.message_id, disable_notification: true });
   }
@@ -229,8 +259,8 @@ async function sendHelp(env, msg) {
       + '/delfilter name - remove a filter. Built-in ones can be turned off the same way, and /addfilter brings them back with your text.\n'
       + '/listfilters - list all filters.\n'
       + 'Do not use /filter: that is Guardian\'s command and gives double replies.';
-    if (msg.from && msg.from.id === OWNER_ID) {
-      out += '\n\n<b>Owner (in this DM)</b>\n/postportal - publish and pin the portal post in Poof Portal again.';
+    if (msg.chat.type === 'private' && msg.from && msg.from.id === OWNER_ID) {
+      out += '\n\n<b>Owner (in this DM)</b>\n/postportal - refresh the pinned portal post in Poof Portal. Send a GIF/video or photo here with /postportal as caption to use it.';
     }
   }
   await reply(env, msg, out);
@@ -308,8 +338,13 @@ async function handle(env, update) {
   if (target && target !== BOT_USERNAME) return;
 
   if (cmdRaw === 'postportal' && msg.chat.type === 'private' && msg.from && msg.from.id === OWNER_ID) {
-    const r = await postPortal(env);
-    await tg(env, 'sendMessage', { chat_id: msg.chat.id, text: r.ok ? 'Portal post published and pinned.' : 'Portal post failed: ' + r.description });
+    let given = null;
+    if (msg.animation) given = { type: 'animation', id: msg.animation.file_id };
+    else if (msg.video) given = { type: 'video', id: msg.video.file_id };
+    else if (msg.photo && msg.photo.length) given = { type: 'photo', id: msg.photo[msg.photo.length - 1].file_id };
+    else if (msg.document && /^video\//.test(msg.document.mime_type || '')) given = { type: 'animation', id: msg.document.file_id };
+    const r = await postPortal(env, given);
+    await tg(env, 'sendMessage', { chat_id: msg.chat.id, text: r.ok ? (r.edited ? 'Portal post updated.' : 'Portal post published and pinned.') : 'Portal post failed: ' + r.description });
     return;
   }
 
