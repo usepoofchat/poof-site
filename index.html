@@ -1721,6 +1721,15 @@ window.VeilFox = (function(){
   pMinus.addEventListener('click', ()=>{ people = Math.max(2, people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
   pPlus.addEventListener('click', ()=>{ people = Math.min(10, people+1); updSeats(); Fox.flash(peekFox, 'excited', 700); });
   $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>{ updPrice(); Fox.flash(peekFox, 'excited', 700); }));
+
+  // "Why tokens?" grows the Super Room card; keep the Classic Room card at its closed height meanwhile
+  const why = $('.why'), classicCard = $('.room.classic');
+  if(why && classicCard){
+    why.querySelector('summary').addEventListener('click', ()=>{
+      if(!why.open){ classicCard.style.minHeight = classicCard.offsetHeight + 'px'; classicCard.style.alignSelf = 'start'; }
+    });
+    why.addEventListener('toggle', ()=>{ if(!why.open){ classicCard.style.minHeight = ''; classicCard.style.alignSelf = ''; } });
+  }
   updSeats();
 
   /* ---------- protocol terminal ---------- */
