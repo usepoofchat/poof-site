@@ -399,9 +399,10 @@ body.menu-open{overflow:hidden}
 .cube{position:relative;width:clamp(170px,18vw,250px);height:clamp(170px,18vw,250px);margin:28px auto 8px}
 .struck{list-style:none;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:14px 34px;margin:30px auto 60px;max-width:980px;font-size:clamp(23px,2.6vw,38px);font-weight:550;letter-spacing:-.035em;color:var(--ink-3)}
 .struck li{position:relative}
-.struck li::after{content:"";position:absolute;left:-.04em;right:-.04em;top:55%;height:.07em;background:var(--rust);transform:scaleX(0);transform-origin:left;transition:transform .8s var(--ease) calc(var(--i) * 150ms)}
-@media (max-width:900px){.struck li::after{transition-duration:.5s;transition-delay:calc(var(--i) * 80ms)}}   /* phones: faster strike */
-.struck.on li::after{transform:scaleX(1)}
+/* the strike is a background on the inline text, so a line that wraps is struck on every row, left to right in reading order */
+.struck li span{padding:0 .04em;margin:0 -.04em;background:linear-gradient(var(--rust),var(--rust)) 0 58%/0 .07em no-repeat;transition:background-size .8s var(--ease) calc(var(--i) * 150ms)}
+@media (max-width:900px){.struck li span{transition-duration:.5s;transition-delay:calc(var(--i) * 80ms)}}   /* phones: faster strike */
+.struck.on li span{background-size:100% .07em}
 .oneroom .big{font-size:clamp(34px,4.4vw,72px);line-height:1;font-weight:600;letter-spacing:-.048em;margin:0 auto;max-width:18ch}
 .oneroom .big span{display:block;color:var(--ink-3)}
 
@@ -805,10 +806,10 @@ footer .brand{font-size:18px}
     <p class="sub" data-reveal>Poof doesn't try to become your new social network.</p>
     <div class="fox-slot cube" data-scene="frag" data-shape="cube" data-spin=".35" aria-hidden="true"></div>
     <ul class="struck" id="struck">
-      <li style="--i:0">No feeds.</li>
-      <li style="--i:1">No follower counts.</li>
-      <li style="--i:2">No permanent contacts.</li>
-      <li style="--i:3">No notification ecosystem competing for your attention.</li>
+      <li style="--i:0"><span>No feeds.</span></li>
+      <li style="--i:1"><span>No follower counts.</span></li>
+      <li style="--i:2"><span>No permanent contacts.</span></li>
+      <li style="--i:3"><span>No notification ecosystem competing for your attention.</span></li>
     </ul>
     <p class="big" data-reveal>Poof exists for the conversation. <span>Nothing more is required.</span></p>
   </div>
@@ -2076,7 +2077,7 @@ window.VeilFox = (function(){
   const states = $$('.state', dlg);
   const genLog = $('#genLog'), roomLink = $('#roomLink'), copyMsg = $('#copyMsg');
   const roomTimer = $('#roomTimer'), roomType = $('#roomType'), mini = $('#mini'), msgIn = $('#msgIn');
-  let run = 0, timer = null, opener = null, cfg = null;
+  let run = 0, timer = null, opener = null;
   const outside = [nav, $('#main'), $('footer')];
   ov.dataset.tone = 'light';
   function show(name){
@@ -2092,11 +2093,6 @@ window.VeilFox = (function(){
     ov.hidden = false; document.body.classList.add('lock');
     outside.forEach(el=>{ el.inert = true; el.setAttribute('aria-hidden','true'); });
     Fox.setModal(true);
-  }
-  async function openRoom(type){
-    cfg = type === 'super' ? {type, secs:lifetime(), people} : {type, secs:600, people:2};
-    guest = false; openShell();
-    await startRoom();
   }
   function openJoin(){
     run++; clearInterval(timer); guest = true; openShell();
@@ -2173,20 +2169,6 @@ window.VeilFox = (function(){
     clearInterval(timer);
     timer = setInterval(()=>{ left--; roomTimer.textContent = fmt(left); if(left <= 0) endRoom(); }, 1000);
   }
-  async function startRoom(){
-    const id = ++run; clearInterval(timer);
-    show('loading');
-    $('#dlgTitle').textContent = 'Sealing your room…';
-    Fox.setPose(dlgFox, 'work'); Fox.setFade(dlgFox, 1); Fox.fadeTo(dlgFox, 0, 800);
-    genLog.textContent = '';
-    for(const l of ['› opening a room', '› generating room keys', '› identity required … none', '› sealing the room', '› ready']){
-      await sleep(430); if(id !== run) return; genLog.textContent += l + '\n';
-    }
-    await sleep(300); if(id !== run) return;
-    roomLink.value = 'https://poof.example/r/' + rid(4) + '-' + rid(4) + '#' + rid(12);
-    guest = false;
-    enterRoom(phrase(), cfg.secs, cfg.type === 'super' ? 'Super Room / ' + cfg.people + ' people / ' + (cfg.secs === 3600 ? '1 hour' : '24 hours') : 'Classic Room / 2 people');
-  }
   async function endRoom(){
     const id = ++run; clearInterval(timer);
     Fox.fadeTo(dlgFox, 1, 700);
@@ -2204,7 +2186,10 @@ window.VeilFox = (function(){
     Fox.setModal(false);
     if(opener) opener.focus();
   }
-  $$('[data-create]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openRoom(b.dataset.create); }));
+  // Create a room opens the room page; the Super Room card passes the lifetime and people already picked
+  $$('[data-create]').forEach(b=>b.addEventListener('click', ()=>{
+    location.href = '/room/#/new' + (b.dataset.create === 'super' ? '?plan=super&life=' + lifetime() + '&people=' + people : '');
+  }));
   $$('[data-join]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openJoin(); }));
   $('#joinBtn').addEventListener('click', tryJoin);
   $('#copyPhrase').addEventListener('click', ()=>{
@@ -2241,7 +2226,7 @@ window.VeilFox = (function(){
   $('#sendBtn').addEventListener('click', send);
   msgIn.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); send(); } });
   $('#endBtn').addEventListener('click', endRoom);
-  $('#againBtn').addEventListener('click', ()=>{ if(!cfg) cfg = {type:'classic', secs:600, people:2}; guest = false; startRoom(); });
+  $('#againBtn').addEventListener('click', ()=>{ location.href = '/room/#/new'; });
 })();
 </script>
 </body>
