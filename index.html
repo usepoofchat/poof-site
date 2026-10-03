@@ -273,6 +273,7 @@ body.menu-open{overflow:hidden}
 /* PRINCIPLE */
 .principle{padding:0}
 .scrub-wrap{height:240vh;position:relative}
+@media (max-width:900px){.scrub-wrap{height:200vh}}   /* phones: the principle lights up with less scrolling */
 .scrub-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
 .ascii-fox{position:absolute;left:50%;top:52%;width:min(120vh,110vw);height:118vh;transform:translate(-50%,-50%);color:#e8661f}
 .statement{font-size:clamp(52px,8.6vw,156px);line-height:.92;letter-spacing:-.058em;max-width:11ch;margin:0}
@@ -1673,7 +1674,7 @@ window.VeilFox = (function(){
     // principle: words light up, the ASCII fox turns
     const sr = scrubWrap.getBoundingClientRect();
     const sp = clamp(-sr.top/(sr.height - vh), 0, 1);
-    const lit = sp*1.2*scrubWords.length;
+    const lit = sp*(innerWidth > 900 ? 1.2 : 1.5)*scrubWords.length;
     scrubWords.forEach((w,i)=>{ const o = reduce ? 1 : clamp(lit - i, 0.13, 1); if(w._o !== o){ w.style.opacity = o; w._o = o; } });
     Fox.param(asciiFox, 'yaw', -0.9 + sp*2.2);
     // security: the shackle closes as you arrive
