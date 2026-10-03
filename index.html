@@ -66,6 +66,18 @@
   --line:rgba(29,31,43,.24); --line-strong:#1d1f2b; --rust-text:#1d1f2b;
 }
 [data-tone]{color:var(--ink)}
+/* text colours are registered so they can fade: the scroll script switches a section's colours to the next
+   section's when the background gets there, and this turns the switch into a short fade */
+@property --ink{syntax:'<color>';inherits:true;initial-value:#1d1f2b}
+@property --ink-2{syntax:'<color>';inherits:true;initial-value:#454753}
+@property --ink-3{syntax:'<color>';inherits:true;initial-value:#5a5c66}
+@property --line{syntax:'<color>';inherits:true;initial-value:rgba(29,31,43,.14)}
+@property --line-strong{syntax:'<color>';inherits:true;initial-value:rgba(29,31,43,.85)}
+@property --rust-text{syntax:'<color>';inherits:true;initial-value:#9c3b14}
+@property --surface{syntax:'<color>';inherits:true;initial-value:#fbf7ef}
+@property --ground{syntax:'<color>';inherits:true;initial-value:#e8e9e4}
+main>section{transition:--ink .6s ease,--ink-2 .6s ease,--ink-3 .6s ease,--line .6s ease,--line-strong .6s ease,--rust-text .6s ease,--surface .6s ease,--ground .6s ease}
+@media (prefers-reduced-motion:reduce){main>section{transition:none}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-padding-top:calc(var(--nav-h) + env(safe-area-inset-top,0px));scroll-behavior:smooth;background:var(--ground)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -1686,9 +1698,36 @@ window.VeilFox = (function(){
     g:s.dataset.glow.split(',').map(Number), gp:s.dataset.glowPos.split(',').map(Number), tone:s.dataset.tone
   }));
   let lastBg = '', lastGlow = '';
+  // Text colours follow the background. While the ground fades from one section to the next, every section on screen
+  // uses the text colours that read best on that ground: each colour switches at the point where the new one starts to
+  // read better, and the switch itself is a short CSS fade (the colours are registered with @property), so text never
+  // jumps and never stays stuck in a muddy in-between colour if the scroll stops half-way.
+  const INK = ['--ink','--ink-2','--ink-3','--line','--line-strong','--rust-text','--surface','--ground'];
+  const probe = document.createElement('i'); probe.hidden = true; document.body.appendChild(probe);
+  const rgba = v => { probe.style.color = ''; probe.style.color = v.trim(); const m = getComputedStyle(probe).color.match(/[\d.]+/g) || [0,0,0]; return [+m[0], +m[1], +m[2], m[3] == null ? 1 : +m[3]]; };
+  let inkDark = null, flips = {};
+  const lum = c => { const f = v => (v /= 255) <= .03928 ? v/12.92 : Math.pow((v + .055)/1.055, 2.4); return .2126*f(c[0]) + .7152*f(c[1]) + .0722*f(c[2]); };
+  const over = (c, g) => [0,1,2].map(j=>c[j]*c[3] + g[j]*(1 - c[3]));   // a translucent colour as it shows on a ground
+  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05)/(Math.min(x, y) + .05); };
+  function flipAt(key, ca, cb, a, b){   // where (0..1 of the ground fade) colour b starts to read better than colour a
+    if(key in flips) return flips[key];
+    const at = t => [0,1,2].map(j=>lerp(ca[j], cb[j], t));
+    const better = t => contrast(over(b, at(t)), at(t)) - contrast(over(a, at(t)), at(t));
+    let x = .5;
+    if(better(0) < 0 && better(1) > 0){ let lo = 0, hi = 1; for(let n=0; n<24; n++){ const m = (lo + hi)/2; better(m) > 0 ? hi = m : lo = m; } x = hi; }
+    return flips[key] = x;
+  }
+  function readInk(){
+    flips = {};
+    // read the stylesheet colours (no fade running), then let the next env() put the right ones back
+    envSecs.forEach(s=>{ s.el.style.transition = 'none'; INK.forEach(v=>s.el.style.removeProperty(v)); s.inkKey = ''; });
+    envSecs.forEach(s=>{ const cs = getComputedStyle(s.el); s.ink = INK.map(v=>rgba(cs.getPropertyValue(v))); });
+    envSecs.forEach(s=>{ s.el.style.transition = ''; });
+  }
   function env(){
     const vh = innerHeight, mid = vh*0.6, dark = modeDark();
-    const tops = envSecs.map(s=>s.el.getBoundingClientRect().top);
+    if(dark !== inkDark){ inkDark = dark; readInk(); }
+    const rects = envSecs.map(s=>s.el.getBoundingClientRect()), tops = rects.map(r=>r.top);
     let i = 0; for(let k=0;k<tops.length;k++) if(tops[k] <= mid) i = k;
     const A = envSecs[i], Bn = envSecs[i+1] || A;
     const t = envSecs[i+1] ? smooth(clamp((mid + vh*0.45 - tops[i+1])/(vh*0.45), 0, 1)) : 0;
@@ -1701,6 +1740,19 @@ window.VeilFox = (function(){
     const gp = [0,1].map(j=>lerp(A.gp[j], Bn.gp[j], t));
     const gs = 'radial-gradient(64vmax 56vmax at ' + gp[0].toFixed(1) + '% ' + gp[1].toFixed(1) + '%, rgba(' + g.slice(0,3).map(Math.round).join(',') + ',' + g[3].toFixed(3) + '), transparent 68%)';
     if(gs !== lastGlow){ glow.style.background = gs; lastGlow = gs; }
+    const pick = INK.map((v,k)=>{ const a = A.ink[k], b = Bn.ink[k];
+      return A === Bn || t < (k >= 6 ? .5 : flipAt(i + (dark ? 'd' : 'l') + k, ca, cb, a, b)) ? a : b; });   // surfaces just follow the ground
+    // half-way between a light and a dark ground nothing grey reads well: secondary text borrows the main text colour there
+    [1, 2, 5].forEach(k=>{ if(contrast(over(pick[k], col), col) < 3) pick[k] = pick[0]; });
+    const mix = pick.map(c=>'rgba(' + c.slice(0,3).join(',') + ',' + c[3] + ')');
+    const key = mix.join('|');
+    envSecs.forEach((s,k)=>{
+      const on = rects[k].bottom > 0 && rects[k].top < vh;
+      const want = on ? key : '';
+      if(s.inkKey === want) return;
+      s.inkKey = want;
+      INK.forEach((v,n)=> on ? s.el.style.setProperty(v, mix[n]) : s.el.style.removeProperty(v));
+    });
   }
 
   /* ---------- cursor + magnetic buttons ---------- */
