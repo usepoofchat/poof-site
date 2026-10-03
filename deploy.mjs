@@ -18,7 +18,14 @@ const BRAND = [
   "telegram/welcome.jpg", "telegram/welcome.mp4",
   "poof-brand-kit.zip",
 ].map(f => "brand/" + f);
-const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", "room/index.html", ...BRAND];
+// Link previews: one image per page in og/, plus a small page per docs section (docs/<page>/index.html) and /join/
+const listDir = (dir, test) => fs.existsSync(dir) ? fs.readdirSync(dir).filter(test).map(f => path.posix.join(dir, f)) : [];
+const PREVIEWS = [
+  ...listDir("og", f => f.endsWith(".png")),
+  ...fs.readdirSync("docs", {withFileTypes: true}).filter(e => e.isDirectory()).map(e => `docs/${e.name}/index.html`).filter(f => fs.existsSync(f)),
+  "join/index.html",
+];
+const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", "room/index.html", ...BRAND, ...PREVIEWS];
 const dry = process.argv.includes("--dry");
 // Another target: node deploy.mjs --env=.env.staging  (default .env)
 const ENV_FILE = (process.argv.find(a => a.startsWith("--env=")) || "--env=.env").slice(6);

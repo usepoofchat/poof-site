@@ -7,6 +7,21 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="description" content="How Poof works: ephemeral rooms, hybrid post-quantum encryption, what it protects against and how to verify it.">
+<link rel="canonical" href="https://usepoof.chat/docs/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Poof">
+<meta property="og:title" content="How Poof works.">
+<meta property="og:description" content="How Poof works: ephemeral rooms, hybrid post-quantum encryption, what it protects against and how to verify it.">
+<meta property="og:url" content="https://usepoof.chat/docs/">
+<meta property="og:image" content="https://usepoof.chat/og/docs.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="How Poof works.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@usepoofchat">
+<meta name="twitter:title" content="How Poof works.">
+<meta name="twitter:description" content="How Poof works: ephemeral rooms, hybrid post-quantum encryption, what it protects against and how to verify it.">
+<meta name="twitter:image" content="https://usepoof.chat/og/docs.png">
 <script>try{var t=localStorage.getItem('poof-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1310,9 +1325,12 @@ window.VeilFox = (function(){
 
   /* router: #/page-id */
   const pages = $$('.page'), links = $$('.side a[data-p]');
+  // every page has a real address (/docs/<page>/, with its own link preview); in-page links still use #/page
   function show(first){
-    const id = (location.hash.match(/^#\/([\w-]+)/) || [])[1] || 'start';
+    const id = (location.hash.match(/^#\/([\w-]+)/) || [])[1] || (location.pathname.match(/^\/docs\/([\w-]+)\/?$/) || [])[1] || 'start';
     const target = $('#p-' + id) || $('#p-start');
+    const want = target.id === 'p-start' ? '/docs/' : '/docs/' + target.id.slice(2) + '/';
+    if(location.pathname !== want || location.hash) history.replaceState(null, '', want);
     pages.forEach(p => p.hidden = p !== target);
     links.forEach(a => a.dataset.p === target.id.slice(2) ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
     document.title = target.dataset.title + ' · Poof docs';
@@ -1320,6 +1338,7 @@ window.VeilFox = (function(){
     if(!first){ window.scrollTo(0,0); const h = $('h1', target); if(h){ h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); } }
   }
   addEventListener('hashchange', ()=>show(false));
+  addEventListener('popstate', ()=>{ if(!location.hash) show(false); });
   show(true);
 
   /* on this page */
