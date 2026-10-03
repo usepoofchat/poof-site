@@ -189,9 +189,7 @@ body.menu-open{overflow:hidden}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
 .flow{font:400 13.5px/1.7 var(--mono);color:var(--ink-2);margin:0;max-width:30ch;flex-basis:100%}
 .flow .vanish{display:inline-block;color:var(--rust-text)}
-.hero-status,.hero-chat{display:none}              /* phone-only hero pieces */
-@keyframes hsBlink{50%{opacity:.25}}
-@media (prefers-reduced-motion:reduce){.hs-dot{animation:none}}
+.hero-chat{display:none}                          /* phone-only hero piece */
 .assure{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-wrap:wrap;gap:12px 28px;font:500 12px/1 var(--mono);color:var(--ink-3)}
 .assure li{display:flex;align-items:center;gap:9px}
 .assure li::before{content:"";width:8px;height:8px;flex:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
@@ -209,13 +207,8 @@ body.menu-open{overflow:hidden}
   .lede{font-size:16px}
   .assure{margin-top:26px;gap:8px}
   .assure li{padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);background:color-mix(in srgb,var(--surface) 45%,transparent)}
-  /* phone hero: live room status on top, accent on "who you are.", the flow lines become the fox's chat bubble */
+  /* phone hero: accent on "who you are.", the flow lines become the fox's chat bubble */
   .hero{padding-top:16px}
-  .hero-status{display:inline-flex;align-items:center;gap:8px;margin:0 0 20px;padding:8px 13px;border-radius:999px;
-    box-shadow:inset 0 0 0 1px var(--line);font:500 12px/1 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
-  .hero-status b{font-weight:500;color:var(--ink)}
-  .hs-dot{width:8px;height:8px;flex:none;background:var(--rust);animation:hsBlink 1.6s steps(1) infinite}
-  .hs-sep{color:var(--ink-3)}
   #h1 .wd:nth-last-child(-n+3){color:var(--rust-text)}
   .hero .flow{display:none}
   .hero-chat{display:block;position:absolute;top:5%;right:-5vw;max-width:56%;pointer-events:none}
@@ -551,7 +544,6 @@ footer .brand{font-size:18px}
   <div class="fox-slot frag f-shard" data-scene="frag" data-shape="shard" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
-      <p class="hero-status" aria-hidden="true"><i class="hs-dot"></i><span>room <b id="hsRoom">k7q2</b></span><span class="hs-sep">·</span><span>closes in <b id="hsTime">10:00</b></span></p>
       <h1 id="h1" data-split>A private chatroom that doesn't need to know who you are.</h1>
       <p class="lede" data-reveal>No email. No phone number. No account.</p>
       <div class="actions" data-reveal>
@@ -1740,21 +1732,9 @@ window.VeilFox = (function(){
     while(true){ await Dither.animate(vanish, 16, 0, 900); await sleep(1100); await Dither.animate(vanish, 0, 16, 700); await sleep(3400); }
   })();
 
-  /* ---------- phone hero: live room status + the fox's chat bubble ---------- */
+  /* ---------- phone hero: the fox's chat bubble ---------- */
   const phoneHero = matchMedia('(max-width:900px)');
-  const hsRoom = $('#hsRoom'), hsTime = $('#hsTime'), hsChip = $('.hero-status'), hcMsg = $('#hcMsg');
-  const roomId = () => Array.from({length:4}, ()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
-  let hsLeft = 600;
-  setInterval(async ()=>{
-    if(!phoneHero.matches) return;
-    hsLeft--;
-    if(hsLeft < 0){                                    // the room closes: poof, a new one opens
-      if(!reduce) await Dither.animate(hsChip, 16, 0, 450);
-      hsRoom.textContent = roomId(); hsLeft = 600;
-      if(!reduce) Dither.animate(hsChip, 0, 16, 450);
-    }
-    hsTime.textContent = String(Math.floor(hsLeft/60)).padStart(2,'0') + ':' + String(hsLeft%60).padStart(2,'0');
-  }, 1000);
+  const hcMsg = $('#hcMsg');
   const HERO_LINES = ['Create a room.', 'Share the link.', 'Talk privately.', 'Then poof.'];
   let heroSeen = false;
   if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>{ heroSeen = e.isIntersecting; }), {threshold:0.1}).observe(heroFox);
