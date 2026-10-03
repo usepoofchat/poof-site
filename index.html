@@ -359,7 +359,7 @@ body.menu-open{overflow:hidden}
 @media (max-width:760px){
   .future{padding-top:40px}
   .fut-rail{top:28px;right:-6vw;width:100vw;height:50svh}
-  .fut-fox{height:50svh}
+  .fut-fox{height:50svh;transform:scale(1.12);transform-origin:45% 92%}   /* fox 12% bigger, feet stay in place */
   .fut-top{padding-top:calc(50svh + 16px)}
   .f-fut{display:block}
   .f-futcube{left:5vw;top:calc(40px + 4svh);width:78px;height:78px}
@@ -543,6 +543,24 @@ footer .brand{font-size:18px}
 .composer input{flex:1;min-width:0;height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:400 15px var(--sans)}
 .composer input:focus{border-color:var(--ink);outline:none}
 @media (max-width:760px){.dlg{grid-template-columns:1fr}.dlg .fox-slot{min-height:240px}}
+
+/* phones: one vertical rhythm for the whole page.
+   between sections 56 + 56 | heading > text 28 | text > text 17 | block > block 28-48 | break inside a section 56 */
+@media (max-width:760px){
+  .enough{padding:36px 0 0}                                  /* "A room is enough." follows the list closely */
+  .steps{margin:28px 0 32px}
+  .principle .after{position:relative;margin-top:-30svh;padding-bottom:56px}   /* the three lines arrive while the statement is still pinned */
+  .coda{margin:40px 0 0}
+  .moments{padding-bottom:56px}
+  .quote{margin-bottom:56px}
+  .sec-top{margin-bottom:40px}
+  .threat{margin-top:28px}
+  .timeline{margin:48px 0}
+  .trail{margin-top:56px}
+  .struck{margin:30px auto 48px}
+  .m1{margin-bottom:28px}
+  .open{margin-top:32px}
+}
 </style>
 </head>
 <body>
