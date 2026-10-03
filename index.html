@@ -189,6 +189,9 @@ body.menu-open{overflow:hidden}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
 .flow{font:400 13.5px/1.7 var(--mono);color:var(--ink-2);margin:0;max-width:30ch;flex-basis:100%}
 .flow .vanish{display:inline-block;color:var(--rust-text)}
+.hero-status,.hero-chat{display:none}              /* phone-only hero pieces */
+@keyframes hsBlink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.hs-dot{animation:none}}
 .assure{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-wrap:wrap;gap:12px 28px;font:500 12px/1 var(--mono);color:var(--ink-3)}
 .assure li{display:flex;align-items:center;gap:9px}
 .assure li::before{content:"";width:8px;height:8px;flex:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
@@ -204,15 +207,27 @@ body.menu-open{overflow:hidden}
   .hero-fox{order:2;position:relative;left:-9vw;top:auto;width:100%;height:38svh;margin-top:28px}
   .hero-copy{grid-column:1;padding:0}
   .lede{font-size:16px}
-  .assure{margin-top:34px}                       /* trust list a little closer to the copy */
+  .assure{margin-top:26px;gap:8px}
+  .assure li{padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);background:color-mix(in srgb,var(--surface) 45%,transparent)}
+  /* phone hero: live room status on top, accent on "who you are.", the flow lines become the fox's chat bubble */
+  .hero{padding-top:16px}
+  .hero-status{display:inline-flex;align-items:center;gap:8px;margin:0 0 20px;padding:8px 13px;border-radius:999px;
+    box-shadow:inset 0 0 0 1px var(--line);font:500 12px/1 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .hero-status b{font-weight:500;color:var(--ink)}
+  .hs-dot{width:8px;height:8px;flex:none;background:var(--rust);animation:hsBlink 1.6s steps(1) infinite}
+  .hs-sep{color:var(--ink-3)}
+  #h1 .wd:nth-last-child(-n+3){color:var(--rust-text)}
+  .hero .flow{display:none}
+  .hero-chat{display:block;position:absolute;top:5%;right:-5vw;max-width:56%;pointer-events:none}
+  .hc-msg{margin:0;padding:10px 14px;border-radius:14px;border-bottom-left-radius:4px;background:var(--ink);color:var(--ground);font:550 14.5px/1.3 var(--sans);letter-spacing:-.01em}
+  .hc-msg.poof{background:var(--rust);color:#1d1f2b}
   .field{filter:opacity(.78)}                    /* ASCII background ~22% softer on every section */
   .identity{padding-top:40px}                   /* the fox now fills the gap above this section */
   .scrollcue{display:none}
-  .f-shard{top:auto;bottom:250px;right:2vw;width:70px;height:95px}   /* next to the fox head, clear of the headline */
+  .f-shard{display:none}                        /* phones: the fox chat bubble is the floating element now */
 }
 @media (max-width:760px){
-  .hero .actions .btn{display:none}             /* room buttons live in the sticky bar on phones */
-  .hero .actions{margin-top:-8px}
+  .hero .actions{display:none}                  /* room buttons live in the sticky bar, the flow lines in the fox bubble */
 }
 /* phones: sticky bottom bar with the two room actions, side by side (same dark glass as the header) */
 .mbar{display:none}
@@ -532,11 +547,11 @@ footer .brand{font-size:18px}
 <!-- HERO -->
 <section class="hero" id="top" data-tone="light" data-bg="#e7e8e3" data-bg-dark="#13141b" data-glow="232,102,31,.26" data-glow-pos="18,44" aria-labelledby="h1">
   <canvas class="field" id="heroField" data-cell="15" data-fx=".2" data-fy=".46" data-sigma=".3" aria-hidden="true"></canvas>
-  <div class="fox-slot hero-fox" id="foxHero" data-frame="bust" data-yaw="0.55" data-pose="idle" data-look data-lookbias="0.12" data-lookmax="0.2" data-bleed="0 .2 0 0" data-px="4" role="img" aria-label="Close-up of Poof's fox mascot looking toward the headline"></div>
+  <div class="fox-slot hero-fox" id="foxHero" data-frame="bust" data-yaw="0.55" data-pose="idle" data-look data-lookbias="0.12" data-lookmax="0.2" data-bleed="0 .2 0 0" data-px="4" role="img" aria-label="Close-up of Poof's fox mascot looking toward the headline"><div class="hero-chat" aria-hidden="true"><p class="hc-msg" id="hcMsg">Create a room.</p></div></div>
   <div class="fox-slot frag f-shard" data-scene="frag" data-shape="shard" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
-      <p class="kicker">Private by default. Temporary by design.</p>
+      <p class="hero-status" aria-hidden="true"><i class="hs-dot"></i><span>room <b id="hsRoom">k7q2</b></span><span class="hs-sep">·</span><span>closes in <b id="hsTime">10:00</b></span></p>
       <h1 id="h1" data-split>A private chatroom that doesn't need to know who you are.</h1>
       <p class="lede" data-reveal>No email. No phone number. No account.</p>
       <div class="actions" data-reveal>
@@ -1723,6 +1738,42 @@ window.VeilFox = (function(){
   if(!reduce) (async function(){
     await sleep(2800);
     while(true){ await Dither.animate(vanish, 16, 0, 900); await sleep(1100); await Dither.animate(vanish, 0, 16, 700); await sleep(3400); }
+  })();
+
+  /* ---------- phone hero: live room status + the fox's chat bubble ---------- */
+  const phoneHero = matchMedia('(max-width:900px)');
+  const hsRoom = $('#hsRoom'), hsTime = $('#hsTime'), hsChip = $('.hero-status'), hcMsg = $('#hcMsg');
+  const roomId = () => Array.from({length:4}, ()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
+  let hsLeft = 600;
+  setInterval(async ()=>{
+    if(!phoneHero.matches) return;
+    hsLeft--;
+    if(hsLeft < 0){                                    // the room closes: poof, a new one opens
+      if(!reduce) await Dither.animate(hsChip, 16, 0, 450);
+      hsRoom.textContent = roomId(); hsLeft = 600;
+      if(!reduce) Dither.animate(hsChip, 0, 16, 450);
+    }
+    hsTime.textContent = String(Math.floor(hsLeft/60)).padStart(2,'0') + ':' + String(hsLeft%60).padStart(2,'0');
+  }, 1000);
+  const HERO_LINES = ['Create a room.', 'Share the link.', 'Talk privately.', 'Then poof.'];
+  let heroSeen = false;
+  if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>{ heroSeen = e.isIntersecting; }), {threshold:0.1}).observe(heroFox);
+  if(!reduce) (async function(){
+    Dither.set(hcMsg, 0);
+    await sleep(2200);
+    while(true){
+      if(!phoneHero.matches || !heroSeen){ await sleep(600); continue; }
+      for(let i=0;i<HERO_LINES.length;i++){
+        hcMsg.textContent = HERO_LINES[i];
+        hcMsg.classList.toggle('poof', i === HERO_LINES.length-1);
+        await Dither.animate(hcMsg, 0, 16, 360);
+        if(i === HERO_LINES.length-1) Fox.flash(heroFox, 'excited', 1200);
+        await sleep(i === HERO_LINES.length-1 ? 2000 : 1350);
+        await Dither.animate(hcMsg, 16, 0, i === HERO_LINES.length-1 ? 800 : 380);
+        await sleep(260);
+      }
+      await sleep(1400);
+    }
   })();
 
   /* ---------- live room demo ---------- */
