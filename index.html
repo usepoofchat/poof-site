@@ -145,6 +145,11 @@ html.theme-anim body,html.theme-anim body *{transition:background-color .45s eas
 .theme-btn[data-mode="dark"] .i-moon,.theme-btn[data-mode="light"] .i-sun{display:none}
 .nav-links + .theme-btn{margin-left:-6px}
 .theme-btn + .nav-join{margin-left:-20px}
+/* header buttons: about 22% smaller than .btn-sm, so they sit with the nav text */
+.nav .btn{--h:33px;padding:0 14px;gap:9px;font-size:13.5px}
+.nav .btn .pip{width:10px;height:10px;background-size:5px 5px}
+.nav .theme-btn{width:33px;height:33px}
+.nav .theme-btn svg{width:15px;height:15px}
 @media (max-width:760px){.nav-links,.nav-join{display:none}.nav .wrap{gap:10px}.nav .theme-btn{margin-left:auto}.nav .btn{margin-left:0}}
 
 /* HERO */
@@ -260,6 +265,9 @@ html.theme-anim body,html.theme-anim body *{transition:background-color .45s eas
 .future .field{color:var(--frost);opacity:.2}
 .fut-rail{position:absolute;top:4vh;bottom:6vh;right:1vw;width:min(40vw,640px);pointer-events:none}
 .fut-fox{position:sticky;top:calc(var(--nav-h) + 2vh);width:100%;height:min(86vh,940px)}
+/* desktop: fox drawn 1.5x larger, around its middle so it stays clear of the header,
+   nudged right (into the empty space by its tail) so it clears the threat columns */
+@media (min-width:901px){.fut-fox{transform:translateX(12%) scale(1.5);transform-origin:100% 55%}}
 .fut-top{max-width:58%}
 .future h2{max-width:11ch;font-size:clamp(40px,5.4vw,92px)}
 .threat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,2.4vw,40px);counter-reset:t;margin-top:40px}
@@ -615,7 +623,7 @@ footer .brand{font-size:18px}
     </div>
     <div class="timeline" aria-hidden="true"><pre id="futPre"></pre></div>
     <p class="mind" data-reveal>Poof is designed with that future in mind.</p>
-    <p class="big" data-split>Temporary conversations. Long-term cryptographic thinking.</p>
+    <p class="big" data-split>Temporary conversations.<br>Long-term<br>cryptographic<br>thinking.</p>
   </div>
 </section>
 
@@ -1378,8 +1386,13 @@ window.VeilFox = (function(){
 
   /* ---------- word split + reveals ---------- */
   $$('[data-split]').forEach(el=>{
-    const words = el.textContent.trim().split(/\s+/);
-    el.innerHTML = words.map((w,i)=>'<span class="wd"><span style="--i:'+i+'">'+w.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span></span>').join(' ');
+    // split into words, keeping any <br> line breaks from the markup
+    let i = 0;
+    el.innerHTML = el.innerHTML.split(/<br\s*\/?>/i).map(part=>{
+      const t = document.createElement('div'); t.innerHTML = part;
+      return t.textContent.trim().split(/\s+/).filter(Boolean)
+        .map(w=>'<span class="wd"><span style="--i:'+(i++)+'">'+w.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span></span>').join(' ');
+    }).join('<br>');
   });
   $$('[data-scrub]').forEach(el=>{
     const words = el.textContent.trim().split(/\s+/);
