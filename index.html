@@ -132,6 +132,9 @@ section{position:relative;padding-block:clamp(110px,16vh,200px)}
 .nav .wrap{height:100%;display:flex;align-items:center;gap:32px}
 .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-weight:700;font-size:21px;letter-spacing:.16em}
 .brand .mk{width:14px;height:14px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/7px 7px}
+/* header logo: official 4x4 mark + pixel-detailed "Poof" wordmark (inline SVG, text follows the theme colour) */
+.brand .logo{display:block;height:19px;width:auto}
+footer .brand .logo{height:17px}
 .nav-links{display:flex;gap:30px;margin-left:auto}
 .nav-links a{color:var(--ink-2);text-decoration:none;font-size:14.5px}
 .nav-links a:hover{color:var(--ink)}
@@ -441,7 +444,7 @@ footer .brand{font-size:18px}
 
 <header class="nav" id="nav" data-tone="dark">
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="Poof, back to top"><span class="mk" aria-hidden="true"></span>POOF</a>
+    <a class="brand" href="#top" aria-label="Poof, back to top"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#security">Security</a>
       <a href="#rooms">Rooms</a>
@@ -774,7 +777,7 @@ footer .brand{font-size:18px}
 <footer data-tone="dark">
   <div class="wrap foot">
     <div class="foot-top">
-      <a class="brand" href="#top" aria-label="Poof, back to top"><span class="mk" aria-hidden="true"></span>POOF</a>
+      <a class="brand" href="#top" aria-label="Poof, back to top"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
       <nav class="social" aria-label="Poof elsewhere">
         <a class="soc" href="https://x.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>X</a>
         <a class="soc" href="https://t.me/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Telegram</a>
