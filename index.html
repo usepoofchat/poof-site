@@ -1,0 +1,1894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Poof | Private by default. Temporary by design.</title>
+<meta name="description" content="A private chatroom that doesn't need to know who you are. No email. No phone number. No account.">
+<link rel="canonical" href="https://usepoof.chat/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#16171f">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://usepoof.chat/">
+<meta property="og:title" content="Poof | Private by default. Temporary by design.">
+<meta property="og:description" content="A private chatroom that doesn't need to know who you are. Create a room. Share it. Then poof.">
+<meta property="og:image" content="https://usepoof.chat/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Poof | Private by default. Temporary by design.">
+<meta name="twitter:description" content="A private chatroom that doesn't need to know who you are.">
+<meta name="twitter:image" content="https://usepoof.chat/og-image.png">
+<script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('poof-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#e8e9e4; --surface:#fbf7ef;
+  --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
+  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85);
+  --rust:#e8661f; --rust-text:#9c3b14; --on-rust:#1d1f2b;
+  --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14);
+  --frost:#9db4ff;
+  --nav-h:68px;
+  --pad:clamp(20px,5vw,72px);
+  --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.16,.84,.24,1);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#14151c; --surface:#1e1f29;
+    --ink:#ecebe6; --ink-2:#bdbcb6; --ink-3:#9e9d97;
+    --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.8);
+    --rust-text:#f08a4b; --panel:#262837;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14151c; --surface:#1e1f29;
+  --ink:#ecebe6; --ink-2:#bdbcb6; --ink-3:#9e9d97;
+  --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.8);
+  --rust-text:#f08a4b; --panel:#262837;
+  color-scheme:dark;
+}
+[data-tone="dark"]{
+  --ink:#f1efe8; --ink-2:#b9b8b1; --ink-3:#8f8e88;
+  --line:rgba(255,255,255,.14); --line-strong:rgba(255,255,255,.8);
+  --rust-text:#f08a4b; --surface:#22242f; --ground:#16171f; --panel:#262837;
+}
+[data-tone="rust"]{
+  --ink:#1d1f2b; --ink-2:#3a2114; --ink-3:#4d2a17;
+  --line:rgba(29,31,43,.24); --line-strong:#1d1f2b; --rust-text:#1d1f2b;
+}
+[data-tone]{color:var(--ink)}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:calc(var(--nav-h) + env(safe-area-inset-top,0px));scroll-behavior:smooth;background:var(--ground)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 17px/1.55 var(--sans);letter-spacing:-.006em;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html.js body{background:transparent}
+body.lock{overflow:hidden}
+p{margin:0 0 1em}
+h1,h2,h3{margin:0;font-weight:600}
+.wrap{max-width:1360px;margin-inline:auto;padding-inline:var(--pad);position:relative}
+.mono{font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ground);padding:10px 14px;border-radius:4px}
+.skip:focus{top:12px}
+:focus-visible{outline:2px solid var(--rust);outline-offset:3px}
+
+/* environment layers */
+#bg{position:fixed;inset:0;z-index:0;background:var(--ground);pointer-events:none}
+#glow{position:absolute;inset:0}
+#grain{position:absolute;inset:0;opacity:.07;mix-blend-mode:overlay;background-size:180px 180px}
+.foxc{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#foxBack{z-index:1}
+#foxFront{z-index:60}
+main,footer{position:relative;z-index:2}
+html:not(.js) [data-tone="dark"]{background:#16171f}
+html:not(.js) [data-tone="rust"]{background:#e8661f}
+.fox-slot{pointer-events:none}
+.frag{position:absolute}
+.field{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;color:var(--ink);opacity:.16;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 82%,transparent);
+  mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 82%,transparent)}
+
+/* cursor */
+#cur{position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;z-index:70;pointer-events:none;display:none;
+  background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/4px 4px;mix-blend-mode:difference;
+  transition:width .3s var(--ease),height .3s var(--ease),margin .3s var(--ease)}
+#cur.big{width:44px;height:44px;margin:-22px 0 0 -22px}
+html.has-cur #cur{display:block}
+
+/* type */
+h1{font-size:clamp(42px,5.2vw,90px);line-height:.98;letter-spacing:-.048em;text-wrap:balance}
+h2{font-size:clamp(34px,4.3vw,70px);line-height:1;letter-spacing:-.042em;text-wrap:balance;margin:0 0 28px}
+.kicker{font:500 12.5px/1.4 var(--mono);color:var(--ink-3);letter-spacing:.01em;margin:0 0 22px}
+section{position:relative;padding-block:clamp(110px,16vh,200px)}
+.wd{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .14em .12em 0;margin:0 -.14em -.12em 0}
+.wd>span{display:inline-block;transform:translate3d(0,108%,0);transition:transform 1.05s var(--ease) calc(var(--i) * 42ms)}
+.in .wd>span{transform:none}
+@media (prefers-reduced-motion:reduce){.wd>span{transform:none;transition:none}}
+
+/* buttons */
+.btn{--h:54px;position:relative;display:inline-flex;align-items:center;gap:12px;height:var(--h);padding:0 24px;border:0;border-radius:999px;background:var(--rust);color:var(--on-rust);font:550 16px/1 var(--sans);letter-spacing:-.01em;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .25s,color .25s;will-change:transform}
+.btn:hover{background:var(--ink);color:var(--ground)}
+.btn:focus-visible{outline-color:var(--ink)}
+.btn .pip{width:12px;height:12px;flex:none;background:repeating-conic-gradient(currentColor 0 25%,transparent 0 50%) 0 0/6px 6px;transition:background .25s,transform .4s var(--ease)}
+.btn:hover .pip{background:currentColor;transform:rotate(90deg)}
+.btn-sm{--h:42px;padding:0 18px;font-size:14.5px}
+.btn-lg{--h:64px;padding:0 32px;font-size:18px}
+.btn-ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--ground)}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;height:var(--nav-h);color:var(--ink);
+  background:rgba(22,23,31,.86);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.nav .wrap{height:100%;display:flex;align-items:center;gap:32px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-weight:700;font-size:21px;letter-spacing:.16em}
+.brand .mk{width:14px;height:14px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/7px 7px}
+.nav-links{display:flex;gap:30px;margin-left:auto}
+.nav-links a{color:var(--ink-2);text-decoration:none;font-size:14.5px}
+.nav-links a:hover{color:var(--ink)}
+.nav-links + .btn{margin-left:0}
+.nav-join + .btn{margin-left:-22px}
+.theme-btn{flex:none;width:42px;height:42px;border:0;border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22);transition:background .25s,box-shadow .25s}
+.theme-btn:hover{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+.theme-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html.theme-anim body,html.theme-anim body *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,box-shadow .45s ease !important}
+.theme-btn[data-mode="dark"] .i-moon,.theme-btn[data-mode="light"] .i-sun{display:none}
+.nav-links + .theme-btn{margin-left:-6px}
+.theme-btn + .nav-join{margin-left:-20px}
+@media (max-width:760px){.nav-links,.nav-join{display:none}.nav .wrap{gap:10px}.nav .theme-btn{margin-left:auto}.nav .btn{margin-left:0}}
+
+/* HERO */
+.hero{min-height:100svh;padding:0;display:flex;align-items:center}
+.hero .field{opacity:.17}
+.hero-fox{position:absolute;left:-24vw;top:4vh;width:68vw;height:94vh;will-change:transform}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;width:100%}
+.hero-copy{grid-column:2;padding-block:14vh 12vh;will-change:transform}
+.lede{font-size:clamp(19px,1.6vw,23px);color:var(--ink-2);margin:28px 0 38px;letter-spacing:-.015em}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
+.flow{font:400 13.5px/1.7 var(--mono);color:var(--ink-2);margin:0;max-width:30ch;flex-basis:100%}
+.flow .vanish{display:inline-block;color:var(--rust-text)}
+.assure{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-wrap:wrap;gap:12px 28px;font:500 12px/1 var(--mono);color:var(--ink-3)}
+.assure li{display:flex;align-items:center;gap:9px}
+.assure li::before{content:"";width:8px;height:8px;flex:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
+.f-shard{right:5vw;top:15vh;width:150px;height:190px}
+.scrollcue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);font:500 11.5px var(--mono);color:var(--ink-3);display:flex;flex-direction:column;align-items:center;gap:10px}
+.scrollcue i{width:1px;height:42px;background:linear-gradient(var(--ink-3),transparent);animation:cue 2.2s var(--ease) infinite}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+@media (prefers-reduced-motion:reduce){.scrollcue i{animation:none}}
+@media (max-width:900px){
+  .hero{display:block}
+  .hero-fox{left:-30vw;top:0;width:130vw;height:60svh}
+  .hero-grid{grid-template-columns:1fr}
+  .hero-copy{grid-column:1;padding:56svh 0 12vh}
+  .scrollcue{display:none}
+  .f-shard{top:9vh;right:3vw;width:90px;height:120px}
+}
+
+/* IDENTITY */
+.id-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,6vw,100px)}
+.id-sticky{position:sticky;top:calc(var(--nav-h) + 3vh);align-self:start}
+.id-sticky p{color:var(--ink-2);max-width:42ch}
+.id-sticky .enter{color:var(--ink);font-weight:550;font-size:21px;letter-spacing:-.02em}
+.id-fox{height:clamp(300px,44vh,470px)}
+.id-right{position:relative}
+.id-card-wrap{position:sticky;top:26vh;height:0;z-index:0}
+#cardFrag{position:absolute;right:-3vw;top:0;width:clamp(170px,20vw,300px);height:clamp(150px,17vw,250px)}
+.nolist{list-style:none;margin:0;padding:20vh 0 0}
+.nolist li{position:relative;width:fit-content;font-size:clamp(36px,5.3vw,86px);line-height:1.02;font-weight:600;letter-spacing:-.045em;margin:0 0 .55em}
+.nolist li::after{content:"";position:absolute;left:-.04em;top:54%;height:.07em;width:calc(var(--strike,0) * (100% + .08em));background:var(--rust)}
+.enough{padding:10vh 0 2vh}
+.enough .big{font-size:clamp(44px,6.4vw,104px);line-height:.94;font-weight:600;letter-spacing:-.05em;margin:0}
+.steps{display:flex;flex-wrap:wrap;gap:12px 34px;list-style:none;padding:0;margin:34px 0 48px;font:500 14.5px var(--mono);counter-reset:s}
+.steps li{counter-increment:s}
+.steps li::before{content:"0" counter(s) "  ";color:var(--rust-text)}
+.chat-wrap{position:relative;max-width:420px}
+.chat-wrap::before{content:"";position:absolute;inset:14px -14px -14px 14px;z-index:-1;background:repeating-conic-gradient(var(--ink) 0 25%,transparent 0 50%) 0 0/4px 4px;opacity:.16}
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.chat-head{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font:500 12px/1.2 var(--mono);color:var(--ink-3)}
+.chat-head b{color:var(--ink);font-weight:500}
+.chat-body{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:250px}
+.msg{max-width:84%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.4}
+.msg.them{align-self:flex-start;background:var(--ground);color:var(--ink);border-bottom-left-radius:4px}
+.msg.me{align-self:flex-end;background:var(--ink);color:var(--ground);border-bottom-right-radius:4px}
+.msg.sys{align-self:center;background:none;padding:6px 0;font:500 12px/1.4 var(--mono);color:var(--ink-3);text-align:center}
+.msg.typing{font-family:var(--mono);letter-spacing:.25em}
+@media (max-width:960px){
+  .id-grid{grid-template-columns:1fr}
+  .id-sticky{position:relative;top:0}
+  .nolist{padding-top:6vh}
+  #cardFrag{right:0;width:150px;height:130px}
+}
+
+/* PRINCIPLE */
+.principle{padding:0}
+.scrub-wrap{height:240vh;position:relative}
+.scrub-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+.ascii-fox{position:absolute;left:50%;top:52%;width:min(120vh,110vw);height:118vh;transform:translate(-50%,-50%);color:#e8661f}
+.statement{font-size:clamp(52px,8.6vw,156px);line-height:.92;letter-spacing:-.058em;max-width:11ch;margin:0}
+.statement .sw{opacity:.13}
+.principle .after{padding-bottom:clamp(110px,16vh,200px)}
+.tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,52px);border-top:1.5px solid var(--line-strong);padding-top:26px}
+.tri p{font-size:clamp(18px,1.45vw,21px);color:var(--ink-2);margin:0}
+.coda{font:500 14.5px/1.6 var(--mono);color:var(--ink);margin-top:56px}
+@media (max-width:820px){.tri{grid-template-columns:1fr}}
+
+/* MOMENTS */
+.moments{overflow:hidden;padding-bottom:clamp(64px,8vh,100px)}
+.moments .field{opacity:.13}
+.say-lead{font-size:clamp(19px,1.6vw,22px);color:var(--ink-2);margin-bottom:10px}
+.quote{font-size:clamp(66px,11.5vw,210px);line-height:.9;font-weight:600;letter-spacing:-.055em;margin:0 0 clamp(64px,10vh,130px)}
+.f-bubble{right:3vw;top:7vh;width:clamp(170px,22vw,340px);height:clamp(150px,18vw,280px)}
+.mo-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(40px,6vw,100px)}
+.mo-grid h2{font-size:clamp(28px,2.8vw,44px)}
+.nots p{font-size:clamp(19px,1.6vw,23px);margin:0 0 .5em;color:var(--ink-2)}
+.uses{list-style:none;padding:0;margin:0;border-top:1.5px solid var(--line-strong)}
+.uses li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:18px 0;border-bottom:1px solid var(--line);font-size:clamp(21px,2vw,30px);font-weight:550;letter-spacing:-.03em;transition:padding .4s var(--ease)}
+.uses li:hover{padding-left:14px}
+.uses .ttl{font:500 13px var(--mono);color:var(--ink-3);flex:none}
+@media (max-width:900px){.mo-grid{grid-template-columns:1fr}.f-bubble{top:2vh;width:150px;height:130px}}
+
+/* SECURITY */
+.sec-top{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,64px);align-items:center;margin-bottom:clamp(56px,9vh,110px)}
+.sec-head p{color:var(--ink-2);max-width:40ch}
+.sec-head .goal{color:var(--ink);font-size:clamp(22px,1.9vw,27px);font-weight:550;line-height:1.25;letter-spacing:-.025em}
+.sec-art{position:relative;height:clamp(380px,54vh,540px)}
+.sec-fox{position:absolute;left:0;bottom:0;width:46%;height:100%}
+.sec-lock{position:absolute;right:0;top:4%;width:56%;height:82%}
+.pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1.5px solid var(--line-strong)}
+.pillar{padding:26px clamp(14px,1.6vw,26px) 10px 0}
+.pillar + .pillar{padding-left:clamp(14px,1.6vw,26px);border-left:1px solid var(--line)}
+.ascii{font:400 12px/1.5 var(--mono);color:var(--ink-2);margin:0 0 24px;min-height:6.2em;white-space:pre;overflow:hidden}
+.ascii .hi{color:var(--rust-text)}
+.pillar h3{font-size:20px;font-weight:600;letter-spacing:-.025em;margin:0 0 10px}
+.pillar p{color:var(--ink-2);margin:0;font-size:15.5px}
+@media (max-width:1060px){.pillars{grid-template-columns:repeat(2,minmax(0,1fr))}.pillar:nth-child(3){padding-left:0;border-left:0}}
+@media (max-width:900px){.sec-top{grid-template-columns:1fr}}
+@media (max-width:600px){.pillars{grid-template-columns:1fr}.pillar + .pillar{padding-left:0;border-left:0;border-top:1px solid var(--line)}}
+
+/* FUTURE */
+.future{overflow:clip}
+.future .field{color:var(--frost);opacity:.2}
+.fut-rail{position:absolute;top:4vh;bottom:6vh;right:1vw;width:min(40vw,640px);pointer-events:none}
+.fut-fox{position:sticky;top:calc(var(--nav-h) + 2vh);width:100%;height:min(86vh,940px)}
+.fut-top{max-width:58%}
+.future h2{max-width:11ch;font-size:clamp(40px,5.4vw,92px)}
+.threat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,2.4vw,40px);counter-reset:t;margin-top:40px}
+.threat p{color:var(--ink-2);margin:0;font-size:17px}
+.threat p::before{counter-increment:t;content:"0" counter(t);display:block;font:500 12.5px var(--mono);color:var(--frost);margin-bottom:12px}
+.timeline{margin:clamp(64px,10vh,110px) 0;overflow-x:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0}
+.timeline pre{margin:0;font:400 clamp(11.5px,1.1vw,14px)/1.8 var(--mono);color:#8f8e88;white-space:pre}
+.timeline .w{color:#f3f1ea}
+.timeline .r{color:var(--rust)}
+.timeline .f{color:var(--frost)}
+.future .mind{color:var(--ink-2);font-size:19px}
+.future .big{font-size:clamp(36px,4.8vw,80px);line-height:.98;font-weight:600;letter-spacing:-.05em;margin:0;max-width:16ch}
+@media (max-width:900px){
+  .fut-rail{top:0;bottom:auto;right:0;width:62vw;height:44vh}
+  .fut-fox{position:relative;top:0;height:44vh}
+  .fut-top{max-width:none;padding-top:40vh}
+  .threat{grid-template-columns:1fr}
+}
+
+/* ONE ROOM */
+.oneroom{text-align:center}
+.oneroom h2{font-size:clamp(40px,5.4vw,92px)}
+.oneroom .sub{font-size:clamp(19px,1.6vw,23px);color:var(--ink-2)}
+.cube{position:relative;width:clamp(170px,18vw,250px);height:clamp(170px,18vw,250px);margin:28px auto 8px}
+.struck{list-style:none;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:14px 34px;margin:30px auto 60px;max-width:980px;font-size:clamp(23px,2.6vw,38px);font-weight:550;letter-spacing:-.035em;color:var(--ink-3)}
+.struck li{position:relative}
+.struck li::after{content:"";position:absolute;left:-.04em;right:-.04em;top:55%;height:.07em;background:var(--rust);transform:scaleX(0);transform-origin:left;transition:transform .8s var(--ease) calc(var(--i) * 150ms)}
+.struck.on li::after{transform:scaleX(1)}
+.oneroom .big{font-size:clamp(34px,4.4vw,72px);line-height:1;font-weight:600;letter-spacing:-.048em;margin:0 auto;max-width:18ch}
+.oneroom .big span{display:block;color:var(--ink-3)}
+
+/* ROOMS */
+.rooms-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(20px,3vw,48px);align-items:stretch;margin-top:clamp(150px,22vh,250px)}
+.room h3{font-size:clamp(28px,2.6vw,42px);letter-spacing:-.04em;line-height:1;margin:0 0 10px}
+.room .desc{opacity:.86}
+.room{display:flex;flex-direction:column}
+.classic{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(28px,3.2vw,46px)}
+.classic .over{font:500 12.5px var(--mono);color:var(--rust-text);margin-bottom:16px}
+.classic .price{margin-top:auto}
+.room .btn{align-self:flex-start}
+.clock{font:600 clamp(64px,8.5vw,140px)/1 var(--mono);letter-spacing:-.06em;margin:10px 0 18px;color:var(--ink)}
+.specs{display:grid;grid-template-columns:auto 1fr;gap:10px 22px;margin:22px 0;font-size:16px}
+.specs dt{font:500 12px/1.9 var(--mono);color:var(--ink-3)}
+.specs dd{margin:0}
+.incl{list-style:none;padding:0;margin:0 0 26px;font:500 12px/2 var(--mono);color:var(--ink-3)}
+.price{font-size:20px;font-weight:600;margin:0 0 18px}
+.super{position:relative;background:var(--panel);color:var(--panel-ink);border-radius:18px;padding:clamp(28px,3.2vw,46px)}
+.peek-fox{position:absolute;bottom:calc(100% - 4px);right:3%;width:min(84%,560px);height:clamp(200px,24vw,320px)}
+.super .over{font:500 12.5px var(--mono);color:var(--rust);margin-bottom:16px}
+.super .desc{color:var(--panel-ink-2)}
+.config{display:grid;gap:20px;margin:26px 0;padding:22px 0;border-top:1px solid var(--panel-line);border-bottom:1px solid var(--panel-line)}
+.cfg-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+.cfg-lbl{font:500 12px var(--mono);color:var(--panel-ink-2)}
+.seg{display:flex;gap:6px;border:0;margin:0;padding:0}
+.seg legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--panel-line);font-weight:550;font-size:15px}
+.seg input:checked + span{background:var(--rust);color:#1d1f2b;box-shadow:none}
+.seg input:focus-visible + span{outline:2px solid var(--rust);outline-offset:3px}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{width:44px;height:44px;border:0;border-radius:999px;background:transparent;color:inherit;box-shadow:inset 0 0 0 1.5px var(--panel-line);font:500 20px var(--sans);cursor:pointer}
+.stepper button:hover{box-shadow:inset 0 0 0 1.5px var(--panel-ink)}
+.stepper button:disabled{opacity:.35;cursor:default}
+.stepper output{min-width:44px;text-align:center;font:500 18px var(--mono)}
+.seats{display:flex;gap:6px;flex-wrap:wrap}
+.seat{width:14px;height:14px;box-shadow:inset 0 0 0 1.5px var(--panel-line)}
+.seat.on{box-shadow:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
+.seat.host{box-shadow:none;background:var(--rust)}
+.feat{list-style:none;padding:0;margin:0 0 24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px;font-size:15px;color:var(--panel-ink-2)}
+.feat li::before{content:"+ ";font-family:var(--mono);color:var(--rust)}
+.burn{font-size:15px;color:var(--panel-ink-2)}
+.super .btn:hover{background:var(--panel-ink);color:#1d1f2b}
+.why{margin-top:24px;border-top:1px solid var(--panel-line);padding-top:14px}
+.why summary{cursor:pointer;font:500 13.5px var(--mono);list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.why summary::-webkit-details-marker{display:none}
+.why summary::after{content:"+";font-size:18px;color:var(--rust)}
+.why[open] summary::after{content:"−"}
+.why p{color:var(--panel-ink-2);font-size:15px;margin:10px 0 0}
+@media (max-width:900px){.rooms-grid{grid-template-columns:1fr}.feat{grid-template-columns:1fr}.classic{margin-bottom:200px}}
+
+/* PROTOCOL */
+.protocol .field{opacity:.1}
+.protocol .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,6vw,100px);align-items:center}
+.protocol p{color:var(--ink-2);max-width:46ch}
+.term{background:var(--panel);color:#dedcd4;border-radius:14px;overflow:hidden}
+.term-bar{padding:12px 18px;border-bottom:1px solid var(--panel-line);font:500 12px var(--mono);color:#8f8e88}
+.term pre{margin:0;padding:26px 22px;font:400 clamp(13px,1.2vw,15px)/1.8 var(--mono);min-height:250px;white-space:pre-wrap}
+.term .dim{color:#7d7c77}
+.cur{display:inline-block;width:.6em;height:1.15em;background:var(--rust);vertical-align:-.22em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+@media (max-width:900px){.protocol .wrap{grid-template-columns:1fr}}
+
+/* FINAL */
+.final{padding-bottom:0;overflow:hidden}
+.final .field{color:var(--rust);opacity:.12}
+.m1{font-size:clamp(40px,5.4vw,92px);line-height:.96;font-weight:600;letter-spacing:-.052em;max-width:14ch;margin:0 0 44px}
+.manifesto p:not(.m1){font-size:clamp(19px,1.6vw,23px);color:var(--ink-2);max-width:44ch;margin:0 0 .5em}
+.manifesto .m2{color:var(--ink) !important;font-weight:550;margin-top:1.4em !important}
+.open{position:relative;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:end;gap:24px;margin-top:clamp(110px,18vh,200px)}
+.giant{font-size:clamp(54px,7.4vw,128px);line-height:.9;font-weight:650;letter-spacing:-.055em;margin:0 0 30px}
+.open p{color:var(--ink-2);font-size:20px;margin:0 0 .4em}
+.open .nos{font:500 13px/1.8 var(--mono);color:var(--ink-3);margin:18px 0}
+.open .just{color:var(--ink);font-weight:550;margin-bottom:30px}
+.open-copy{padding-bottom:clamp(80px,14vh,160px)}
+.open-actions{display:flex;flex-wrap:wrap;gap:14px}
+.final-fox{position:relative;height:min(86vh,860px)}
+.f-cube2{left:50%;top:-6%;width:110px;height:110px}
+.f-shard2{right:-2%;top:-14%;width:130px;height:170px}
+@media (max-width:860px){.open{grid-template-columns:1fr}.final-fox{height:420px;order:-1}.f-cube2{left:4%;top:0}}
+
+footer{padding:40px 0 calc(40px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+footer .foot{display:flex;flex-direction:column;gap:28px}
+.foot-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
+.social{display:flex;flex-wrap:wrap;gap:8px}
+.soc{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 18px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink);text-decoration:none;font:500 13.5px var(--mono);transition:background .25s,color .25s,box-shadow .25s}
+.soc .pip{width:10px;height:10px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/5px 5px;transition:background .25s,transform .4s var(--ease)}
+.soc:hover{background:var(--rust);color:#1d1f2b;box-shadow:none}
+.soc:hover .pip{background:#1d1f2b;transform:rotate(90deg)}
+.foot-bottom{display:flex;flex-wrap:wrap;gap:12px 40px;justify-content:space-between;font:500 12px/1.6 var(--mono);color:var(--ink-3);padding-top:22px;border-top:1px solid var(--line)}
+footer .brand{font-size:18px}
+
+/* ROOM DIALOG */
+.ov{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ground) 70%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.ov[hidden]{display:none}
+.dlg{position:relative;width:min(900px,100%);max-height:calc(100svh - 32px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+.dlg .fox-slot{min-height:470px;background:var(--ground)}
+.dlg-body{padding:clamp(26px,3vw,44px);display:flex;flex-direction:column}
+.close{position:absolute;top:10px;right:10px;width:44px;height:44px;border:0;border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center;z-index:2}
+.close:hover{background:var(--line)}
+.demo-note{font:500 12px var(--mono);color:var(--ink-3);margin:0 0 22px;padding-right:40px}
+.state h2{font-size:clamp(30px,3.2vw,44px);margin-bottom:14px}
+.state p{color:var(--ink-2)}
+.genlog{font:400 13.5px/1.9 var(--mono);color:var(--ink-2);margin:10px 0 0;white-space:pre-wrap;min-height:9.5em}
+.link-row[hidden]{display:none}
+.state h2:focus{outline:none}
+.link-row{display:flex;gap:8px;margin:20px 0 8px}
+.link-row input{flex:1;min-width:0;height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--ground);color:var(--ink);font:400 13px var(--mono)}
+.phrase{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:22px 0 8px}
+.pw{min-width:0;height:52px;padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--ground);color:var(--ink);font:500 15px var(--mono);text-align:center;text-transform:lowercase;transition:border-color .2s,background .2s}
+.pw:focus{outline:none;border-color:var(--ink)}
+.pw.ok{border-color:var(--rust);background:var(--surface)}
+.pw.bad{border-color:#c2410c}
+.phrase-show{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:18px 0 4px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px}
+.phrase-show .cfg-lbl{color:var(--ink-3)}
+.phrase-show b{font:600 15px var(--mono);letter-spacing:.02em;flex:1;min-width:0}
+@media (max-width:520px){.phrase{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.copy-msg{min-height:1.6em;font:500 12.5px/1.6 var(--mono);color:var(--ink-3);margin:0}
+.copy-msg.ok{color:var(--rust-text)}
+.room-meta{display:flex;justify-content:space-between;gap:12px;font:500 12.5px var(--mono);color:var(--ink-3);margin:18px 0 8px}
+.room-meta b{color:var(--ink);font-weight:500}
+.mini{border:1px solid var(--line);border-radius:12px;height:170px;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--ground)}
+.mini .empty{margin:auto;text-align:center;font:400 13px/1.6 var(--mono);color:var(--ink-3);max-width:30ch}
+.mini .msg{font-size:14.5px}
+.composer{display:flex;gap:8px;margin:10px 0 22px}
+.composer input{flex:1;min-width:0;height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:400 15px var(--sans)}
+.composer input:focus{border-color:var(--ink);outline:none}
+@media (max-width:760px){.dlg{grid-template-columns:1fr}.dlg .fox-slot{min-height:240px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="bg" aria-hidden="true"><div id="glow"></div><div id="grain"></div></div>
+<canvas id="foxBack" class="foxc" aria-hidden="true"></canvas>
+<canvas id="foxFront" class="foxc" aria-hidden="true"></canvas>
+<div id="cur" aria-hidden="true"></div>
+
+<header class="nav" id="nav" data-tone="dark">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Poof, back to top"><span class="mk" aria-hidden="true"></span>POOF</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#security">Security</a>
+      <a href="#rooms">Rooms</a>
+      <a href="#protocol">Protocol</a>
+      <a href="/docs/">Docs</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
+    </button>
+    <button class="btn btn-sm btn-ghost nav-join" data-join>Join a room</button>
+    <button class="btn btn-sm" data-create="classic"><span class="pip" aria-hidden="true"></span>Create a room</button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- HERO -->
+<section class="hero" id="top" data-tone="light" data-bg="#e7e8e3" data-bg-dark="#13141b" data-glow="232,102,31,.26" data-glow-pos="18,44" aria-labelledby="h1">
+  <canvas class="field" id="heroField" data-cell="15" data-fx=".2" data-fy=".46" data-sigma=".3" aria-hidden="true"></canvas>
+  <div class="fox-slot hero-fox" id="foxHero" data-frame="bust" data-yaw="0.55" data-pose="idle" data-look data-lookbias="0.12" data-lookmax="0.2" data-bleed="0 .2 0 0" data-px="4" role="img" aria-label="Close-up of Poof's fox mascot looking toward the headline"></div>
+  <div class="fox-slot frag f-shard" data-scene="frag" data-shape="shard" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy" id="heroCopy">
+      <p class="kicker">Private by default. Temporary by design.</p>
+      <h1 id="h1" data-split>A private chatroom that doesn't need to know who you are.</h1>
+      <p class="lede" data-reveal>No email. No phone number. No account.</p>
+      <div class="actions" data-reveal>
+        <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a room</button>
+        <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a room</button>
+        <p class="flow">Create a room. Share the link. Talk privately. <span class="vanish" id="vanish">Then poof. It’s gone.</span></p>
+      </div>
+      <ul class="assure" data-reveal>
+        <li>E2E encrypted</li>
+        <li>Post-quantum protected</li>
+        <li>Zero-knowledge architecture</li>
+      </ul>
+    </div>
+  </div>
+  <div class="scrollcue" aria-hidden="true"><i></i></div>
+</section>
+
+<!-- IDENTITY -->
+<section class="identity" data-tone="light" data-bg="#d8dce0" data-bg-dark="#171a21" data-glow="157,180,255,.2" data-glow-pos="76,28" aria-labelledby="idh">
+  <div class="wrap id-grid">
+    <div class="id-sticky">
+      <h2 id="idh" data-split>Privacy shouldn't require an identity.</h2>
+      <p data-reveal>The internet has made it easy to communicate. It has also made it easy to be identified, tracked and remembered.</p>
+      <p data-reveal>Poof takes a different approach. You don't build a profile. You don't establish a permanent identity. You don't create a history before you can have a conversation.</p>
+      <p class="enter" data-reveal>You simply enter the room.</p>
+      <div class="fox-slot id-fox" id="foxId" data-pose="shrug" data-frame="full" aria-hidden="true"></div>
+    </div>
+    <div class="id-right">
+      <div class="id-card-wrap"><div class="fox-slot" id="cardFrag" data-scene="frag" data-shape="card" aria-hidden="true"></div></div>
+      <p class="kicker">Nothing to sign up for.</p>
+      <ul class="nolist" id="nolist">
+        <li>No email.</li>
+        <li>No phone number.</li>
+        <li>No username.</li>
+        <li>No password.</li>
+        <li>No profile.</li>
+        <li>No contact list.</li>
+        <li>No account waiting for you when you come back.</li>
+      </ul>
+      <div class="enough" id="enough">
+        <p class="big" data-split>A room is enough.</p>
+        <ol class="steps" data-reveal>
+          <li>Create it.</li>
+          <li>Share it.</li>
+          <li>Use it.</li>
+        </ol>
+        <div class="chat-wrap" aria-hidden="true" data-reveal>
+          <div class="chat">
+            <div class="chat-head"><span>room <b id="hcId">k7q2</b></span><span>closes in <b id="hcT">00:16</b></span></div>
+            <div class="chat-body" id="hcBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE -->
+<section class="principle" data-tone="dark" data-bg="#1a1c27" data-glow="232,102,31,.14" data-glow-pos="50,62" aria-labelledby="prh">
+  <div class="scrub-wrap" id="scrubWrap">
+    <div class="scrub-sticky">
+      <div class="fox-slot ascii-fox" id="foxAscii" data-layer="back" data-mode="ascii" data-px="12" data-frame="full" data-pose="idle" data-alpha=".3" aria-hidden="true"></div>
+      <div class="wrap"><h2 class="statement" id="prh" data-scrub>Privacy is not a feature. It's a principle.</h2></div>
+    </div>
+  </div>
+  <div class="wrap after">
+    <div class="tri" data-reveal>
+      <p>A private conversation shouldn't require you to surrender personal information first.</p>
+      <p>A temporary conversation shouldn't automatically become a permanent record.</p>
+      <p>And a service that protects your privacy shouldn't need to know everything about you.</p>
+    </div>
+    <p class="coda" data-reveal>Less information. Less exposure.</p>
+  </div>
+</section>
+
+<!-- MOMENTS -->
+<section class="moments" data-tone="rust" data-bg="#e8661f" data-glow="255,236,214,.28" data-glow-pos="72,26" aria-labelledby="moh">
+  <canvas class="field" id="rustField" data-cell="16" data-fx=".78" data-fy=".2" data-sigma=".28" aria-hidden="true"></canvas>
+  <div class="fox-slot frag f-bubble" data-scene="frag" data-shape="bubble" data-speed=".24" data-palette="light" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="say-lead" data-reveal>Poof is for the moments where you want to say:</p>
+    <p class="quote" data-split>“Let’s just talk.”</p>
+    <div class="mo-grid">
+      <div>
+        <h2 id="moh" data-split>Built for the conversations you don't want to leave behind.</h2>
+        <div class="nots" data-reveal>
+          <p>Not every conversation needs a timeline.</p>
+          <p>Not every person needs to become a contact.</p>
+          <p>Not every file needs to become a permanent cloud object.</p>
+        </div>
+      </div>
+      <div>
+        <ul class="uses" data-reveal>
+          <li><span>A private discussion.</span><span class="ttl" aria-hidden="true">10:00</span></li>
+          <li><span>A one-time collaboration.</span><span class="ttl" aria-hidden="true">10:00</span></li>
+          <li><span>A sensitive topic.</span><span class="ttl" aria-hidden="true">10:00</span></li>
+          <li><span>A temporary group.</span><span class="ttl" aria-hidden="true">10:00</span></li>
+          <li><span>A conversation between people who don't need another account.</span><span class="ttl" aria-hidden="true">10:00</span></li>
+        </ul>
+        <p class="coda" data-reveal>Some things are better left in the moment.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="security" id="security" data-tone="light" data-bg="#ecebe6" data-bg-dark="#16171e" data-glow="232,102,31,.16" data-glow-pos="74,36" aria-labelledby="seh">
+  <div class="wrap">
+    <div class="sec-top">
+      <div class="sec-head">
+        <h2 id="seh" data-split>Security that looks simple.</h2>
+        <p data-reveal>Behind Poof is a modern cryptographic architecture designed around a simple goal:</p>
+        <p class="goal" data-reveal>Keep the conversation between the people having it.</p>
+      </div>
+      <div class="sec-art">
+        <div class="fox-slot sec-fox" id="foxSec" data-pose="present" data-frame="full" aria-hidden="true"></div>
+        <div class="fox-slot sec-lock" id="lockFrag" data-scene="frag" data-shape="lock" data-px="4" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="pillars">
+      <article class="pillar" data-reveal>
+        <pre class="ascii" data-ascii="e2e" aria-hidden="true"></pre>
+        <h3>End-to-end encryption</h3>
+        <p>Your messages are encrypted between participants rather than being treated as readable server-side content.</p>
+      </article>
+      <article class="pillar" data-reveal>
+        <pre class="ascii" data-ascii="pq" aria-hidden="true"></pre>
+        <h3>Post-quantum cryptography</h3>
+        <p>Poof incorporates modern post-quantum cryptographic mechanisms designed to address threats from future quantum-capable attackers.</p>
+      </article>
+      <article class="pillar" data-reveal>
+        <pre class="ascii" data-ascii="zk" aria-hidden="true"></pre>
+        <h3>Zero-knowledge principles</h3>
+        <p>Poof is designed to minimize what the service needs to know about its users and their conversations.</p>
+      </article>
+      <article class="pillar" data-reveal>
+        <pre class="ascii" data-ascii="eph" aria-hidden="true"></pre>
+        <h3>Ephemeral by design</h3>
+        <p>Rooms have defined lifetimes rather than becoming permanent communication spaces.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- FUTURE -->
+<section class="future" data-tone="dark" data-bg="#0c0e16" data-glow="130,160,255,.26" data-glow-pos="82,24" aria-labelledby="fuh">
+  <canvas class="field" id="futField" data-cell="14" data-fx=".84" data-fy=".28" data-sigma=".3" aria-hidden="true"></canvas>
+  <div class="fut-rail" aria-hidden="true"><div class="fox-slot fut-fox" id="foxFut" data-frame="full" data-yaw="-0.62" data-pose="gaze" data-palette="dark" data-px="3" aria-hidden="true"></div></div>
+  <div class="wrap">
+    <div class="fut-top">
+      <h2 id="fuh" data-split>Your privacy should survive the future.</h2>
+      <div class="threat" data-reveal>
+        <p>Today's encryption was designed for today's computers.</p>
+        <p>Quantum computing changes the threat model.</p>
+        <p>Data intercepted today could potentially become useful to an attacker tomorrow if it can eventually be decrypted.</p>
+      </div>
+    </div>
+    <div class="timeline" aria-hidden="true"><pre id="futPre"></pre></div>
+    <p class="mind" data-reveal>Poof is designed with that future in mind.</p>
+    <p class="big" data-split>Temporary conversations. Long-term cryptographic thinking.</p>
+  </div>
+</section>
+
+<!-- ONE ROOM -->
+<section class="oneroom" data-tone="dark" data-bg="#15161e" data-glow="232,102,31,.18" data-glow-pos="50,46" aria-labelledby="orh">
+  <div class="wrap">
+    <h2 id="orh" data-split>One room. One purpose.</h2>
+    <p class="sub" data-reveal>Poof doesn't try to become your new social network.</p>
+    <div class="fox-slot cube" data-scene="frag" data-shape="cube" data-spin=".35" aria-hidden="true"></div>
+    <ul class="struck" id="struck">
+      <li style="--i:0">No feeds.</li>
+      <li style="--i:1">No follower counts.</li>
+      <li style="--i:2">No permanent contacts.</li>
+      <li style="--i:3">No notification ecosystem competing for your attention.</li>
+    </ul>
+    <p class="big" data-reveal>Poof exists for the conversation. <span>Nothing more is required.</span></p>
+  </div>
+</section>
+
+<!-- ROOMS -->
+<section class="rooms" id="rooms" data-tone="light" data-bg="#e7e4dd" data-bg-dark="#1a1916" data-glow="232,102,31,.18" data-glow-pos="72,64" aria-labelledby="roh">
+  <div class="wrap">
+    <h2 id="roh" data-split>Sometimes ten minutes is enough.</h2>
+    <div class="rooms-grid">
+      <article class="room classic" data-reveal>
+        <p class="over">Free, for two.</p>
+        <h3>Classic Room</h3>
+        <p class="desc">A simple private room for two.</p>
+        <p class="clock" id="clock" aria-hidden="true">10:00</p>
+        <dl class="specs">
+          <dt>Lifetime</dt><dd>10 minutes</dd>
+          <dt>People</dt><dd>1 creator + 1 guest</dd>
+          <dt>Messaging</dt><dd>Text chat</dd>
+        </dl>
+        <ul class="incl">
+          <li>E2E encrypted</li>
+          <li>Post-quantum protected</li>
+          <li>Zero-knowledge architecture</li>
+        </ul>
+        <p class="price">Free</p>
+        <button class="btn" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create Classic Room</button>
+      </article>
+
+      <article class="room super" data-reveal>
+        <div class="fox-slot peek-fox" id="foxPeek" data-pose="peek" data-frame="peek" data-look aria-hidden="true"></div>
+        <p class="over">Sometimes you need more.</p>
+        <h3>Super Room</h3>
+        <p class="desc">Upgrade your room when the conversation needs more time, more people or more functionality.</p>
+        <div class="config">
+          <div class="cfg-row">
+            <span class="cfg-lbl" id="lifeLbl">Lifetime</span>
+            <fieldset class="seg" aria-labelledby="lifeLbl">
+              <legend>Lifetime</legend>
+              <label><input type="radio" name="life" value="3600" checked><span>1 hour</span></label>
+              <label><input type="radio" name="life" value="86400"><span>24 hours</span></label>
+            </fieldset>
+          </div>
+          <div class="cfg-row">
+            <span class="cfg-lbl" id="pplLbl">People</span>
+            <div class="stepper" role="group" aria-labelledby="pplLbl">
+              <button type="button" id="pMinus" aria-label="Fewer people">−</button>
+              <output id="pVal" aria-live="polite">4</output>
+              <button type="button" id="pPlus" aria-label="More people">+</button>
+            </div>
+          </div>
+          <div class="seats" id="seats" aria-hidden="true"></div>
+        </div>
+        <ul class="feat">
+          <li>Up to 10 people</li>
+          <li>File sharing</li>
+          <li>Extended room lifetime</li>
+          <li>Additional room controls</li>
+        </ul>
+        <p class="burn">Burn Poof tokens to unlock. All built on the same privacy architecture.</p>
+        <button class="btn" data-create="super" data-magnetic><span class="pip" aria-hidden="true"></span>Create Super Room</button>
+        <details class="why">
+          <summary>Why tokens?</summary>
+          <p>Poof doesn't need your personal information to give you more. Super Rooms use a simple token mechanism instead.</p>
+          <p>You burn tokens when you need additional capacity. More time. More people. More functionality.</p>
+          <p>No identity upgrade required.</p>
+        </details>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- PROTOCOL -->
+<section class="protocol" id="protocol" data-tone="light" data-bg="#d9dce0" data-bg-dark="#1b1d24" data-glow="157,180,255,.14" data-glow-pos="30,50" aria-labelledby="pth">
+  <canvas class="field" id="protoField" data-cell="14" data-fx=".75" data-fy=".5" data-sigma=".25" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <h2 id="pth" data-split>For the technically curious.</h2>
+      <p data-reveal>Poof is designed around modern cryptographic primitives and an ephemeral communication model.</p>
+      <p data-reveal>The protocol is built to minimize persistent identity and unnecessary data collection while providing encrypted communication between participants.</p>
+      <a class="btn btn-ghost" href="/docs/#/dev" id="protoLink" data-reveal>Read the Protocol</a>
+    </div>
+    <div class="term" data-reveal>
+      <div class="term-bar">poof / philosophy</div>
+      <p class="sr">The philosophy is simple: Collect less. Expose less. Keep less. Delete what doesn't need to exist.</p>
+      <pre aria-hidden="true"><span id="termOut"></span><span class="cur"></span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="final" data-tone="dark" data-bg="#16171f" data-glow="232,102,31,.32" data-glow-pos="74,74" aria-labelledby="fih">
+  <canvas class="field" id="finalField" data-cell="15" data-fx=".78" data-fy=".8" data-sigma=".3" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="manifesto">
+      <p class="m1" data-split>Privacy is freedom from unnecessary permanence.</p>
+      <p data-reveal>You shouldn't have to explain why you want a private conversation.</p>
+      <p data-reveal>You shouldn't have to create an identity to communicate.</p>
+      <p data-reveal>You shouldn't have to leave everything behind just because you used the internet.</p>
+      <p class="m2" data-reveal>Privacy isn't hiding.<br>Privacy is choosing what remains yours.</p>
+    </div>
+    <div class="open">
+      <div class="open-copy">
+        <h2 class="giant" id="fih">Talk freely.<br>Then poof.</h2>
+        <p>Create a private room in seconds.</p>
+        <p class="nos">No account. &nbsp;No email. &nbsp;No phone. &nbsp;No identity.</p>
+        <p class="just">Just a room.</p>
+        <div class="open-actions">
+          <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a Room</button>
+          <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a room</button>
+        </div>
+      </div>
+      <div class="final-fox">
+        <div class="fox-slot" id="foxFinal" data-pose="wave" data-frame="full" data-look data-palette="dark" style="position:absolute;inset:0" aria-hidden="true"></div>
+        <div class="fox-slot frag f-cube2" data-scene="frag" data-shape="cube" data-speed=".16" data-spin=".6" data-palette="dark" aria-hidden="true"></div>
+        <div class="fox-slot frag f-shard2" data-scene="frag" data-shape="shard" data-speed="-.2" data-spin=".5" data-palette="dark" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer data-tone="dark">
+  <div class="wrap foot">
+    <div class="foot-top">
+      <a class="brand" href="#top" aria-label="Poof, back to top"><span class="mk" aria-hidden="true"></span>POOF</a>
+      <nav class="social" aria-label="Poof elsewhere">
+        <a class="soc" href="https://x.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>X</a>
+        <a class="soc" href="https://t.me/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Telegram</a>
+        <a class="soc" href="https://github.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>GitHub</a>
+        <a class="soc" href="/docs/"><span class="pip" aria-hidden="true"></span>Docs</a>
+        <a class="soc" href="mailto:contact@usepoof.chat"><span class="pip" aria-hidden="true"></span>Contact</a>
+      </nav>
+    </div>
+    <div class="foot-bottom">
+      <span>Private by default. Temporary by design.</span>
+      <span>E2E encrypted / Post-quantum protected / Zero-knowledge architecture</span>
+      <span>No account required.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ROOM DIALOG -->
+<div class="ov" id="ov" data-tone="light" hidden>
+  <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" data-clip>
+    <button class="close" id="closeBtn" aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l12 12M15 3L3 15" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+    </button>
+    <div class="fox-slot" id="foxDlg" data-pose="work" data-frame="full" data-modal aria-hidden="true"></div>
+    <div class="dlg-body">
+      <p class="demo-note">Preview. Rooms go live soon - this one is a demo.</p>
+      <div class="state" data-state="loading">
+        <h2 id="dlgTitle" tabindex="-1">Sealing your room…</h2>
+        <pre class="genlog" id="genLog" aria-live="polite"></pre>
+      </div>
+      <div class="state" data-state="join" hidden>
+        <h2 tabindex="-1">Join a room.</h2>
+        <p>Enter the four-word phrase you were given. No account, no name.</p>
+        <div class="phrase" role="group" aria-label="Room phrase, four words">
+          <input class="pw" aria-label="Word 1 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input class="pw" aria-label="Word 2 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input class="pw" aria-label="Word 3 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input class="pw" aria-label="Word 4 of 4" placeholder="word" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <p class="copy-msg" id="joinMsg" role="status"></p>
+        <div><button class="btn" id="joinBtn"><span class="pip" aria-hidden="true"></span>Join room</button></div>
+      </div>
+      <div class="state" data-state="ready" hidden>
+        <h2 tabindex="-1" id="readyTitle">Your room is open.</h2>
+        <p id="readyText">Share the link or the four-word phrase. Both stop working when the timer ends.</p>
+        <div class="phrase-show"><span class="cfg-lbl">Room phrase</span><b id="roomPhrase">amber otter quiet lantern</b><button class="btn btn-sm btn-ghost" id="copyPhrase">Copy</button></div>
+        <div class="link-row" id="linkRow">
+          <input id="roomLink" readonly aria-label="Room link">
+          <button class="btn btn-sm" id="copyBtn">Copy link</button>
+        </div>
+        <p class="copy-msg" id="copyMsg" role="status"></p>
+        <div class="room-meta"><span id="roomType">Classic Room</span><span>closes in <b id="roomTimer">10:00</b></span></div>
+        <div class="mini" id="mini" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
+        <div class="composer">
+          <input id="msgIn" aria-label="Message" placeholder="Write a message" autocomplete="off">
+          <button class="btn btn-sm" id="sendBtn">Send</button>
+        </div>
+        <button class="btn btn-ghost" id="endBtn">Poof it now</button>
+      </div>
+      <div class="state" data-state="gone" hidden>
+        <h2 tabindex="-1">Poof. This room no longer exists.</h2>
+        <p>Nothing was kept. Not the messages, not the link.</p>
+        <div><button class="btn" id="againBtn"><span class="pip" aria-hidden="true"></span>Create another room</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   VEIL FOX ENGINE v2 - one brand model, many slots, two layers,
+   dither + ASCII, mascot framings (full / bust / head / peek) + 3D fragments
+   ===================================================================== */
+window.VeilFox = (function(){
+  if(!window.THREE) return null;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DPR = Math.min(window.devicePixelRatio||1, 2);
+  function mk(id, shadows){
+    const r = new THREE.WebGLRenderer({canvas:document.getElementById(id), antialias:false, alpha:true, premultipliedAlpha:true});
+    r.setPixelRatio(DPR); r.setSize(innerWidth, innerHeight); r.autoClear = false;
+    r.shadowMap.enabled = shadows; if(shadows) r.shadowMap.type = THREE.PCFSoftShadowMap;
+    return r;
+  }
+  let RF = null, RB = null;
+  try{ RF = mk('foxFront', true); }catch(e){ return null; }
+  try{ RB = mk('foxBack', false); }catch(e){ RB = null; }
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+  scene.add(new THREE.HemisphereLight(0xfff6ec, 0x5b5560, 0.85));
+  const key = new THREE.DirectionalLight(0xffffff, 1.35);
+  key.position.set(-3.2,5.5,4.2); key.castShadow = true;
+  key.shadow.mapSize.set(1024,1024);
+  Object.assign(key.shadow.camera, {left:-2.6,right:2.6,top:2.6,bottom:-2.6,near:0.5,far:20});
+  key.shadow.bias = -0.0008; key.shadow.radius = 3;
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffe7d1, 0.55); rim.position.set(3.5,3,-4); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xe6ecff, 0.3); fill.position.set(4,1.5,3); scene.add(fill);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(30,30), new THREE.ShadowMaterial({opacity:0.42}));
+  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+
+  const mat = c => new THREE.MeshStandardMaterial({color:c, roughness:0.72, metalness:0});
+  const M = { rust:mat(0xe8661f), cream:mat(0xfbf7ef), ink:mat(0x262633), stone:mat(0xb9b5ab) };
+  const SPH = new THREE.SphereGeometry(1,40,28);
+  const prep = m => { m.castShadow = true; m.receiveShadow = true; return m; };
+  function ell(parent, m, p, s, r){
+    const o = prep(new THREE.Mesh(SPH, m));
+    o.position.set(p[0],p[1],p[2]); o.scale.set(s[0],s[1],s[2]);
+    if(r) o.rotation.set(r[0],r[1],r[2]);
+    parent.add(o); return o;
+  }
+  function limb(parent, m, a, b, r0, r1){
+    const A = new THREE.Vector3(a[0],a[1],a[2]), B = new THREE.Vector3(b[0],b[1],b[2]);
+    const o = prep(new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, A.distanceTo(B), 24, 1), m));
+    o.position.copy(A).add(B).multiplyScalar(0.5);
+    o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), B.clone().sub(A).normalize());
+    parent.add(o); return o;
+  }
+  function cone(parent, m, r, h, p, rot, sc){
+    const o = prep(new THREE.Mesh(new THREE.ConeGeometry(r, h, 28, 1), m));
+    o.position.set(p[0],p[1],p[2]);
+    if(rot) o.rotation.set(rot[0],rot[1],rot[2]);
+    if(sc) o.scale.set(sc[0],sc[1],sc[2]);
+    parent.add(o); return o;
+  }
+  function mesh(parent, geo, m, p, rot, sc){
+    const o = prep(new THREE.Mesh(geo, m));
+    if(p) o.position.set(p[0],p[1],p[2]);
+    if(rot) o.rotation.set(rot[0],rot[1],rot[2]);
+    if(sc) o.scale.set(sc[0],sc[1],sc[2]);
+    parent.add(o); return o;
+  }
+
+  // ---------- the mascot (brand model v3, rigged) ----------
+  const fox = new THREE.Group(); scene.add(fox);
+  const body = new THREE.Group(); fox.add(body);
+  [-1,1].forEach(s=>{
+    ell(body, M.ink, [0.25*s,0.075,0.09], [0.16,0.09,0.26], [0,0.25*s,0]);
+    limb(body, M.ink, [0.24*s,0.12,0.0], [0.22*s,0.42,-0.02], 0.11, 0.125);
+    ell(body, M.rust, [0.21*s,0.53,-0.02], [0.175,0.2,0.185]);
+  });
+  ell(body, M.rust, [0,0.66,-0.04], [0.38,0.25,0.3]);
+  const torso = ell(body, M.rust, [0,1.05,0], [0.48,0.48,0.38]);
+  ell(body, M.cream, [0,1.0,0.17], [0.33,0.4,0.25]);
+  const arms = [-1,1].map(s=>{
+    const sh = new THREE.Group(); sh.position.set(0.47*s,1.31,-0.02); body.add(sh);
+    ell(sh, M.rust, [-0.03*s,0.01,0], [0.17,0.16,0.17]);
+    limb(sh, M.rust, [0,0,0], [0,-0.34,0], 0.1, 0.09);
+    const el = new THREE.Group(); el.position.set(0,-0.34,0); sh.add(el);
+    ell(el, M.rust, [0,0,0], [0.095,0.095,0.095]);
+    limb(el, M.ink, [0,0,0], [0,-0.3,0], 0.09, 0.08);
+    ell(el, M.ink, [0,-0.34,0.01], [0.1,0.09,0.085]);
+    return {s, sh, el};
+  });
+  ell(body, M.rust, [0,1.47,0.02], [0.27,0.22,0.25]);
+  ell(body, M.cream, [0,1.42,0.15], [0.17,0.13,0.1]);
+  const head = new THREE.Group(); head.position.set(0,1.84,0.06); body.add(head);
+  ell(head, M.rust, [0,0,0], [0.42,0.36,0.38]);
+  const eyes = [], brows = [];
+  [-1,1].forEach(s=>{
+    ell(head, M.cream, [0.22*s,-0.12,0.16], [0.17,0.13,0.16]);
+    const eg = new THREE.Group(); eg.position.set(0.15*s,0.04,0.335); head.add(eg);
+    ell(eg, M.ink, [0,0,0], [0.055,0.04,0.028]);
+    ell(eg, M.cream, [-0.015*s,0.02,0.025], [0.016,0.016,0.01]);
+    eyes.push(eg);
+    brows.push({s, m: ell(head, M.ink, [0.16*s,0.135,0.33], [0.095,0.03,0.04], [0,0,0.35*s])});
+  });
+  cone(head, M.rust, 0.15, 0.4, [0,-0.06,0.42], [Math.PI/2,0,0], [1,1,0.75]);
+  ell(head, M.cream, [0,-0.13,0.38], [0.12,0.065,0.19]);
+  ell(head, M.ink, [0,-0.05,0.62], [0.06,0.045,0.045]);
+  ell(head, M.ink, [0.07,-0.165,0.44], [0.065,0.012,0.02], [0,0,0.3]);
+  const ears = [-1,1].map(s=>{
+    const ear = new THREE.Group(); ear.position.set(0.24*s,0.3,-0.04); head.add(ear);
+    cone(ear, M.rust, 0.16, 0.44, [0,0.12,0], null, [1,1,0.55]);
+    cone(ear, M.cream, 0.1, 0.3, [0,0.07,0.045], null, [1,1,0.35]);
+    cone(ear, M.ink, 0.07, 0.15, [0,0.28,0], null, [1,1,0.55]);
+    return {s, ear, bx: s>0 ? -0.35 : -0.1};
+  });
+  const tbase = new THREE.Vector3(0,0.62,-0.3);
+  const tail = new THREE.Group(); tail.position.copy(tbase); body.add(tail);
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,0.62,-0.3), new THREE.Vector3(0.35,0.42,-0.55), new THREE.Vector3(0.78,0.48,-0.5),
+    new THREE.Vector3(0.98,0.85,-0.32), new THREE.Vector3(0.92,1.22,-0.18), new THREE.Vector3(0.72,1.42,-0.12)
+  ]);
+  for(let i=0;i<80;i++){
+    const t = i/79;
+    let r = 0.08+0.2*Math.pow(Math.sin(Math.PI*(0.15+0.8*t)),0.8);
+    if(t>0.9) r *= 1-(t-0.9)*4;
+    const p = curve.getPoint(t);
+    ell(tail, t>0.8 ? M.cream : M.rust, [p.x-tbase.x, p.y-tbase.y, p.z-tbase.z], [r, r*0.95, r]);
+  }
+
+  // ---------- 3D fragments derived from the brand ----------
+  const frags = {};
+  function frag(name, build){ const g = new THREE.Group(); g.visible = false; scene.add(g); build(g); frags[name] = g; }
+  frag('lock', g=>{
+    mesh(g, new THREE.BoxGeometry(0.95,0.78,0.38), M.rust, [0,-0.2,0]);
+    const sh = new THREE.Group(); g.add(sh); g.userData.shackle = sh;
+    mesh(sh, new THREE.TorusGeometry(0.3,0.075,16,48,Math.PI), M.stone, [0,0.19,0]);
+    [-0.3,0.3].forEach(x=>mesh(sh, new THREE.CylinderGeometry(0.075,0.075,0.3,16), M.stone, [x,0.05,0]));
+    mesh(g, new THREE.CylinderGeometry(0.075,0.075,0.05,24), M.ink, [0,-0.14,0.2], [Math.PI/2,0,0]);
+    mesh(g, new THREE.BoxGeometry(0.055,0.16,0.05), M.ink, [0,-0.26,0.2]);
+  });
+  frag('cube', g=>{ mesh(g, new THREE.BoxGeometry(1,1,1), M.rust); });
+  frag('shard', g=>{ mesh(g, new THREE.OctahedronGeometry(0.55,0), M.cream, null, null, [0.8,1.45,0.8]); });
+  frag('ring', g=>{ mesh(g, new THREE.TorusGeometry(0.52,0.17,24,64), M.rust); });
+  frag('card', g=>{
+    mesh(g, new THREE.BoxGeometry(1.5,0.95,0.06), M.cream);
+    mesh(g, new THREE.BoxGeometry(1.5,0.16,0.066), M.ink, [0,0.24,0]);
+    mesh(g, new THREE.CylinderGeometry(0.17,0.17,0.07,32), M.rust, [-0.43,-0.14,0.01], [Math.PI/2,0,0]);
+    mesh(g, new THREE.BoxGeometry(0.62,0.06,0.07), M.ink, [0.24,-0.06,0]);
+    mesh(g, new THREE.BoxGeometry(0.44,0.06,0.07), M.ink, [0.15,-0.22,0]);
+  });
+  frag('bubble', g=>{
+    mesh(g, SPH, M.cream, [0,0,0], null, [1,0.72,0.5]);
+    mesh(g, new THREE.ConeGeometry(0.18,0.42,24), M.cream, [-0.45,-0.58,0], [0,0,2.6]);
+    [-0.3,0,0.3].forEach(x=>mesh(g, SPH, M.ink, [x,0,0.47], null, [0.07,0.07,0.04]));
+  });
+
+  // ---------- poses ----------
+  const IDLE = {yaw:-0.42, sway:1, headX:0, headY:0.24, headZ:0.06,
+    aLz:0.62, aRz:0.62, aLx:0.2, aRx:0.2, eLz:-1.47, eRz:-1.47, eLx:-0.5, eRx:-0.5,
+    ear:0, brow:0.35, browY:0, eye:1, tail:1.3, bounce:0};
+  const mkP = o => Object.assign({}, IDLE, o);
+  const P = {
+    idle: IDLE,
+    wave: mkP({aRz:2.6, aRx:0, eRz:0.5, eRx:0, headZ:-0.08, brow:0.12}),
+    present: mkP({aRz:1.35, aRx:-0.3, eRz:0.25, eRx:0, headY:0.55, brow:0.2}),
+    shrug: mkP({aLz:0.45, aRz:0.45, aLx:0, aRx:0, eLz:-0.25, eRz:-0.25, eLx:-1.35, eRx:-1.35, headZ:0.16, brow:-0.2, browY:0.025, ear:0.15}),
+    raise: mkP({aRz:0.95, aRx:-0.35, eRz:1.7, eRx:-0.3, brow:0.12, headZ:-0.08, bounce:0.7}),
+    work: mkP({bounce:0.5, tail:5, headX:0.16, brow:0.45}),
+    excited: mkP({ear:-0.12, bounce:0.8, brow:0.05, eye:1.1, tail:4}),
+    sad: mkP({aLz:0.14, aRz:0.14, aLx:0.05, aRx:0.05, eLz:-0.1, eRz:-0.1, eLx:-0.25, eRx:-0.25, ear:0.6, brow:-0.32, browY:0.02, headX:0.18, tail:0.6}),
+    doze: mkP({aLz:0.14, aRz:0.14, aLx:0.05, aRx:0.05, eLz:-0.1, eRz:-0.1, eLx:-0.25, eRx:-0.25, headX:0.38, headZ:0.14, eye:0.1, ear:0.45, brow:0, tail:0.4, sway:0.3}),
+    peek: mkP({aLz:0.12, aRz:0.12, aLx:-0.9, aRx:-0.9, eLz:0, eRz:0, eLx:-0.65, eRx:-0.65, brow:0.12, ear:-0.05, sway:0.3, headY:0.1}),
+    gaze: mkP({headX:-0.24, headY:0.12, brow:0.08, sway:0.35, tail:0.8})
+  };
+  const KEYS = Object.keys(IDLE);
+
+  function applyPose(p, t, lookY, lookX, waving, yawAbs){
+    fox.rotation.y = (yawAbs != null ? yawAbs : p.yaw) + Math.sin(t*0.45)*0.12*p.sway;
+    body.position.y = p.bounce*Math.abs(Math.sin(t*5.5))*0.06;
+    body.rotation.z = Math.sin(t*0.8)*0.015;
+    head.rotation.set(p.headX + lookX + Math.sin(t*0.55+2)*0.03, p.headY + lookY + Math.sin(t*0.7+1)*0.05, p.headZ + Math.sin(t*0.9)*0.025);
+    arms.forEach((a,i)=>{
+      const L = i===0, s = a.s;
+      a.sh.rotation.set(L?p.aLx:p.aRx, 0, (L?p.aLz:p.aRz)*s);
+      let ez = L?p.eLz:p.eRz;
+      if(!L && waving) ez += Math.sin(t*9)*0.35;
+      a.el.rotation.set(L?p.eLx:p.eRx, 0, ez*s);
+    });
+    const twitch = (!reduce && (t % 6.1) < 0.18) ? 0.18 : 0;
+    ears.forEach((e,i)=>{ e.ear.rotation.set(e.bx + p.ear*0.3, 0, (-0.3 - p.ear*0.9 - (i===1?twitch:0))*e.s); });
+    brows.forEach(b=>{ b.m.rotation.z = p.brow*b.s; b.m.position.y = 0.135 + p.browY; });
+    const blink = (!reduce && (t % 4.3) < 0.12) ? 0.1 : 1;
+    eyes.forEach(e=>{ e.scale.y = Math.max(0.08, p.eye*blink); });
+    tail.rotation.y = Math.sin(t*p.tail)*0.08;
+    tail.rotation.z = Math.sin(t*p.tail*0.85+0.5)*0.04;
+    const br = 1+Math.sin(t*2.1)*0.012;
+    torso.scale.set(0.48*br, 0.48, 0.38*br);
+  }
+  applyPose(IDLE, 0, 0, 0, false, null);
+  const box = new THREE.Box3().setFromObject(body);
+  const ctr = box.getCenter(new THREE.Vector3());
+  body.position.x = -ctr.x; body.position.z = -ctr.z;
+  const size = box.getSize(new THREE.Vector3());
+
+  // ---------- post: dither + ASCII ----------
+  const GLY = ' .:-=+*#%@';
+  const gc = document.createElement('canvas'), GS = 64;
+  gc.width = GS*GLY.length; gc.height = GS;
+  const gx = gc.getContext('2d');
+  gx.fillStyle = '#000'; gx.fillRect(0,0,gc.width,gc.height);
+  gx.fillStyle = '#fff'; gx.textAlign = 'center'; gx.textBaseline = 'middle';
+  gx.font = '600 52px ui-monospace, Menlo, Consolas, monospace';
+  for(let i=0;i<GLY.length;i++) gx.fillText(GLY[i], i*GS+GS/2, GS/2+2);
+  const glyphTex = new THREE.CanvasTexture(gc);
+  glyphTex.minFilter = THREE.LinearFilter; glyphTex.generateMipmaps = false;
+
+  const pal = hexes => hexes.map(h=>{ const c = new THREE.Color(h); return new THREE.Vector3(c.r,c.g,c.b); });
+  const PAL_L = pal(['#1d1f2b','#9c3b14','#e8661f','#a7a49b','#fbf7ef']);
+  const PAL_D = pal(['#3b3e52','#9c3b14','#e8661f','#8f8c85','#fbf7ef']);
+  const SH_L = new THREE.Vector3(0.114,0.122,0.169), SH_D = new THREE.Vector3(0.02,0.02,0.03);
+  const post = new THREE.ShaderMaterial({
+    uniforms:{ tScene:{value:null}, tGlyph:{value:glyphTex}, lowRes:{value:new THREE.Vector2(1,1)}, screenRes:{value:new THREE.Vector2(1,1)},
+      spread:{value:0.34}, exposure:{value:1.08}, fade:{value:0}, glyphN:{value:GLY.length}, tintA:{value:0.3},
+      mode:{value:0}, edge:{value:new THREE.Vector4(0,0,0,0)}, rcut:{value:new THREE.Vector3(0,0,0)}, pal:{value:PAL_L}, shadowCol:{value:SH_L}, tint:{value:new THREE.Vector3(0.91,0.4,0.12)} },
+    vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }',
+    fragmentShader:`
+      precision highp float;
+      uniform sampler2D tScene; uniform sampler2D tGlyph;
+      uniform vec2 lowRes; uniform vec2 screenRes;
+      uniform float spread; uniform float exposure; uniform float fade; uniform float glyphN; uniform float tintA;
+      uniform int mode; uniform vec3 pal[5]; uniform vec3 shadowCol; uniform vec3 tint;
+      uniform vec4 edge; uniform vec3 rcut;
+      varying vec2 vUv;
+      float b2(vec2 a){ a=floor(a); return fract(dot(a, vec2(0.5, a.y*0.75))); }
+      float b4(vec2 a){ return b2(0.5*a)*0.25 + b2(a); }
+      float b8(vec2 a){ return b4(0.5*a)*0.25 + b2(a); }
+      void main(){
+        vec2 frag = vUv*screenRes;
+        vec2 cell = screenRes/lowRes;
+        vec2 cid = floor(frag/cell);
+        vec4 s = texture2D(tScene, (cid+0.5)/lowRes);
+        float bay = b8(cid);
+        vec2 q = (cid + 0.5)/lowRes;
+        float ed = 0.0;
+        if(edge.x > 0.0) ed = max(ed, clamp((q.y - (1.0 - edge.x))/edge.x, 0.0, 1.0));
+        if(edge.y > 0.0) ed = max(ed, clamp((q.x - (1.0 - edge.y))/edge.y, 0.0, 1.0));
+        if(edge.z > 0.0) ed = max(ed, clamp((edge.z - q.y)/edge.z, 0.0, 1.0));
+        if(edge.w > 0.0) ed = max(ed, clamp((edge.w - q.x)/edge.w, 0.0, 1.0));
+        if(rcut.y > rcut.x && q.y < rcut.z) ed = max(ed, clamp((q.x - rcut.x)/(rcut.y - rcut.x), 0.0, 1.0));
+        if(s.a < 0.004 || bay < max(fade, ed)){ gl_FragColor = vec4(0.0); return; }
+        if(mode == 1){
+          if(s.a < 0.985){ gl_FragColor = vec4(0.0); return; }
+          float lum = dot(s.rgb*exposure, vec3(0.299,0.587,0.114));
+          float dens = 0.3 + 0.7*clamp(1.0-lum, 0.0, 1.0);
+          float idx = clamp(floor(dens*(glyphN-1.0)+0.5), 1.0, glyphN-1.0);
+          vec2 l = fract(frag/cell)*0.84 + 0.08;
+          float g = texture2D(tGlyph, vec2((idx + l.x)/glyphN, l.y)).r;
+          float a = g*tintA;
+          gl_FragColor = vec4(tint*a, a);
+          return;
+        }
+        if(s.a < 0.985){ gl_FragColor = (bay < s.a*1.1) ? vec4(shadowCol,1.0) : vec4(0.0); return; }
+        vec3 c = s.rgb*exposure + (bay-0.5)*spread;
+        float best = 1e9; vec3 r = pal[0];
+        for(int i=0;i<5;i++){ vec3 d = c-pal[i]; float e = dot(d,d); if(e<best){ best=e; r=pal[i]; } }
+        gl_FragColor = vec4(r,1.0);
+      }`,
+    depthTest:false, depthWrite:false, transparent:true, blending:THREE.CustomBlending,
+    blendEquation:THREE.AddEquation, blendSrc:THREE.OneFactor, blendDst:THREE.OneMinusSrcAlphaFactor
+  });
+  const postScene = new THREE.Scene();
+  const postCam = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+  postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), post));
+
+  // ---------- slots ----------
+  const slots = [];
+  let modalOpen = false;
+  const pointer = {x:0, y:0, has:false};
+  addEventListener('pointermove', e=>{ pointer.x = e.clientX; pointer.y = e.clientY; pointer.has = true; }, {passive:true});
+  const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+  const modeDark = () => { const t = document.documentElement.dataset.theme; return t === 'dark' || (t !== 'light' && darkMQ.matches); };
+  const clamp = (v,a,b) => Math.min(b, Math.max(a,v));
+  let seedN = 0;
+
+  function register(el){
+    const d = el.dataset;
+    const back = d.layer === 'back';
+    if(back && !RB) return;
+    const s = {
+      el, R: back ? RB : RF, back,
+      scene: d.scene || 'fox', shape: d.shape || 'cube', frame: d.frame || 'full',
+      mode: d.mode === 'ascii' ? 1 : 0, alpha: +(d.alpha || 0.3),
+      pose: d.pose || 'idle', cur: Object.assign({}, P[d.pose] || IDLE),
+      yaw: d.yaw != null ? +d.yaw : null, spin: +(d.spin || 0.4), seed: (seedN++)*1.7,
+      rt: new THREE.WebGLRenderTarget(2,2,{minFilter:THREE.NearestFilter, magFilter:THREE.NearestFilter, format:THREE.RGBAFormat}),
+      lw:0, lh:0, fade:1, anim:null, seen:false, px: +(d.px || 3),
+      look: el.hasAttribute('data-look'), lookBias: +(d.lookbias || 0), lookMax: d.lookmax != null ? +d.lookmax : 0.42, clipRight: d.clipRight ? document.querySelector(d.clipRight) : null, modal: el.hasAttribute('data-modal'),
+      palette: d.palette || 'auto', toneEl: el.closest('[data-tone]'), clipEl: el.closest('[data-clip]'),
+      dissolveTo: d.dissolveTo ? document.querySelector(d.dissolveTo) : null,
+      dissolveBelow: d.dissolveBelow ? document.querySelector(d.dissolveBelow) : null,
+      bleed: (d.bleed || '0 0 0 0').split(/\s+/).map(Number), dissolve: (d.dissolve || '0 0 0 0').split(/\s+/).map(Number),
+      bias:0, biasCur:0, override:null, until:0, t: Math.random()*10, p:{}, tint:new THREE.Vector3(0.91,0.4,0.12), tintAt:-1
+    };
+    slots.push(s); el._fox = s; return s;
+  }
+  document.querySelectorAll('.fox-slot').forEach(register);
+
+  function fadeTo(s, to, ms, cb){
+    if(!ms || reduce){ s.fade = to; s.anim = null; cb && cb(); return; }
+    s.anim = {from:s.fade, to, t0:performance.now(), dur:ms, cb};
+  }
+  function slotDark(s){
+    if(s.palette === 'dark') return true;
+    if(s.palette === 'light') return false;
+    const tone = s.toneEl ? s.toneEl.dataset.tone : 'light';
+    if(tone === 'dark') return true;
+    if(tone === 'rust') return false;
+    return modeDark();
+  }
+
+  const hp = new THREE.Vector3();
+  function frameFox(kind, w, h){
+    camera.aspect = w/h;
+    const half = Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+    if(kind === 'full'){
+      const reach = Math.max(size.x, size.z)*1.05;
+      const d = Math.max((size.y*1.22/2)/half, (reach*1.22/2)/(half*camera.aspect));
+      const ty = size.y*0.5, pitch = 0.14;
+      camera.position.set(0, ty + d*Math.sin(pitch), d*Math.cos(pitch));
+      camera.lookAt(0, ty, 0);
+    } else {
+      fox.updateMatrixWorld(true);
+      head.getWorldPosition(hp);
+      const R = {bust:[0.84,0.66], head:[0.42,0.64], peek:[0.86,0.64]}[kind] || [0.84,0.66];
+      const y0 = hp.y - R[0], y1 = hp.y + R[1], cy = (y0+y1)/2, hy = (y1-y0)/2;
+      const wHalf = kind === 'peek' ? 1.25 : 0.62, cx = hp.x + (kind === 'peek' ? 0.3 : 0);
+      const d = Math.max(hy*1.03/half, wHalf/(half*camera.aspect));
+      const pitch = 0.05;
+      camera.position.set(cx, cy + d*Math.sin(pitch), d*Math.cos(pitch));
+      camera.lookAt(cx, cy, 0);
+    }
+    camera.updateProjectionMatrix();
+  }
+  function frameFrag(w, h){
+    camera.aspect = w/h;
+    const half = Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+    const d = 1.05/(half*Math.min(1, camera.aspect))*1.1;
+    camera.position.set(0, d*0.12, d);
+    camera.lookAt(0,0,0);
+    camera.updateProjectionMatrix();
+  }
+  function animFrag(g, s, t){
+    const rot = s.p.rot || 0;
+    if(s.shape === 'lock'){
+      g.rotation.set(0.12, Math.sin(t*0.5)*0.55 + rot, 0);
+      g.userData.shackle.position.y = (s.p.open || 0)*0.3;
+    } else if(s.shape === 'card' || s.shape === 'bubble'){
+      g.rotation.set(0.15 + Math.sin(t*0.6)*0.08, Math.sin(t*0.5 + s.seed)*0.5 + rot, Math.sin(t*0.4)*0.06);
+    } else {
+      g.rotation.set(0.4 + Math.sin(t*0.6)*0.15, t*s.spin + rot + s.seed, Math.sin(t*0.4)*0.1);
+    }
+    g.position.y = Math.sin(t*1.1 + s.seed)*0.06;
+  }
+
+  const navEl = document.getElementById('nav');
+  const parseRGB = str => { const m = str.match(/[\d.]+/g); return m ? new THREE.Vector3(m[0]/255, m[1]/255, m[2]/255) : null; };
+
+  function drawSlot(s, now, dt, navB){
+    const r0 = s.el.getBoundingClientRect();
+    const bT = r0.height*s.bleed[0], bR = r0.width*s.bleed[1], bB = r0.height*s.bleed[2], bL = r0.width*s.bleed[3];
+    const r = {left:r0.left-bL, top:r0.top-bT, right:r0.right+bR, bottom:r0.bottom+bB, width:r0.width+bL+bR, height:r0.height+bT+bB};
+    if(r.width<8 || r.height<8 || r.bottom<0 || r.top>innerHeight || r.right<0 || r.left>innerWidth) return;
+    if(!s.seen){ s.seen = true; s.fade = 1; fadeTo(s, 0, 1100); }
+    let top = Math.max(r.top, (!s.back && !s.modal) ? navB : 0), bot = Math.min(r.bottom, innerHeight);
+    let left = Math.max(r.left, 0), right = Math.min(r.right, innerWidth);
+    if(s.clipRight && innerWidth > 900){ const cr = s.clipRight.getBoundingClientRect(); right = Math.min(right, cr.left - 6); }
+    if(s.clipEl){ const c = s.clipEl.getBoundingClientRect(); top = Math.max(top, c.top); bot = Math.min(bot, c.bottom); left = Math.max(left, c.left); right = Math.min(right, c.right); }
+    if(bot <= top || right <= left) return;
+    if(!reduce) s.t += dt;
+    if(s.anim){
+      const k = Math.min(1, (now - s.anim.t0)/s.anim.dur);
+      s.fade = s.anim.from + (s.anim.to - s.anim.from)*k;
+      if(k >= 1){ const cb = s.anim.cb; s.anim = null; cb && cb(); }
+    }
+    const fade = Math.max(s.fade, s.p.fadeMin || 0);
+    if(fade >= 0.995) return;
+
+    const isFox = s.scene === 'fox';
+    fox.visible = isFox;
+    ground.visible = isFox && s.frame === 'full' && s.mode === 0;
+    for(const k in frags) frags[k].visible = (!isFox && k === s.shape);
+
+    if(isFox){
+      let name = (s.override && now < s.until) ? s.override : s.pose;
+      if(name === 'wave' && !reduce) name = (s.t % 7.5) < 2.8 ? 'wave' : 'idle';
+      const tgt = P[name] || IDLE;
+      const k = reduce ? 1 : Math.min(1, dt*6);
+      for(const key of KEYS) s.cur[key] += (tgt[key] - s.cur[key])*k;
+      let ly = s.lookBias + (s.p.headY || 0), lx = s.p.headX || 0;
+      if(s.look && pointer.has && !reduce){
+        ly += clamp((pointer.x - (r0.left + r0.width/2))/(innerWidth*0.5), -1, 1)*s.lookMax;
+        lx += clamp((pointer.y - (r0.top + r0.height*0.35))/(innerHeight*0.6), -1, 1)*0.18;
+      }
+      s.biasCur += (s.bias - s.biasCur)*Math.min(1, dt*4);
+      applyPose(s.cur, s.t, ly + s.biasCur, lx, name === 'wave', s.p.yaw != null ? s.p.yaw : s.yaw);
+      camera.clearViewOffset();
+      frameFox(s.frame, r0.width, r0.height);
+    } else {
+      animFrag(frags[s.shape], s, s.t);
+      camera.clearViewOffset();
+      frameFrag(r0.width, r0.height);
+    }
+    if(bT || bR || bB || bL) camera.setViewOffset(r0.width, r0.height, -bL, -bT, r.width, r.height);
+
+    const R = s.R;
+    const dpr = R.getPixelRatio();
+    const cellPx = s.px*dpr;
+    const lw = Math.max(1, Math.floor(r.width*dpr/cellPx)), lh = Math.max(1, Math.floor(r.height*dpr/cellPx));
+    if(lw !== s.lw || lh !== s.lh){ s.rt.setSize(lw, lh); s.lw = lw; s.lh = lh; }
+    R.setRenderTarget(s.rt);
+    R.setClearColor(0x000000, 0);
+    R.clear();
+    R.render(scene, camera);
+
+    const dark = slotDark(s);
+    post.uniforms.pal.value = dark ? PAL_D : PAL_L;
+    post.uniforms.shadowCol.value = dark ? SH_D : SH_L;
+    post.uniforms.mode.value = s.mode;
+    if(s.mode === 1){
+      if(now - s.tintAt > 1000){ const c = parseRGB(getComputedStyle(s.el).color); if(c) s.tint = c; s.tintAt = now; }
+      post.uniforms.tint.value = s.tint; post.uniforms.tintA.value = s.alpha;
+    }
+    post.uniforms.tScene.value = s.rt.texture;
+    post.uniforms.lowRes.value.set(lw, lh);
+    post.uniforms.screenRes.value.set(r.width*dpr, r.height*dpr);
+    post.uniforms.fade.value = fade;
+    post.uniforms.edge.value.set(s.dissolve[0], s.dissolve[1], s.dissolve[2], s.dissolve[3]);
+    if(s.dissolveTo && innerWidth > 900){
+      const end = s.dissolveTo.getBoundingClientRect().left - 14;
+      const yb = s.dissolveBelow ? s.dissolveBelow.getBoundingClientRect().bottom + 6 : r.top;
+      post.uniforms.rcut.value.set((end - 120 - r.left)/r.width, (end - r.left)/r.width, (r.bottom - yb)/r.height);
+    } else post.uniforms.rcut.value.set(0, 0, 0);
+    R.setRenderTarget(null);
+    R.setViewport(r.left, innerHeight - r.bottom, r.width, r.height);
+    R.setScissor(left, innerHeight - bot, right - left, bot - top);
+    R.setScissorTest(true);
+    R.render(postScene, postCam);
+    R.setScissorTest(false);
+  }
+
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05, (now - last)/1000); last = now;
+    [RF, RB].forEach(R=>{ if(!R) return; R.setRenderTarget(null); R.setScissorTest(false); R.setViewport(0,0,innerWidth,innerHeight); R.setClearColor(0x000000,0); R.clear(); });
+    const navB = navEl ? navEl.getBoundingClientRect().bottom : 0;
+    for(const s of slots){
+      if(modalOpen ? !s.modal : s.modal) continue;
+      drawSlot(s, now, dt, navB);
+    }
+    requestAnimationFrame(frame);
+  }
+  addEventListener('resize', ()=>{ RF.setSize(innerWidth, innerHeight); if(RB) RB.setSize(innerWidth, innerHeight); });
+  requestAnimationFrame(frame);
+
+  const S = el => el && el._fox;
+  return {
+    setPose(el, name){ const s = S(el); if(s) s.pose = name; },
+    flash(el, name, ms){ const s = S(el); if(s){ s.override = name; s.until = performance.now() + ms; } },
+    flashVisible(name, ms){
+      slots.forEach(s=>{ if(s.scene !== 'fox' || s.modal !== modalOpen) return; const r = s.el.getBoundingClientRect();
+        if(r.bottom > 0 && r.top < innerHeight){ s.override = name; s.until = performance.now() + ms; } });
+    },
+    look(el, v, ms){ const s = S(el); if(!s) return; s.bias = v; clearTimeout(s._bt); s._bt = setTimeout(()=>{ s.bias = 0; }, ms || 1400); },
+    fadeTo(el, to, ms){ const s = S(el); return new Promise(res=>{ if(!s) return res(); fadeTo(s, to, ms, res); }); },
+    setFade(el, v){ const s = S(el); if(s){ s.fade = v; s.anim = null; } },
+    param(el, k, v){ const s = S(el); if(s) s.p[k] = v; },
+    setModal(b){ modalOpen = b; }
+  };
+})();
+</script>
+
+<script>
+/* =====================================================================
+   VEIL INTERFACE - environment, motion, storytelling, room demo
+   ===================================================================== */
+(function(){
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = window.matchMedia && matchMedia('(pointer: fine)').matches;
+  const $ = (s,c=document) => c.querySelector(s);
+  const $$ = (s,c=document) => Array.from(c.querySelectorAll(s));
+  const sleep = ms => new Promise(r=>setTimeout(r, reduce ? 0 : ms));
+  const clamp = (v,a,b) => Math.min(b, Math.max(a,v));
+  const lerp = (a,b,t) => a + (b-a)*t;
+  const smooth = t => t*t*(3-2*t);
+  const NOOP = { setPose(){}, flash(){}, flashVisible(){}, look(){}, fadeTo(){ return Promise.resolve(); }, setFade(){}, param(){}, setModal(){} };
+  const Fox = window.VeilFox || NOOP;
+  const ptr = {x: innerWidth/2, y: innerHeight/2, has:false};
+  addEventListener('pointermove', e=>{ ptr.x = e.clientX; ptr.y = e.clientY; ptr.has = true; }, {passive:true});
+  const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+  const modeDark = () => { const t = document.documentElement.dataset.theme; return t === 'dark' || (t !== 'light' && darkMQ.matches); };
+
+  /* ---------- dark / light switch ---------- */
+  const themeBtn = $('#themeBtn');
+  function syncTheme(){
+    const d = modeDark();
+    themeBtn.dataset.mode = d ? 'dark' : 'light';
+    themeBtn.setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  themeBtn.addEventListener('click', ()=>{
+    const next = modeDark() ? 'light' : 'dark';
+    const apply = ()=>{
+      document.documentElement.dataset.theme = next;
+      try{ localStorage.setItem('poof-theme', next); }catch(e){}
+      syncTheme();
+    };
+    if(!reduce){ document.documentElement.classList.add('theme-anim'); clearTimeout(themeBtn._t); themeBtn._t = setTimeout(()=>document.documentElement.classList.remove('theme-anim'), 500); }
+    apply();
+  });
+  darkMQ.addEventListener && darkMQ.addEventListener('change', syncTheme);
+  syncTheme();
+
+  /* ---------- Dither masks: the shared appear / disappear language ---------- */
+  const Dither = (function(){
+    const B = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5], C = 3, T = C*4, tiles = [];
+    for(let L=0; L<=16; L++){
+      const c = document.createElement('canvas'); c.width = c.height = T;
+      const g = c.getContext('2d'); g.fillStyle = '#000';
+      for(let i=0;i<16;i++) if(B[i] < L) g.fillRect((i%4)*C, Math.floor(i/4)*C, C, C);
+      tiles.push('url(' + c.toDataURL() + ')');
+    }
+    function set(el, L){
+      L = Math.round(clamp(L, 0, 16));
+      if(el._dl === L) return; el._dl = L;
+      if(L >= 16){ el.style.webkitMaskImage = ''; el.style.maskImage = ''; return; }
+      el.style.webkitMaskImage = tiles[L]; el.style.maskImage = tiles[L];
+      el.style.webkitMaskSize = T+'px '+T+'px'; el.style.maskSize = T+'px '+T+'px';
+    }
+    function animate(el, from, to, dur){
+      return new Promise(res=>{
+        if(reduce){ set(el, to); return res(); }
+        const t0 = performance.now();
+        (function step(n){ const k = Math.min(1, (n-t0)/dur); set(el, from + (to-from)*k); k < 1 ? requestAnimationFrame(step) : res(); })(t0);
+      });
+    }
+    return {set, animate};
+  })();
+
+  /* ---------- grain ---------- */
+  (function(){
+    const c = document.createElement('canvas'); c.width = c.height = 180;
+    const g = c.getContext('2d'), d = g.createImageData(180,180);
+    for(let i=0;i<d.data.length;i+=4){ const v = Math.random()*255; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; }
+    g.putImageData(d,0,0);
+    $('#grain').style.backgroundImage = 'url(' + c.toDataURL() + ')';
+  })();
+
+  /* ---------- word split + reveals ---------- */
+  $$('[data-split]').forEach(el=>{
+    const words = el.textContent.trim().split(/\s+/);
+    el.innerHTML = words.map((w,i)=>'<span class="wd"><span style="--i:'+i+'">'+w.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span></span>').join(' ');
+  });
+  $$('[data-scrub]').forEach(el=>{
+    const words = el.textContent.trim().split(/\s+/);
+    el.innerHTML = words.map(w=>'<span class="sw">'+w+'</span>').join(' ');
+  });
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:0.2});
+    $$('[data-split]').forEach(el=>io.observe(el));
+    if(!reduce){
+      const rv = $$('[data-reveal]');
+      rv.forEach(el=>Dither.set(el, 0));
+      const io2 = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io2.unobserve(e.target); Dither.animate(e.target, 0, 16, 700); } }), {threshold:0.12, rootMargin:'0px 0px -6% 0px'});
+      rv.forEach(el=>io2.observe(el));
+    }
+  } else { $$('[data-split]').forEach(el=>el.classList.add('in')); }
+
+  /* ---------- ASCII fields (the "veil") ---------- */
+  const GL = ' .·:-=+*#%@';
+  function Field(cv){
+    const ctx = cv.getContext('2d');
+    const o = {cell:+(cv.dataset.cell||15), fx:+(cv.dataset.fx||.5), fy:+(cv.dataset.fy||.5), sigma:+(cv.dataset.sigma||.3)};
+    const F = {cv, vis:false, W:0, H:0, cols:0, rows:0, atlas:null, color:'', k:Math.min(1.5, window.devicePixelRatio||1), drawn:false};
+    function atlas(){
+      F.color = getComputedStyle(cv).color;
+      const cs = Math.round(o.cell*F.k);
+      const a = document.createElement('canvas'); a.width = cs*GL.length; a.height = cs;
+      const g = a.getContext('2d'); g.fillStyle = F.color; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = '500 ' + Math.round(cs*0.8) + 'px "Geist Mono", ui-monospace, monospace';
+      for(let i=0;i<GL.length;i++) g.fillText(GL[i], i*cs + cs/2, cs/2 + 1);
+      F.atlas = a;
+    }
+    F.build = function(){
+      F.W = cv.clientWidth; F.H = cv.clientHeight; if(!F.W || !F.H) return;
+      cv.width = Math.round(F.W*F.k); cv.height = Math.round(F.H*F.k);
+      F.cols = Math.ceil(F.W/o.cell); F.rows = Math.ceil(F.H/o.cell); atlas(); F.drawn = false;
+    };
+    F.draw = function(t, frameNo){
+      if(!F.vis || !F.atlas) return;
+      if(reduce && F.drawn) return;
+      if(frameNo % 60 === 0 && getComputedStyle(cv).color !== F.color) atlas();
+      const cs = Math.round(o.cell*F.k);
+      ctx.clearRect(0,0,cv.width,cv.height);
+      const r = cv.getBoundingClientRect();
+      const px = (ptr.x - r.left)/o.cell, py = (ptr.y - r.top)/o.cell;
+      const fx = o.fx*F.cols, fy = o.fy*F.rows, s2 = 2*Math.pow(o.sigma*Math.max(F.cols, F.rows), 2);
+      for(let y=0;y<F.rows;y++){
+        for(let x=0;x<F.cols;x++){
+          const n = (Math.sin(x*0.11 + t*0.45) + Math.sin(y*0.17 - t*0.32) + Math.sin((x+y)*0.06 + t*0.22))/3;
+          const dx = x-fx, dy = (y-fy)*1.5, f = Math.exp(-(dx*dx+dy*dy)/s2);
+          let c = 0;
+          if(ptr.has && fine){ const cx = x-px, cy = y-py; c = Math.exp(-(cx*cx+cy*cy)/38); }
+          const v = 0.16 + n*0.15 + f*0.55 + c*0.5;
+          const idx = Math.min(GL.length-1, Math.floor(v*GL.length));
+          if(idx > 0) ctx.drawImage(F.atlas, idx*cs, 0, cs, cs, x*cs, y*cs, cs, cs);
+        }
+      }
+      F.drawn = true;
+    };
+    F.build();
+    return F;
+  }
+  const fields = $$('canvas.field').map(Field);
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver(es=>es.forEach(e=>{ const f = fields.find(x=>x.cv === e.target); if(f){ f.vis = e.isIntersecting; if(f.vis) f.drawn = false; } }));
+    fields.forEach(f=>io.observe(f.cv));
+  } else fields.forEach(f=>f.vis = true);
+  addEventListener('resize', ()=>fields.forEach(f=>f.build()));
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>fields.forEach(f=>f.build()));
+
+  /* ---------- environment: background + glow evolve with scroll ---------- */
+  const bg = $('#bg'), glow = $('#glow'), nav = $('#nav');
+  const hexRGB = h => { h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; };
+  const envSecs = $$('[data-bg]').map(s=>({
+    el:s, c:hexRGB(s.dataset.bg), cd:hexRGB(s.dataset.bgDark || s.dataset.bg),
+    g:s.dataset.glow.split(',').map(Number), gp:s.dataset.glowPos.split(',').map(Number), tone:s.dataset.tone
+  }));
+  let lastBg = '', lastGlow = '';
+  function env(){
+    const vh = innerHeight, mid = vh*0.6, dark = modeDark();
+    const tops = envSecs.map(s=>s.el.getBoundingClientRect().top);
+    let i = 0; for(let k=0;k<tops.length;k++) if(tops[k] <= mid) i = k;
+    const A = envSecs[i], Bn = envSecs[i+1] || A;
+    const t = envSecs[i+1] ? smooth(clamp((mid + vh*0.45 - tops[i+1])/(vh*0.45), 0, 1)) : 0;
+    const ca = dark ? A.cd : A.c, cb = dark ? Bn.cd : Bn.c;
+    const col = [0,1,2].map(j=>Math.round(lerp(ca[j], cb[j], t)));
+    const bgs = 'rgb(' + col.join(',') + ')';
+    if(bgs !== lastBg){ bg.style.backgroundColor = bgs; document.documentElement.style.background = bgs; lastBg = bgs;
+    }
+    const g = [0,1,2,3].map(j=>lerp(A.g[j], Bn.g[j], t));
+    const gp = [0,1].map(j=>lerp(A.gp[j], Bn.gp[j], t));
+    const gs = 'radial-gradient(64vmax 56vmax at ' + gp[0].toFixed(1) + '% ' + gp[1].toFixed(1) + '%, rgba(' + g.slice(0,3).map(Math.round).join(',') + ',' + g[3].toFixed(3) + '), transparent 68%)';
+    if(gs !== lastGlow){ glow.style.background = gs; lastGlow = gs; }
+  }
+
+  /* ---------- cursor + magnetic buttons ---------- */
+  const cur = $('#cur');
+  const useCur = fine && !reduce;
+  if(useCur){
+    document.documentElement.classList.add('has-cur');
+    addEventListener('pointerover', e=>{ cur.classList.toggle('big', !!e.target.closest('a,button,input,summary,label,.uses li')); });
+  }
+  const cpos = {x: innerWidth/2, y: innerHeight/2};
+  const mags = $$('[data-magnetic]').map(el=>({el, x:0, y:0}));
+
+  /* ---------- scroll-driven scenes ---------- */
+  const hero = $('.hero'), heroFox = $('#foxHero'), heroCopy = $('#heroCopy'), heroField = fields.find(f=>f.cv.id === 'heroField');
+  const items = $$('#nolist li'), cardFrag = $('#cardFrag'), idFox = $('#foxId');
+  const scrubWrap = $('#scrubWrap'), scrubWords = $$('.statement .sw'), asciiFox = $('#foxAscii');
+  const lockFrag = $('#lockFrag'), secFox = $('#foxSec'); let lockDone = false;
+  const futFox = $('#foxFut'), futSec = $('.future');
+  const giant = $('.giant');
+  const para = $$('[data-speed]');
+
+  function scenes(){
+    const vh = innerHeight;
+    // hero: the mascot drifts, turns toward you and dissolves; the ASCII veil lifts
+    const hr = hero.getBoundingClientRect();
+    const hp = clamp(-hr.top/(hr.height*0.9), 0, 1);
+    if(!reduce){
+      heroFox.style.transform = 'translate3d(0,' + (hp*vh*0.2).toFixed(1) + 'px,0)';
+      heroCopy.style.transform = 'translate3d(0,' + (-hp*50).toFixed(1) + 'px,0)';
+      Fox.param(heroFox, 'headY', -hp*0.5);
+      Fox.param(heroFox, 'headX', hp*0.12);
+      Fox.param(heroFox, 'fadeMin', clamp((hp-0.42)/0.45, 0, 1));
+      if(heroField) heroField.cv.style.opacity = (0.17*(1-hp)).toFixed(3);
+    }
+    // identity: each requirement is struck, then dissolves; the ID card goes with it
+    let sum = 0;
+    items.forEach(li=>{
+      const r = li.getBoundingClientRect();
+      li.style.setProperty('--strike', clamp((vh*0.64 - r.top)/(vh*0.2), 0, 1).toFixed(3));
+      const p = clamp((vh*0.34 - r.top)/(vh*0.16), 0, 1); sum += p;
+      if(!reduce) Dither.set(li, 16*(1-p));
+    });
+    if(!reduce) Fox.param(cardFrag, 'fadeMin', items.length ? sum/items.length : 0);
+    // principle: words light up, the ASCII fox turns
+    const sr = scrubWrap.getBoundingClientRect();
+    const sp = clamp(-sr.top/(sr.height - vh), 0, 1);
+    const lit = sp*1.2*scrubWords.length;
+    scrubWords.forEach((w,i)=>{ const o = reduce ? 1 : clamp(lit - i, 0.13, 1); if(w._o !== o){ w.style.opacity = o; w._o = o; } });
+    Fox.param(asciiFox, 'yaw', -0.9 + sp*2.2);
+    // security: the shackle closes as you arrive
+    const lr = lockFrag.getBoundingClientRect();
+    const lq = clamp((vh*0.9 - lr.top)/(vh*0.5), 0, 1);
+    Fox.param(lockFrag, 'open', reduce ? 0 : 1 - smooth(lq));
+    if(lq >= 0.99 && !lockDone){ lockDone = true; Fox.flash(secFox, 'excited', 900); }
+    if(lq < 0.2) lockDone = false;
+    // future: the fox looks further up as you go
+    const fr = futSec.getBoundingClientRect();
+    const fp = clamp((vh - fr.top)/(fr.height + vh), 0, 1);
+    Fox.param(futFox, 'headX', -0.12*fp);
+    // parallax
+    if(!reduce) para.forEach(el=>{
+      const pr = el.parentElement.getBoundingClientRect();
+      const y = -((pr.top + pr.height/2) - vh/2)*(+el.dataset.speed);
+      el.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)';
+    });
+    // "Open the Veil." lifts its own veil
+    if(!reduce){ const r = giant.getBoundingClientRect(); Dither.set(giant, 3 + 13*clamp((vh*0.95 - r.top)/(vh*0.5), 0, 1)); }
+  }
+
+  let frameNo = 0;
+  function loop(now){
+    frameNo++;
+    env();
+    scenes();
+    if(useCur){
+      cpos.x += (ptr.x - cpos.x)*0.22; cpos.y += (ptr.y - cpos.y)*0.22;
+      cur.style.transform = 'translate3d(' + cpos.x.toFixed(1) + 'px,' + cpos.y.toFixed(1) + 'px,0)';
+    }
+    if(useCur) mags.forEach(m=>{
+      const r = m.el.getBoundingClientRect();
+      const cx = r.left + r.width/2 - m.x, cy = r.top + r.height/2 - m.y;
+      const dx = ptr.x - cx, dy = ptr.y - cy, d = Math.hypot(dx, dy);
+      const R = Math.max(r.width, r.height)*0.9;
+      const tx = d < R ? dx*0.28 : 0, ty = d < R ? dy*0.32 : 0;
+      m.x += (tx - m.x)*0.18; m.y += (ty - m.y)*0.18;
+      m.el.style.transform = 'translate3d(' + m.x.toFixed(2) + 'px,' + m.y.toFixed(2) + 'px,0)';
+    });
+    if(frameNo % 2 === 0) fields.forEach(f=>f.draw(now/1000, frameNo));
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  /* ---------- identity: fox reacts to "A room is enough" ---------- */
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(es=>es.forEach(e=>{
+      Fox.setPose(idFox, e.isIntersecting ? 'idle' : 'shrug');
+      if(e.isIntersecting) Fox.flash(idFox, 'excited', 900);
+    }), {threshold:0.3}).observe($('#enough'));
+    const st = $('#struck');
+    new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) st.classList.add('on'); }), {threshold:0.6}).observe(st);
+  } else $('#struck').classList.add('on');
+
+  /* ---------- hero line: "Then let it disappear." ---------- */
+  const vanish = $('#vanish');
+  if(!reduce) (async function(){
+    await sleep(2800);
+    while(true){ await Dither.animate(vanish, 16, 0, 900); await sleep(1100); await Dither.animate(vanish, 0, 16, 700); await sleep(3400); }
+  })();
+
+  /* ---------- live room demo ---------- */
+  const hcBody = $('#hcBody'), hcT = $('#hcT'), hcId = $('#hcId');
+  const rid = n => Array.from({length:n}, ()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
+  const fmt = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+    const p = v => String(v).padStart(2,'0'); return h ? h + ':' + p(m) + ':' + p(x) : p(m) + ':' + p(x); };
+  const SCRIPT = [['them','Got the link. Do I need an account?'],['me','No account. Just this room.'],['them','Good. About the draft we discussed…'],['me',"Say it here. It won't stay."]];
+  function bubble(parent, who, text){ const b = document.createElement('div'); b.className = 'msg ' + who; b.textContent = text; parent.appendChild(b); return b; }
+  let chatVis = false;
+  if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>chatVis = e.isIntersecting)).observe(hcBody); else chatVis = true;
+  if(reduce) SCRIPT.forEach(([w,t])=>bubble(hcBody, w, t));
+  else (async function room(){
+    while(true){
+      while(!chatVis) await sleep(400);
+      hcBody.innerHTML = ''; hcId.textContent = rid(4);
+      let ttl = 16; hcT.textContent = fmt(ttl);
+      const iv = setInterval(()=>{ ttl = Math.max(0, ttl-1); hcT.textContent = fmt(ttl); }, 1000);
+      for(const [who, text] of SCRIPT){
+        const typing = bubble(hcBody, who + ' typing', '···');
+        await sleep(who === 'them' ? 1000 : 700);
+        typing.remove();
+        const b = bubble(hcBody, who, text); Dither.set(b, 0); Dither.animate(b, 0, 16, 380);
+        if(who === 'them') Fox.look(idFox, 0.7, 1300);
+        await sleep(1700);
+      }
+      while(ttl > 0) await sleep(200);
+      clearInterval(iv);
+      for(const m of $$('.msg', hcBody)){ Dither.animate(m, 16, 0, 520); await sleep(160); }
+      await sleep(600);
+      hcBody.innerHTML = '';
+      const sys = bubble(hcBody, 'sys', 'Poof. Nothing was kept.'); Dither.set(sys, 0);
+      await Dither.animate(sys, 0, 16, 500); await sleep(2200); await Dither.animate(sys, 16, 0, 500);
+    }
+  })();
+
+  /* ---------- use cases: hover runs the room clock ---------- */
+  $$('.uses li').forEach(li=>{
+    const t = $('.ttl', li); let iv;
+    li.addEventListener('pointerenter', ()=>{ if(reduce) return; let s = 600; clearInterval(iv); iv = setInterval(()=>{ s = Math.max(0, s-8); t.textContent = fmt(s); }, 40); });
+    li.addEventListener('pointerleave', ()=>{ clearInterval(iv); t.textContent = '10:00'; });
+  });
+
+  /* ---------- security ASCII illustrations ---------- */
+  const NOISE = 'abcdefghkmnpqrstuvwxyz0123456789#$%&*+=?!';
+  const rnd = (n, set) => Array.from({length:n}, ()=>set[Math.floor(Math.random()*set.length)]).join('');
+  const shade = n => rnd(n, '░▒▓');
+  const ASCII = {
+    e2e(){ return 'you ─▸ [<span class="hi">' + rnd(9, NOISE) + '</span>] ─▸ guest\n\n      server sees\n      ' + shade(14); },
+    pq(){ let o = ''; for(let y=0;y<4;y++){ let row = y%2 ? ' ' : ''; for(let x=0;x<12;x++) row += Math.random() < 0.08 ? '<span class="hi">+</span> ' : '· '; o += row + '\n'; } return o; },
+    zk(){ const q = n => rnd(n, '?░▒'); return 'who     ' + q(9) + '\nwhat    ' + q(9) + '\nwhere   ' + q(9) + '\nkept    <span class="hi">nothing</span>'; },
+    eph(f){ const total = 60, k = f % (total + 14);
+      if(k >= total) return 'room k7q2\n\n[' + ' '.repeat(16) + ']\n<span class="hi">poof. nothing kept.</span>';
+      const fill = Math.round(16*(1 - k/total));
+      return 'room k7q2\n\n[' + '▓'.repeat(fill) + '░'.repeat(16-fill) + '] ' + fmt(600*(1-k/total)); }
+  };
+  const asciiEls = $$('[data-ascii]');
+  asciiEls.forEach(el=>{ el._f = 0; el.innerHTML = ASCII[el.dataset.ascii](0); });
+  if(!reduce && 'IntersectionObserver' in window){
+    const vis = new Set();
+    const io = new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting ? vis.add(e.target) : vis.delete(e.target)));
+    asciiEls.forEach(el=>io.observe(el));
+    setInterval(()=>vis.forEach(el=>{ el._f++; el.innerHTML = ASCII[el.dataset.ascii](el._f); }), 150);
+  }
+
+  /* ---------- future: harvest now, decrypt later ---------- */
+  const futPre = $('#futPre');
+  const W = 40, PLAIN = 'meet at 9. bring the signed copy.'.padEnd(W, ' ');
+  function fut(p){
+    const pos = Math.min(W-1, Math.floor(Math.min(p,1)*(W-1)));
+    let track = '';
+    for(let i=0;i<W;i++) track += i === pos ? '<span class="r">●</span>' : (i < pos ? '━' : '─');
+    const rev = p > 1 ? Math.floor(clamp((p-1)/0.5, 0, 1)*W) : 0;
+    let std = '', veil = '';
+    for(let i=0;i<W;i++){ std += i < rev ? '<span class="w">' + PLAIN[i] + '</span>' : shade(1); veil += shade(1); }
+    let status = '';
+    if(p > 1.5) status = '\n\n' + ' '.repeat(10) + "today's encryption <span class=\"w\">readable</span>      poof <span class=\"f\">still sealed</span>";
+    return ' '.repeat(10) + 'intercepted today'.padEnd(W-12, ' ') + 'decrypted later?\n' + ' '.repeat(10) + track + '▸\n\n' +
+      "today's   " + std + '\npoof      <span class="f">' + veil + '</span>' + status;
+  }
+  futPre.innerHTML = fut(reduce ? 2 : 0);
+  if(!reduce){
+    let fpv = 0, futVis = false;
+    if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>futVis = e.isIntersecting)).observe(futPre);
+    setInterval(()=>{ if(!futVis) return; fpv += 0.025; if(fpv > 2.3) fpv = 0; futPre.innerHTML = fut(fpv); }, 90);
+  }
+
+  /* ---------- classic room clock ---------- */
+  const clock = $('#clock');
+  if(!reduce){
+    let cs = 600, clockVis = false;
+    if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>clockVis = e.isIntersecting)).observe(clock);
+    setInterval(()=>{ if(!clockVis) return; cs = cs <= 0 ? 600 : cs - 1; clock.textContent = fmt(cs); }, 1000);
+  }
+
+  /* ---------- super room configurator ---------- */
+  let people = 4;
+  const seats = $('#seats'), pVal = $('#pVal'), pMinus = $('#pMinus'), pPlus = $('#pPlus'), peekFox = $('#foxPeek');
+  for(let i=0;i<10;i++){ const d = document.createElement('span'); d.className = 'seat'; seats.appendChild(d); }
+  function updSeats(){
+    pVal.textContent = people;
+    $$('.seat', seats).forEach((d,i)=>{ d.className = 'seat' + (i === 0 ? ' host' : (i < people ? ' on' : '')); });
+    pMinus.disabled = people <= 2; pPlus.disabled = people >= 10;
+  }
+  pMinus.addEventListener('click', ()=>{ people = Math.max(2, people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
+  pPlus.addEventListener('click', ()=>{ people = Math.min(10, people+1); updSeats(); Fox.flash(peekFox, 'excited', 700); });
+  $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>Fox.flash(peekFox, 'excited', 700)));
+  updSeats();
+
+  /* ---------- protocol terminal ---------- */
+  const termOut = $('#termOut');
+  const LINES = ['$ poof --philosophy', '', '› collect less.', '› expose less.', '› keep less.', "› delete what doesn't need to exist."];
+  let termRun = 0;
+  async function runTerm(){
+    const id = ++termRun;
+    if(reduce){ termOut.textContent = LINES.join('\n'); return; }
+    let text = '';
+    for(const line of LINES){
+      for(const ch of line){ if(id !== termRun) return; text += ch; termOut.textContent = text; await sleep(26); }
+      text += '\n'; termOut.textContent = text; await sleep(260);
+    }
+    await sleep(1600);
+    const lastLine = LINES[LINES.length-1];
+    const base = text.slice(0, text.length - lastLine.length - 1);
+    for(let i=lastLine.length; i>=0; i--){ if(id !== termRun) return; termOut.textContent = base + lastLine.slice(0, i); await sleep(18); }
+    termOut.textContent = base;
+    const dim = document.createElement('span'); dim.className = 'dim'; dim.textContent = '  (poof)\n'; termOut.append(dim);
+  }
+  if('IntersectionObserver' in window) new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) runTerm(); }), {threshold:0.5}).observe($('.term'));
+  else runTerm();
+  $$('[data-todo]').forEach(a=>a.addEventListener('click', e=>e.preventDefault()));
+
+  /* ---------- create buttons wake the fox ---------- */
+  $$('[data-create],[data-join]').forEach(b=>{
+    b.addEventListener('pointerenter', ()=>Fox.flashVisible('excited', 1100));
+    b.addEventListener('focus', ()=>Fox.flashVisible('excited', 1100));
+  });
+
+  /* ---------- room dialog: loading → ready → gone ---------- */
+  const ov = $('#ov'), dlg = $('#dlg'), dlgFox = $('#foxDlg');
+  const states = $$('.state', dlg);
+  const genLog = $('#genLog'), roomLink = $('#roomLink'), copyMsg = $('#copyMsg');
+  const roomTimer = $('#roomTimer'), roomType = $('#roomType'), mini = $('#mini'), msgIn = $('#msgIn');
+  let run = 0, timer = null, opener = null, cfg = null;
+  const outside = [nav, $('#main'), $('footer')];
+  ov.dataset.tone = 'light';
+  function show(name){
+    states.forEach(s=>{ s.hidden = s.dataset.state !== name; if(!s.hidden) Dither.set(s, 16); });
+    const h = $('[data-state="' + name + '"] h2', dlg); if(h) h.focus({preventScroll:true});
+  }
+  const lifetime = () => +($('input[name="life"]:checked').value);
+  const WORDS = 'amber otter quiet lantern maple cobalt river echo velvet harbor pine ember falcon meadow silver tide orbit cedar willow north copper lunar moss ivory canyon delta garnet hollow juniper linen nectar opal pebble quartz raven saffron thistle vapor wren yarrow'.split(' ');
+  const phrase = () => Array.from({length:4}, ()=>WORDS[Math.floor(Math.random()*WORDS.length)]).join(' ');
+  const pws = $$('.pw', dlg), joinMsg = $('#joinMsg');
+  let guest = false;
+  function openShell(){
+    ov.hidden = false; document.body.classList.add('lock');
+    outside.forEach(el=>{ el.inert = true; el.setAttribute('aria-hidden','true'); });
+    Fox.setModal(true);
+  }
+  async function openRoom(type){
+    cfg = type === 'super' ? {type, secs:lifetime(), people} : {type, secs:600, people:2};
+    guest = false; openShell();
+    await startRoom();
+  }
+  function openJoin(){
+    run++; clearInterval(timer); guest = true; openShell();
+    pws.forEach(i=>{ i.value = ''; i.className = 'pw'; });
+    joinMsg.textContent = ''; joinMsg.className = 'copy-msg';
+    Fox.setPose(dlgFox, 'idle'); Fox.setFade(dlgFox, 1); Fox.fadeTo(dlgFox, 0, 800);
+    show('join');
+    setTimeout(()=>pws[0].focus(), 60);
+  }
+  function fillFrom(i, text){
+    const parts = text.toLowerCase().split(/[\s,.\-]+/).filter(Boolean);
+    if(parts.length < 2) return false;
+    parts.slice(0, 4 - i).forEach((w,k)=>{ pws[i+k].value = w; mark(pws[i+k]); });
+    pws[Math.min(3, i + parts.length)].focus();
+    return true;
+  }
+  function mark(inp){
+    const ok = /^[a-z]{2,12}$/.test(inp.value.trim());
+    const was = inp.classList.contains('ok');
+    inp.classList.toggle('ok', ok); inp.classList.remove('bad');
+    if(ok && !was) Fox.flash(dlgFox, 'excited', 500);
+  }
+  pws.forEach((inp, i)=>{
+    inp.addEventListener('input', ()=>{
+      const v = inp.value;
+      if(/\s/.test(v.trim()) && fillFrom(i, v)) return;
+      if(/\s$/.test(v)){ inp.value = v.trim(); mark(inp); if(i < 3) pws[i+1].focus(); return; }
+      mark(inp);
+    });
+    inp.addEventListener('paste', e=>{
+      const t = (e.clipboardData || window.clipboardData).getData('text');
+      if(t && /\s/.test(t.trim())){ e.preventDefault(); fillFrom(i, t); }
+    });
+    inp.addEventListener('keydown', e=>{
+      if(e.key === 'Backspace' && !inp.value && i > 0){ e.preventDefault(); pws[i-1].focus(); }
+      if(e.key === 'Enter'){ e.preventDefault(); tryJoin(); }
+    });
+  });
+  async function tryJoin(){
+    const words = pws.map(i=>i.value.trim().toLowerCase());
+    const bad = words.map(w=>!/^[a-z]{2,12}$/.test(w));
+    pws.forEach((inp,k)=>inp.classList.toggle('bad', bad[k]));
+    if(bad.some(Boolean)){
+      joinMsg.textContent = 'Enter all four words, letters only.'; joinMsg.className = 'copy-msg';
+      Fox.flash(dlgFox, 'sad', 1400);
+      pws[bad.indexOf(true)].focus();
+      return;
+    }
+    const id = ++run;
+    show('loading');
+    $('#dlgTitle').textContent = 'Finding your room…';
+    Fox.setPose(dlgFox, 'work');
+    genLog.textContent = '';
+    for(const l of ['› looking up the phrase', '› deriving the room key', '› identity required … none', '› joining', '› in']){
+      await sleep(400); if(id !== run) return; genLog.textContent += l + '\n';
+    }
+    await sleep(250); if(id !== run) return;
+    enterRoom(words.join(' '), 180 + Math.floor(Math.random()*360), 'Joined as guest');
+    const hi = bubble(mini, 'them', 'You made it. Say hi.');
+    const empty = $('.empty', mini); if(empty) empty.remove();
+    Dither.set(hi, 0); Dither.animate(hi, 0, 16, 400);
+  }
+  function enterRoom(ph, secs, typeLabel){
+    $('#roomPhrase').textContent = ph;
+    $('#readyTitle').textContent = guest ? 'You’re in.' : 'Your room is open.';
+    $('#readyText').textContent = guest ? 'Nothing here outlives the timer. Not even you.' : 'Share the link or the four-word phrase. Both stop working when the timer ends.';
+    $('#linkRow').hidden = guest;
+    roomType.textContent = typeLabel;
+    copyMsg.textContent = ''; copyMsg.className = 'copy-msg';
+    mini.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    show('ready');
+    Fox.setPose(dlgFox, 'idle'); Fox.flash(dlgFox, 'raise', 1700);
+    let left = secs; roomTimer.textContent = fmt(left);
+    clearInterval(timer);
+    timer = setInterval(()=>{ left--; roomTimer.textContent = fmt(left); if(left <= 0) endRoom(); }, 1000);
+  }
+  async function startRoom(){
+    const id = ++run; clearInterval(timer);
+    show('loading');
+    $('#dlgTitle').textContent = 'Sealing your room…';
+    Fox.setPose(dlgFox, 'work'); Fox.setFade(dlgFox, 1); Fox.fadeTo(dlgFox, 0, 800);
+    genLog.textContent = '';
+    for(const l of ['› opening a room', '› generating room keys', '› identity required … none', '› sealing the room', '› ready']){
+      await sleep(430); if(id !== run) return; genLog.textContent += l + '\n';
+    }
+    await sleep(300); if(id !== run) return;
+    roomLink.value = 'https://poof.example/r/' + rid(4) + '-' + rid(4) + '#' + rid(12);
+    guest = false;
+    enterRoom(phrase(), cfg.secs, cfg.type === 'super' ? 'Super Room / ' + cfg.people + ' people / ' + (cfg.secs === 3600 ? '1 hour' : '24 hours') : 'Classic Room / 2 people');
+  }
+  async function endRoom(){
+    const id = ++run; clearInterval(timer);
+    Fox.fadeTo(dlgFox, 1, 700);
+    await Dither.animate($('[data-state="ready"]', dlg), 16, 0, 700);
+    if(id !== run) return;
+    show('gone');
+    const gone = $('[data-state="gone"]', dlg); Dither.set(gone, 0);
+    Fox.setPose(dlgFox, 'doze'); Fox.fadeTo(dlgFox, 0, 900);
+    Dither.animate(gone, 0, 16, 700);
+  }
+  function closeRoom(){
+    run++; clearInterval(timer);
+    ov.hidden = true; document.body.classList.remove('lock');
+    outside.forEach(el=>{ el.inert = false; el.removeAttribute('aria-hidden'); });
+    Fox.setModal(false);
+    if(opener) opener.focus();
+  }
+  $$('[data-create]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openRoom(b.dataset.create); }));
+  $$('[data-join]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openJoin(); }));
+  $('#joinBtn').addEventListener('click', tryJoin);
+  $('#copyPhrase').addEventListener('click', ()=>{
+    const t = $('#roomPhrase').textContent;
+    const ok = ()=>{ copyMsg.textContent = 'Phrase copied. Four words, and they’re in.'; copyMsg.className = 'copy-msg ok'; Fox.flash(dlgFox, 'raise', 1200); };
+    const fail = ()=>{ copyMsg.textContent = "Couldn't copy automatically. Read the four words out instead."; copyMsg.className = 'copy-msg'; Fox.flash(dlgFox, 'sad', 1400); };
+    try{ navigator.clipboard.writeText(t).then(ok, fail); }catch(err){ fail(); }
+  });
+  $('#closeBtn').addEventListener('click', closeRoom);
+  ov.addEventListener('click', e=>{ if(e.target === ov) closeRoom(); });
+  document.addEventListener('keydown', e=>{
+    if(ov.hidden) return;
+    if(e.key === 'Escape'){ closeRoom(); return; }
+    if(e.key === 'Tab'){
+      const f = $$('button, input, a[href], [tabindex="-1"]', dlg).filter(x=>!x.closest('[hidden]') && x.offsetParent !== null && !x.disabled);
+      if(!f.length) return;
+      const first = f[0], lastF = f[f.length-1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); lastF.focus(); }
+      else if(!e.shiftKey && document.activeElement === lastF){ e.preventDefault(); first.focus(); }
+    }
+  });
+  $('#copyBtn').addEventListener('click', ()=>{
+    const ok = ()=>{ copyMsg.textContent = 'Link copied. Anyone with it can join until the timer ends.'; copyMsg.className = 'copy-msg ok'; Fox.flash(dlgFox, 'raise', 1400); };
+    const fail = ()=>{ copyMsg.textContent = "Couldn't copy automatically. The link is selected, copy it manually."; copyMsg.className = 'copy-msg'; roomLink.focus(); roomLink.select(); Fox.flash(dlgFox, 'sad', 1800); };
+    try{ navigator.clipboard.writeText(roomLink.value).then(ok, fail); }catch(err){ fail(); }
+  });
+  function send(){
+    const v = msgIn.value.trim(); if(!v) return;
+    const empty = $('.empty', mini); if(empty) empty.remove();
+    const b = bubble(mini, 'me', v); Dither.set(b, 0); Dither.animate(b, 0, 16, 350);
+    mini.scrollTop = mini.scrollHeight; msgIn.value = '';
+    Fox.flash(dlgFox, 'excited', 700);
+  }
+  $('#sendBtn').addEventListener('click', send);
+  msgIn.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); send(); } });
+  $('#endBtn').addEventListener('click', endRoom);
+  $('#againBtn').addEventListener('click', ()=>{ if(!cfg) cfg = {type:'classic', secs:600, people:2}; guest = false; startRoom(); });
+})();
+</script>
+</body>
+</html>
