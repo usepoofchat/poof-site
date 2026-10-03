@@ -444,7 +444,23 @@ body.menu-open{overflow:hidden}
 .why[open] summary::after{content:"−"}
 .why p{color:var(--panel-ink-2);font-size:15px;margin:10px 0 0}
 @media (max-width:900px){.rooms-grid{grid-template-columns:1fr}.feat{grid-template-columns:1fr}.classic{margin-bottom:200px}}
-@media (max-width:760px){.oneroom{padding-bottom:56px}.rooms{padding-top:56px}.rooms-grid{margin-top:36px}}   /* phones: no empty band before the pricing cards */
+@media (max-width:760px){.oneroom{padding-bottom:56px}.rooms{padding-top:56px;padding-bottom:56px}.rooms-grid{margin-top:36px}.protocol{padding-top:56px}}
+/* phones: compact Super Room card, the whole card fits between the header and the bottom bar */
+@media (max-width:760px){
+  .super{padding:20px}
+  .super .over{margin-bottom:10px}
+  .super .desc{font-size:15px;line-height:1.45;margin-bottom:12px}
+  .super .config{margin:14px 0;padding:14px 0;gap:12px}
+  .super .seg span{min-height:38px;padding:0 15px;font-size:14px}
+  .super .stepper button{width:38px;height:38px;font-size:18px}
+  .super .stepper output{min-width:36px;font-size:16px}
+  .super .price-box .price{font-size:26px}
+  .super .feat{grid-template-columns:1fr 1fr;gap:6px 14px;font-size:14px;margin-bottom:14px}
+  .super .burn{font-size:13.5px;line-height:1.45;margin-bottom:12px}
+  .super .btn{--h:46px}
+  .super .why{margin-top:12px;padding-top:6px}
+  .super .why summary{min-height:36px}
+}   /* phones: no empty band before the pricing cards */
 
 /* PROTOCOL */
 .protocol .field{opacity:.1}
