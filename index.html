@@ -1976,10 +1976,8 @@ window.VeilFox = (function(){
   }
   pMinus.addEventListener('click', ()=>{ people = Math.max(2, people-1); updSeats(); Fox.flash(peekFox, 'sad', 700); });
   pPlus.addEventListener('click', ()=>{ people = Math.min(10, people+1); updSeats(); Fox.flash(peekFox, 'excited', 700); });
-  // phones: the peeking fox sits behind the Super Room card (desktop keeps its paws over the edge)
-  const peekBehind = matchMedia('(max-width:900px)');
-  const setPeekLayer = ()=>Fox.param(peekFox, 'back', peekBehind.matches);
-  setPeekLayer(); peekBehind.addEventListener('change', setPeekLayer);
+  // the peeking fox sits behind the Super Room card on every screen size
+  Fox.param(peekFox, 'back', true);
   $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>{ updPrice(); Fox.flash(peekFox, 'excited', 700); }));
 
   // "Why tokens?" grows the Super Room card; keep the Classic Room card at its closed height meanwhile
