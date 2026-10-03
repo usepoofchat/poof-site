@@ -295,7 +295,9 @@ body.menu-open{overflow:hidden}
 .nots p{font-size:clamp(19px,1.6vw,23px);margin:0 0 .5em;color:var(--ink-2)}
 .uses{list-style:none;padding:0;margin:0;border-top:1.5px solid var(--line-strong)}
 .uses li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:18px 0;border-bottom:1px solid var(--line);font-size:clamp(21px,2vw,30px);font-weight:550;letter-spacing:-.03em;transition:padding .4s var(--ease)}
-.uses li:hover{padding-left:14px}
+.uses li:hover,.uses li.on{padding-left:14px}
+.uses li.on .ttl{color:var(--ink)}
+@media (hover:none){.uses li{cursor:pointer;-webkit-tap-highlight-color:transparent}.uses li:hover:not(.on){padding-left:0}}
 .uses .ttl{font:500 13px var(--mono);color:var(--ink-3);flex:none}
 @media (max-width:900px){.mo-grid{grid-template-columns:1fr}.f-bubble{top:2vh;width:150px;height:130px}}
 
@@ -1796,10 +1798,27 @@ window.VeilFox = (function(){
   })();
 
   /* ---------- use cases: hover runs the room clock ---------- */
-  $$('.uses li').forEach(li=>{
-    const t = $('.ttl', li); let iv;
-    li.addEventListener('pointerenter', ()=>{ if(reduce) return; let s = 600; clearInterval(iv); iv = setInterval(()=>{ s = Math.max(0, s-8); t.textContent = fmt(s); }, 40); });
-    li.addEventListener('pointerleave', ()=>{ clearInterval(iv); t.textContent = '10:00'; });
+  // mouse: hover runs it; touch: a tap runs it (and stops any other), a second tap stops it
+  const useItems = $$('.uses li');
+  function runClock(li){
+    if(reduce) return;
+    const t = $('.ttl', li); let s = 600; clearInterval(li._iv);
+    li._iv = setInterval(()=>{
+      s = Math.max(0, s-8); t.textContent = fmt(s);
+      if(s === 0 && li.classList.contains('on')){ clearInterval(li._iv); setTimeout(()=>stopClock(li), 700); }
+    }, 40);
+  }
+  function stopClock(li){ clearInterval(li._iv); li.classList.remove('on'); $('.ttl', li).textContent = '10:00'; }
+  useItems.forEach(li=>{
+    li.addEventListener('pointerdown', e=>{ li._touch = e.pointerType !== 'mouse'; });
+    li.addEventListener('pointerenter', e=>{ if(e.pointerType === 'mouse') runClock(li); });
+    li.addEventListener('pointerleave', e=>{ if(e.pointerType === 'mouse') stopClock(li); });
+    li.addEventListener('click', ()=>{
+      if(!li._touch) return;
+      if(li.classList.contains('on')){ stopClock(li); return; }
+      useItems.forEach(o=>{ if(o !== li && o.classList.contains('on')) stopClock(o); });
+      li.classList.add('on'); runClock(li);
+    });
   });
 
   /* ---------- security ASCII illustrations ---------- */
