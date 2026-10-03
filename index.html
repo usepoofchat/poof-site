@@ -344,6 +344,7 @@ body.menu-open{overflow:hidden}
 .timeline .w{color:#f3f1ea}
 .timeline .r{color:var(--rust)}
 .timeline .f{color:var(--frost)}
+@media (max-width:760px){.timeline pre{font-size:13px}}   /* phones: narrower 22-step version (see fut()), a bit larger to fill the width */
 .future .mind{color:var(--ink-2);font-size:19px}
 .future .big{font-size:clamp(36px,4.8vw,80px);line-height:.98;font-weight:600;letter-spacing:-.05em;margin:0;max-width:16ch}
 @media (max-width:900px){
@@ -1865,8 +1866,11 @@ window.VeilFox = (function(){
 
   /* ---------- future: harvest now, decrypt later ---------- */
   const futPre = $('#futPre');
-  const W = 40, PLAIN = 'meet at 9. bring the signed copy.'.padEnd(W, ' ');
+  // desktop: 40-step track; phones: a narrower 22-step version so the block fits without sideways scrolling
   function fut(p){
+    const narrow = innerWidth <= 760;
+    const W = narrow ? 22 : 40, IND = narrow ? 8 : 10;
+    const PLAIN = (narrow ? 'meet at 9. bring it.' : 'meet at 9. bring the signed copy.').padEnd(W, ' ');
     const pos = Math.min(W-1, Math.floor(Math.min(p,1)*(W-1)));
     let track = '';
     for(let i=0;i<W;i++) track += i === pos ? '<span class="r">●</span>' : (i < pos ? '━' : '─');
@@ -1874,9 +1878,12 @@ window.VeilFox = (function(){
     let std = '', veil = '';
     for(let i=0;i<W;i++){ std += i < rev ? '<span class="w">' + PLAIN[i] + '</span>' : shade(1); veil += shade(1); }
     let status = '';
-    if(p > 1.5) status = '\n\n' + ' '.repeat(10) + "today's encryption <span class=\"w\">readable</span>      poof <span class=\"f\">still sealed</span>";
-    return ' '.repeat(10) + 'intercepted today'.padEnd(W-12, ' ') + 'decrypted later?\n' + ' '.repeat(10) + track + '▸\n\n' +
-      "today's   " + std + '\npoof      <span class="f">' + veil + '</span>' + status;
+    if(p > 1.5) status = narrow
+      ? '\n\n' + ' '.repeat(IND) + "today's encryption <span class=\"w\">readable</span>\n" + ' '.repeat(IND) + 'poof <span class="f">still sealed</span>'
+      : '\n\n' + ' '.repeat(IND) + "today's encryption <span class=\"w\">readable</span>      poof <span class=\"f\">still sealed</span>";
+    const head = narrow ? 'captured'.padEnd(W-10, ' ') + 'decrypted?' : 'intercepted today'.padEnd(W-12, ' ') + 'decrypted later?';
+    return ' '.repeat(IND) + head + '\n' + ' '.repeat(IND) + track + '▸\n\n' +
+      "today's".padEnd(IND, ' ') + std + '\n' + 'poof'.padEnd(IND, ' ') + '<span class="f">' + veil + '</span>' + status;
   }
   futPre.innerHTML = fut(reduce ? 2 : 0);
   if(!reduce){
