@@ -5,7 +5,7 @@ Landing page and documentation for [usepoof.chat](https://usepoof.chat): a priva
 - `index.html`: the landing page (HTML, CSS and JS in one file)
 - `docs/index.html`: the documentation, served at `/docs/`
 - `room/index.html`: create and use a quant-room; `join/index.html` opens invite links
-- `engine/poof-engine.js`: the client engine for live quant-rooms (encryption, WebRTC, signaling), copied from a build of [usepoofchat/poof-app](https://github.com/usepoofchat/poof-app) (`pnpm build:engine`); `poof-engine.js.sha256` says which commit
+- `engine/poof-engine.js`: the client engine for live quant-rooms (encryption, WebRTC, signaling), copied from a build of [usepoofchat/poof-app](https://github.com/usepoofchat/poof-app) (`pnpm build:engine`); `poof-engine.js.sha256` says which commit. Cloudflare caches `.js` files, so pages import it as `poof-engine.js?v=<first 12 characters of its SHA-256>`: after replacing the engine, update `?v=` in `index.html` and `room/index.html`
 - `favicon.svg`, `apple-touch-icon.png`, `og-image.png`, `robots.txt`
 - `.htaccess`: cache rules (HTML always revalidated, images cached for a day)
 - `brand/`: logo, mark and social assets; the files offered in the docs brand kit are deployed to `/brand/`
