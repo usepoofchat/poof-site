@@ -5414,7 +5414,9 @@ var CloseCode = {
 	RateLimited: 4005,
 	/** Same peerId connected again: the older socket is replaced (zombie-socket recovery). */
 	Replaced: 4006,
-	ForbiddenOrigin: 4007
+	ForbiddenOrigin: 4007,
+	/** The creator removed this person from the room; the same peerId can't come back. */
+	Banned: 4008
 };
 /** Close codes after which reconnecting is pointless. */
 var TERMINAL_CLOSE_CODES = /* @__PURE__ */ new Set([
@@ -5424,7 +5426,8 @@ var TERMINAL_CLOSE_CODES = /* @__PURE__ */ new Set([
 	CloseCode.RoomFull,
 	CloseCode.RoomNotFound,
 	CloseCode.Replaced,
-	CloseCode.ForbiddenOrigin
+	CloseCode.ForbiddenOrigin,
+	CloseCode.Banned
 ]);
 //#endregion
 //#region packages/protocol/src/ids.ts
@@ -5786,6 +5789,17 @@ discriminatedUnion("t", [
 	}),
 	object({
 		v: v$1,
+		t: literal("claim"),
+		ownerSecret: ownerSecretSchema
+	}),
+	object({
+		v: v$1,
+		t: literal("ban"),
+		ownerSecret: ownerSecretSchema,
+		peerId: peerIdSchema
+	}),
+	object({
+		v: v$1,
 		t: literal("leave")
 	})
 ]);
@@ -5804,6 +5818,11 @@ var serverMessageSchema = discriminatedUnion("t", [
 		maxPeers: number().int().positive().max(10),
 		/** Peers in the room, including this one. */
 		peers: number().int().positive().max(10),
+		/**
+		* The member who proved they created the room (`claim`), or null while nobody has. Its presence
+		* also tells the client this server understands `claim` and `ban`.
+		*/
+		owner: peerIdSchema.nullable().optional(),
 		/** The other members already present (a hint for the UI; links come with `paired`). */
 		members: array(peerIdSchema).max(10),
 		limits: limitsSchema,
@@ -5826,7 +5845,20 @@ var serverMessageSchema = discriminatedUnion("t", [
 		v: v$1,
 		t: literal("peer.left"),
 		peerId: peerIdSchema,
-		reason: _enum(["closed", "leave"])
+		reason: _enum([
+			"closed",
+			"leave",
+			"banned"
+		])
+	}),
+	object({
+		v: v$1,
+		t: literal("owner"),
+		peerId: peerIdSchema
+	}),
+	object({
+		v: v$1,
+		t: literal("banned")
 	}),
 	object({
 		v: v$1,
@@ -5960,6 +5992,15 @@ var ctlPlaintextSchema = discriminatedUnion("kind", [
 		kind: literal("ai"),
 		askId: string().min(1).max(64),
 		state: _enum(["thinking", "failed"])
+	}),
+	object({
+		kind: literal("pin"),
+		pin: object({
+			id: string().min(1).max(64),
+			text: string().min(1).max(CHAT_MAX_CHARS),
+			author: peerIdSchema,
+			nickname: string().max(128).nullable()
+		}).nullable()
 	})
 ]);
 var sha256b64 = string().regex(/^[A-Za-z0-9_-]{43}$/, "invalid sha256");
@@ -17774,6 +17815,87 @@ function memberLabel(peerId) {
 	}
 	return `Peer ${hex.toUpperCase()}`;
 }
+var NAME_WORDS = [[
+	"Amber",
+	"Brave",
+	"Calm",
+	"Clever",
+	"Cosmic",
+	"Crimson",
+	"Dusty",
+	"Gentle",
+	"Golden",
+	"Happy",
+	"Hidden",
+	"Humble",
+	"Jolly",
+	"Lucky",
+	"Lunar",
+	"Mellow",
+	"Misty",
+	"Noble",
+	"Polar",
+	"Quiet",
+	"Rapid",
+	"Rusty",
+	"Silent",
+	"Silver",
+	"Sleepy",
+	"Snowy",
+	"Solar",
+	"Swift",
+	"Tiny",
+	"Velvet",
+	"Witty",
+	"Wild"
+], [
+	"Badger",
+	"Bear",
+	"Beaver",
+	"Bison",
+	"Crane",
+	"Crow",
+	"Deer",
+	"Dolphin",
+	"Eagle",
+	"Falcon",
+	"Ferret",
+	"Finch",
+	"Fox",
+	"Hare",
+	"Hawk",
+	"Heron",
+	"Koala",
+	"Lynx",
+	"Marten",
+	"Moose",
+	"Otter",
+	"Owl",
+	"Panda",
+	"Raven",
+	"Robin",
+	"Seal",
+	"Sparrow",
+	"Stoat",
+	"Swan",
+	"Tiger",
+	"Walrus",
+	"Wolf"
+]];
+/**
+* "Amber Fox": a default name from the first two bytes of the peerId, the same in every browser.
+* Everyone can replace theirs with a display name (`setNickname`).
+*/
+function memberName(peerId) {
+	let bytes;
+	try {
+		bytes = fromBase64Url(peerId);
+	} catch {
+		bytes = utf8(peerId);
+	}
+	const [adjectives, animals] = NAME_WORDS;
+	return `${adjectives[(bytes[0] ?? 0) % adjectives.length]} ${animals[(bytes[1] ?? 0) % animals.length]}`;
+}
 /**
 * The headless room engine. One instance per room page. It owns the signaling socket and one
 * `MemberLink` per other person (WebRTC + hybrid key exchange + encrypted frames), and exposes a
@@ -17797,6 +17919,12 @@ var RoomSession = class {
 	typingTimers = /* @__PURE__ */ new Map();
 	typingOn = false;
 	typingSentAt = 0;
+	/** The pin I set (creator), re-sent to everyone who joins later. */
+	pinWire = null;
+	/** Pins that arrived before the server said who created the room, by sender. */
+	pendingPins = /* @__PURE__ */ new Map();
+	/** People the creator removed: no new links with them, whatever the server says. */
+	bannedPeers = /* @__PURE__ */ new Set();
 	joinTimer = null;
 	expiryTimer = null;
 	phraseTimer = null;
@@ -17839,6 +17967,10 @@ var RoomSession = class {
 			members: [],
 			membersMismatch: false,
 			nickname: null,
+			selfName: memberName(this.peerId),
+			ownerId: null,
+			ownerTools: false,
+			pinned: null,
 			plan: "free",
 			tier: "free",
 			expiresAt: null,
@@ -18001,6 +18133,49 @@ var RoomSession = class {
 		return nickname;
 	}
 	/**
+	* Creator only: remove someone for good. The server disconnects them and refuses them from then
+	* on; everyone else drops their link to them. Needs a server with `ownerTools`.
+	*/
+	ban(peerId) {
+		const { ownerSecret } = this.deps;
+		if (ownerSecret === void 0) throw new PoofError("not_owner", "Only the person who created the room can remove people.");
+		if (!this.state.ownerTools) throw new PoofError("not_available", "This server can't remove people.");
+		if (TERMINAL.has(this.state.status) || peerId === this.peerId) return;
+		this.signaling?.send({
+			v: 1,
+			t: "ban",
+			ownerSecret,
+			peerId
+		});
+	}
+	/**
+	* Creator only: pin one of the chat's text messages for everyone (null = unpin). People who join
+	* later get it too. Others accept it only from the member the server confirmed as the creator.
+	*/
+	pin(messageId) {
+		if (!this.state.isOwner) throw new PoofError("not_owner", "Only the person who created the room can pin messages.");
+		if (TERMINAL.has(this.state.status)) return;
+		let wire = null;
+		if (messageId !== null) {
+			const item = this.state.messages.find((m) => m.id === messageId);
+			if (item?.kind !== "text") throw new PoofError("invalid_message", "There's no such message.");
+			const author = item.mine ? this.peerId : item.from ?? this.peerId;
+			const nickname = item.mine ? this.state.nickname : this.links.get(author)?.nickname ?? null;
+			wire = {
+				id: item.id,
+				text: item.text,
+				author,
+				nickname
+			};
+		}
+		this.pinWire = wire;
+		this.setState({ pinned: wire && this.toPinned(wire) });
+		for (const link of this.connectedLinks()) link.sendCtl({
+			kind: "pin",
+			pin: wire
+		});
+	}
+	/**
 	* "Share via code": put this room's invite link behind a fresh 4-word phrase (one-time, 3 min).
 	* Sets `state.phrase` until it expires; a new call replaces it. Works while the room is alive.
 	*/
@@ -18149,6 +18324,15 @@ var RoomSession = class {
 			case "welcome":
 				this.applyRoomMeta(msg);
 				this.clearJoinTimer();
+				if (msg.owner !== void 0) {
+					if (!this.state.ownerTools) this.setState({ ownerTools: true });
+					if (msg.owner !== null) this.setOwner(msg.owner);
+					if (this.deps.ownerSecret !== void 0) this.signaling?.send({
+						v: 1,
+						t: "claim",
+						ownerSecret: this.deps.ownerSecret
+					});
+				}
 				if (this.state.status === "loading") {
 					this.setState({
 						status: "waiting",
@@ -18165,7 +18349,14 @@ var RoomSession = class {
 				this.links.get(msg.from)?.handleSignal(msg.payload);
 				return;
 			case "peer.left":
-				this.onPeerLeft(msg.peerId);
+				if (msg.reason === "banned") this.onBanned(msg.peerId);
+				else this.onPeerLeft(msg.peerId);
+				return;
+			case "owner":
+				this.setOwner(msg.peerId);
+				return;
+			case "banned":
+				this.terminate("banned");
 				return;
 			case "replaced":
 				this.terminate("replaced");
@@ -18206,11 +18397,15 @@ var RoomSession = class {
 			case CloseCode.Replaced:
 				this.terminate("replaced");
 				return;
+			case CloseCode.Banned:
+				if (this.state.status === "loading") this.fail("banned", "The person who created this room removed you from it.");
+				else this.terminate("banned");
+				return;
 			default: this.fail("connection_failed", "Lost connection to the server.");
 		}
 	}
 	onPaired(peerId, role, iceServers) {
-		if (peerId === this.peerId) return;
+		if (peerId === this.peerId || this.bannedPeers.has(peerId)) return;
 		if (this.isGroup && !this.links.has(peerId) && this.links.size >= this.state.maxPeers - 1) return;
 		const existing = this.isGroup ? this.links.get(peerId) : [...this.links.values()][0];
 		if (existing && (existing.state === "upgrading" || existing.state === "connected")) return;
@@ -18277,6 +18472,10 @@ var RoomSession = class {
 			kind: "hello",
 			nickname: this.state.nickname
 		});
+		if (this.pinWire) link.sendCtl({
+			kind: "pin",
+			pin: this.pinWire
+		});
 		if (!this.isGroup) return;
 		this.addMessage({
 			kind: "system",
@@ -18319,6 +18518,50 @@ var RoomSession = class {
 		this.dropLink(peerId);
 		this.refresh({ peerPresent: this.links.size > 0 });
 		this.announceMembers();
+	}
+	/**
+	* The creator removed this member (the server says so, and has already disconnected them). In a
+	* room for two the creator goes back to waiting, conversation kept, instead of the room ending.
+	*/
+	onBanned(peerId) {
+		this.bannedPeers.add(peerId);
+		const link = this.links.get(peerId);
+		this.log("peer.left", "warn", this.withPeer(peerId, { reason: "banned" }));
+		if (!link) return;
+		if (link.everConnected) this.addMessage({
+			kind: "system",
+			id: crypto.randomUUID(),
+			ts: this.now(),
+			event: "banned",
+			peerId
+		});
+		this.dropLink(peerId);
+		this.refresh({
+			peerPresent: this.links.size > 0,
+			...this.isGroup ? {} : { role: null }
+		});
+		this.announceMembers();
+	}
+	/** The server confirmed who created the room. Pins they sent before that now count. */
+	setOwner(peerId) {
+		if (TERMINAL.has(this.state.status)) return;
+		if (this.state.ownerId !== peerId) {
+			this.setState({ ownerId: peerId });
+			this.refresh();
+		}
+		const pending = this.pendingPins.get(peerId);
+		this.pendingPins.clear();
+		if (pending !== void 0) this.setState({ pinned: pending && this.toPinned(pending) });
+	}
+	toPinned(wire) {
+		const mine = wire.author === this.peerId;
+		return {
+			id: wire.id,
+			text: wire.text,
+			from: mine ? null : wire.author,
+			nickname: mine ? this.state.nickname : wire.nickname,
+			name: memberName(wire.author)
+		};
 	}
 	onLinkFailed(link, failure) {
 		if (TERMINAL.has(this.state.status) || this.links.get(link.peerId) !== link) return;
@@ -18406,6 +18649,21 @@ var RoomSession = class {
 			case "ai":
 				this.markAiPending(link.peerId, ctl.askId, ctl.state === "thinking");
 				return;
+			case "pin": {
+				let pin = null;
+				if (ctl.pin) {
+					const text = normalizeChatText(ctl.pin.text);
+					if (!text) return;
+					pin = {
+						...ctl.pin,
+						text,
+						nickname: normalizeNickname(ctl.pin.nickname)
+					};
+				}
+				if (this.state.ownerId === null) this.pendingPins.set(link.peerId, pin);
+				else if (link.peerId === this.state.ownerId) this.setState({ pinned: pin && this.toPinned(pin) });
+				return;
+			}
 			case "connection_type": return;
 		}
 	}
@@ -18722,6 +18980,7 @@ var RoomSession = class {
 		this.aiStreams.clear();
 		this.ai.forget();
 		this.typingOn = false;
+		this.pendingPins.clear();
 		for (const id of [...this.links.keys()]) this.dropLink(id);
 		this.outgoingFiles.clear();
 		this.signaling?.close();
@@ -18741,7 +19000,8 @@ var RoomSession = class {
 			messages: [],
 			phrase: null,
 			typing: [],
-			aiPending: []
+			aiPending: [],
+			pinned: null
 		});
 	}
 	/**
@@ -18777,7 +19037,8 @@ var RoomSession = class {
 			messages: [],
 			phrase: null,
 			typing: [],
-			aiPending: []
+			aiPending: [],
+			pinned: null
 		});
 	}
 	clearJoinTimer() {
@@ -18791,6 +19052,8 @@ var RoomSession = class {
 		const members = links.map((link) => ({
 			peerId: link.peerId,
 			label: memberLabel(link.peerId),
+			name: memberName(link.peerId),
+			owner: link.peerId === this.state.ownerId,
 			nickname: link.nickname,
 			state: link.state === "connected" ? "sealed" : link.live ? "joining" : "failed",
 			connectionType: link.connectionType
@@ -18887,4 +19150,4 @@ function detectBrowserSupport(env = globalThis) {
 	};
 }
 //#endregion
-export { AI_CONTEXT_MAX_BYTES, AI_SYSTEM_PROMPT, AiClient, DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, buildAiPrompt, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, decryptAiChunk, deriveAiToken, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, encryptForModel, equalBytes, fetchEthQuote, fetchPayConfig, finishPass, formatEth, formatUsd, fromBase64, fromBase64Url, fromUtf8, generateAiSessionKeys, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, mentionsAi, newAttestationNonce, normalizeAiText, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readAiStream, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, stripMention, toBase64, toBase64Url, transferData, u64be, utf8, variantId, verifyAttestation, wipe };
+export { AI_CONTEXT_MAX_BYTES, AI_SYSTEM_PROMPT, AiClient, DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, buildAiPrompt, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, decryptAiChunk, deriveAiToken, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, encryptForModel, equalBytes, fetchEthQuote, fetchPayConfig, finishPass, formatEth, formatUsd, fromBase64, fromBase64Url, fromUtf8, generateAiSessionKeys, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, memberName, mentionsAi, newAttestationNonce, normalizeAiText, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readAiStream, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, stripMention, toBase64, toBase64Url, transferData, u64be, utf8, variantId, verifyAttestation, wipe };

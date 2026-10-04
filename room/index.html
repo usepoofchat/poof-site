@@ -237,6 +237,40 @@ button{font:inherit}
 .msg.them{align-self:flex-start;background:var(--ground);color:var(--ink);border-bottom-left-radius:4px}
 .msg.me{align-self:flex-end;background:var(--ink);color:var(--ground);border-bottom-right-radius:4px}
 .msg.sys{align-self:center;background:none;padding:4px 0;font:500 12px/1.4 var(--mono);color:var(--ink-3);text-align:center}
+/* live quant-rooms: names, the owner badge, the pinned message, commands */
+.me-line{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.me-line[hidden],.me-name[hidden]{display:none}
+.me-name{border:0;border-bottom:1px dashed var(--ink-3);background:none;padding:0;font:inherit;color:var(--ink);cursor:pointer}
+.me-name:hover,.me-name:focus-visible{color:var(--rust-text);border-color:currentColor;outline:none}
+.me-edit{width:min(24ch,100%);height:24px;padding:0 8px;border:1.5px solid var(--ink);border-radius:6px;background:var(--ground);color:var(--ink);font:500 12px var(--mono)}
+.me-edit:focus{outline:none;border-color:var(--rust)}
+.own-tag{display:inline-block;padding:0 6px;border-radius:999px;font:600 9.5px/1.6 var(--mono);letter-spacing:.04em;color:var(--rust-text);box-shadow:inset 0 0 0 1px currentColor}
+.own-tag[hidden]{display:none}
+.who{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;margin:4px 0 -6px 4px;font:500 11.5px/1.3 var(--mono);color:var(--ink-3)}
+.msg{position:relative}
+.pin-btn{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:var(--surface);color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .15s}
+.msg.them .pin-btn{right:-36px}
+.msg.me .pin-btn{left:-36px}
+.msg:hover .pin-btn,.msg:focus-within .pin-btn,.msg.act .pin-btn{opacity:1;pointer-events:auto}
+.pin-btn:hover,.pin-btn:focus-visible,.msg.pinned .pin-btn{color:var(--rust-text)}
+.pin-btn svg,.pinbar .pin-ico svg{width:13px;height:13px}
+.msg.pinned{box-shadow:inset 0 0 0 1.5px var(--rust)}
+.msg.flash{animation:pinFlash 1.2s steps(1,end)}
+@keyframes pinFlash{0%,50%{outline:2px solid var(--rust);outline-offset:3px}25%,75%{outline:0}}
+.pinbar{display:flex;align-items:center;gap:10px;margin:10px 10px 0;padding:8px 8px 8px 12px;border-radius:12px;background:var(--ground);box-shadow:inset 0 0 0 1px var(--line)}
+.pinbar[hidden]{display:none}
+.pinbar .pin-ico{flex:none;display:grid;color:var(--rust)}
+.pin-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:0;border:0;background:none;color:var(--ink);text-align:left;cursor:pointer}
+.pin-body b{font:500 11px var(--mono);color:var(--ink-3)}
+.pin-body span{overflow:hidden;font-size:14px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.pinbar .x{flex:none;width:30px;height:30px;border:0;border-radius:8px;background:none;color:var(--ink-3);font-size:18px;line-height:1;cursor:pointer}
+.pinbar .x:hover{color:var(--ink);background:var(--line)}
+.pinbar .x[hidden]{display:none}
+.cmds{position:absolute;left:12px;right:12px;bottom:70px;z-index:4;display:grid;gap:2px;padding:6px;border-radius:12px;background:var(--surface);box-shadow:0 0 0 1px var(--line),0 12px 30px rgba(0,0,0,.3)}
+.cmds[hidden]{display:none}
+.cmds button{display:flex;align-items:baseline;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:none;color:var(--ink);font:500 13px var(--mono);text-align:left;cursor:pointer}
+.cmds button:hover,.cmds button:focus-visible{background:var(--line);outline:none}
+.cmds small{font:400 12.5px var(--sans);color:var(--ink-3)}
 .composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
 .composer input{flex:1;min-width:0;height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:999px;background:var(--ground);color:var(--ink);font:400 15px var(--sans)}
 .composer input:focus{border-color:var(--ink);outline:none}
@@ -475,6 +509,7 @@ html.fox-live .fox-slot img{visibility:hidden}
             <p class="over" id="roomType">Quant-Room · 2 people</p>
             <span>quant-room <b id="rid">k7q2</b></span>
             <span class="live" id="liveTxt">waiting for someone to join</span>
+            <span class="me-line" id="meLine" hidden>you are <button class="me-name" id="meName" type="button" title="Change your name"></button><span class="own-tag" id="meOwner" hidden>owner</span></span>
           </div>
           <div class="cb-time">
             <div><p class="timer" id="timer" aria-hidden="true">10:00</p><p class="timer-sub" id="timerSr">until it disappears</p></div>
@@ -487,8 +522,14 @@ html.fox-live .fox-slot img{visibility:hidden}
           <button class="btn" id="upBtn" type="button">Upgrade quant-room</button>
           <button class="x" id="noticeX" type="button" aria-label="Dismiss">×</button>
         </div>
+        <div class="pinbar" id="pinBar" hidden>
+          <span class="pin-ico" aria-hidden="true"><svg viewBox="0 0 14 14" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><path d="M4 1h6v2H9v4h2v2H8v4H6V9H3V7h2V3H4z"/></svg></span>
+          <button class="pin-body" id="pinJump" type="button"><b id="pinWho">Pinned</b><span id="pinText"></span></button>
+          <button class="x" id="pinX" type="button" aria-label="Unpin" title="Unpin" hidden>×</button>
+        </div>
         <div class="msgs" id="msgs" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
         <button class="tobottom" id="toBottom" type="button" hidden><span>Latest messages</span></button>
+        <div class="cmds" id="cmds" hidden></div>
         <form class="composer" id="composer">
           <button class="icon-btn" id="fileBtn" type="button" aria-label="Send a file" title="Send a file" hidden>
             <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M15 8.5l-6.2 6.2a3.6 3.6 0 0 1-5.1-5.1L10 3.3a2.4 2.4 0 0 1 3.4 3.4l-6.3 6.3a1.2 1.2 0 0 1-1.7-1.7l5.8-5.8"/></svg>
@@ -1225,7 +1266,7 @@ window.VeilFox = (function(){
     $('#linkMsg').textContent = '';
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
-    resetChat();
+    resetChat(); ownerUi(true, false);
     $('#msgIn').disabled = false; $('#composer button[type="submit"]').disabled = false;
     aiSetup();
     clearInterval(room.timer); room.timer = setInterval(()=>{ room.left--; tick(); }, 1000);
@@ -1259,7 +1300,8 @@ window.VeilFox = (function(){
     syncToBottom();
   }
   function resetChat(){
-    chatView.stick = true; chatView.unseen = 0; clearTimeout(chatView.typingIdle);
+    chatView.stick = true; chatView.unseen = 0; chatView.lastFrom = null; clearTimeout(chatView.typingIdle);
+    $('#pinBar').hidden = true; $('#cmds').hidden = true;
     if(chatView.typingEl) chatView.typingEl.remove();
     msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
     syncToBottom();
@@ -1277,7 +1319,7 @@ window.VeilFox = (function(){
       chatView.typingEl.remove();
     }
   }
-  function sys(text){ const p = document.createElement('p'); p.className = 'msg sys'; p.textContent = text; addToChat(p, false, true); }
+  function sys(text){ chatView.lastFrom = null; const p = document.createElement('p'); p.className = 'msg sys'; p.textContent = text; addToChat(p, false, true); }
   function endRoom(){
     clearInterval(room.timer); room.timer = null; stopPhrase();
     room.link = ''; room.phrase = ''; room.id = '';
@@ -1288,7 +1330,7 @@ window.VeilFox = (function(){
   $('#composer').addEventListener('submit', e=>{
     e.preventDefault();
     const v = $('#msgIn').value.trim(); if(!v) return;
-    if(live.session){ sendLive(v); return; }
+    if(live.session){ $('#cmds').hidden = true; if(v.startsWith('/') && runCommand(v)){ $('#msgIn').value = ''; return; } sendLive(v); return; }
     const b = document.createElement('div'); b.className = 'msg me'; b.textContent = v; addToChat(b, true);
     $('#msgIn').value = '';
     Fox.flash($('#foxChat'), 'excited', 700);
@@ -1370,8 +1412,8 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=332be9c1bfde'));
-  const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0};
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=657fb0d32035'));
+  const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0, E:null, names:new Map(), shownAs:new Map(), sealedAt:new Map()};
   const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
 
   function liveLog(l){ $('#sealLog').textContent += l + '\n'; }
@@ -1428,18 +1470,19 @@ window.VeilFox = (function(){
       fetch: fetch.bind(window), createSocket: E.browserSocketFactory, createPeerConnection: E.browserRtcFactory,
     });
     live.session = s; live.owner = !!ownerSecret; live.shown = new Set(); live.joined = false; live.aiEls = new Map(); live.aiOn = false;
+    live.E = E; live.names = new Map(); live.shownAs = new Map(); live.sealedAt = new Map();
     room.type = 'classic'; room.people = 2; room.ai = false; room.total = 600; room.left = 600; room.warned = false;
     room.id = roomId; room.link = s.getState().inviteUrl;
     $('#rid').textContent = roomId;
     $('#roomType').textContent = typeLabel();
-    $('.room-grid').classList.toggle('solo', !live.owner);   // a guest has nobody left to invite in a room for two (Super rooms: see render)
+    $('.room-grid').classList.toggle('solo', !live.owner);   // only the owner invites: guests never see the link, the QR or the phrase
     $('#linkText').textContent = room.link.replace(/^https?:\/\//, '');
     $('#linkBox').classList.add('masked'); $('#revealBtn').hidden = false; $('#linkText').setAttribute('aria-hidden', 'true');
     $('#qrPop').hidden = true; $('#qrBtn').setAttribute('aria-expanded', 'false'); $('#qrBox').innerHTML = '';
     $('#linkMsg').textContent = '';
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
-    resetChat();
+    resetChat(); ownerUi(live.owner, true);
     $('#liveTxt').textContent = LIVE_TXT.loading;
     live.unsub = s.subscribe(render);
     clearInterval(room.timer); room.timer = setInterval(liveTick, 1000);
@@ -1455,7 +1498,10 @@ window.VeilFox = (function(){
       $('#roomType').textContent = typeLabel();
     }
     const alone = state.maxPeers === 1;   // a quant-room for one: you and the AI model
-    $('.room-grid').classList.toggle('solo', (!live.owner && !group) || alone);
+    $('.room-grid').classList.toggle('solo', !live.owner || alone);   // only the owner invites; a room for one has nobody to invite
+    $('#meName').textContent = state.nickname || state.selfName || 'you';
+    $('#meOwner').hidden = !state.isOwner;
+    trackNames(state);
     const here = 1 + state.members.filter(m=>m.state === 'sealed').length;
     if(alone && state.ai && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = 'you and the AI model';
     else if(group && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = here === 1 ? 'waiting for people to join' : here + ' of ' + state.maxPeers + ' here';
@@ -1469,23 +1515,32 @@ window.VeilFox = (function(){
     if(state.ai && !live.aiOn){ live.aiOn = true; sys('An uncensored AI model joined. It reads what is sent here, runs on Poof\'s own servers and forgets everything when the quant-room poofs.'); }
     if(!state.ai) live.aiOn = false;
     $('#fileBtn').hidden = !(state.limits && state.limits.fileTransfer); $('#fileBtn').disabled = !open;
-    for(const m of state.messages) if(m.kind === 'file') renderFile(m);
+    for(const m of state.messages) if(m.kind === 'file') renderFile(m, state);
     if(state.expiresAt) room.left = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
     // a room for two has no join lines of its own: say who's here the first time it's sealed (group rooms get the engine's lines)
     if(open && !group && !live.joined){
       live.joined = true;
-      sys(live.owner ? 'Someone joined this quant-room.' : 'You joined this quant-room.');
+      sys(live.owner && state.members[0] ? nameOf(state, state.members[0].peerId) + ' joined this quant-room.' : 'You joined this quant-room.');
       if(live.owner) Fox.flash($('#foxChat'), 'excited', 900);
     }
+    if(!group && state.status === 'waiting') live.joined = false;   // the guest was removed: the next one gets their own line
     for(const m of state.messages){
-      if(m.kind === 'system' && !live.shown.has(m.id)){ live.shown.add(m.id); sys(m.event === 'joined' ? 'Someone joined this quant-room.' : 'Someone left this quant-room.'); continue; }
+      if(m.kind === 'system' && !live.shown.has(m.id)){
+        live.shown.add(m.id);
+        const n = nameOf(state, m.peerId);
+        sys(m.event === 'joined' ? n + ' joined this quant-room.' : m.event === 'banned' ? n + ' was removed by the owner.' : n + ' left this quant-room.');
+        continue;
+      }
       if(m.kind === 'ai'){ renderAi(m); continue; }
       if(m.kind !== 'text' || live.shown.has(m.id)) continue;
       live.shown.add(m.id);
-      const b = document.createElement('div'); b.className = 'msg ' + (m.mine ? 'me' : 'them'); b.textContent = m.text;
+      if(m.mine) chatView.lastFrom = null; else whoLabel(state, m.from);
+      const b = document.createElement('div'); b.className = 'msg ' + (m.mine ? 'me' : 'them'); b.dataset.id = m.id; b.textContent = m.text;
+      if(state.isOwner && state.ownerTools) addPinBtn(b, m.id);
       addToChat(b, m.mine);
       if(!m.mine) Fox.flash($('#foxChat'), 'excited', 700);
     }
+    renderPin(state);
     const aiThinking = Array.isArray(state.aiPending) && state.aiPending.some(p=>p.askedBy !== null);   // someone else asked the AI
     showTyping(open && ((Array.isArray(state.typing) && state.typing.length > 0) || aiThinking));
     if(state.status === 'terminated' || state.status === 'expired' || state.status === 'error') finishLive(endCopy(state));
@@ -1506,7 +1561,7 @@ window.VeilFox = (function(){
     b.dataset.k = key;
     b.textContent = m.text || (m.status === 'streaming' ? '…' : '');
     if(m.status === 'failed'){ const e = document.createElement('small'); e.className = 'ai-err'; e.textContent = AI_FAIL[m.error] || 'The AI’s answer broke off. Ask again.'; b.appendChild(e); }
-    if(added){ addToChat(b, m.askedBy === null); if(m.askedBy !== null) Fox.flash($('#foxChat'), 'excited', 700); }
+    if(added){ chatView.lastFrom = null; addToChat(b, m.askedBy === null); if(m.askedBy !== null) Fox.flash($('#foxChat'), 'excited', 700); }
     else if(chatView.stick) toBottom(false);
   }
   function liveTick(){
@@ -1527,10 +1582,12 @@ window.VeilFox = (function(){
       invalid_link: {title:'This link doesn’t open a quant-room.', text:'Check that you copied the whole link, or ask for a new one.'},
       pq_failed: {title:'This quant-room couldn’t be sealed.', text:'The key check between the two browsers failed, so nothing was sent. Ask for a new link.'},
       rate_limited: {title:'Too many tries from here.', text:'Wait a minute, then try again.'},
+      banned: {title:'You were removed.', text:'The owner of this quant-room removed you, so it won’t let you back in.'},
     })[state.error && state.error.code] || {title:'Couldn’t reach Poof.', text:'Check your connection and try again.'};
     return ({
       peer_left: {title:'Poof.', text:'The other person left, so the quant-room closed. ' + NOTHING},
-      destroyed_by_peer: {title:'Poof.', text:'The other person poofed the quant-room. ' + NOTHING},
+      destroyed_by_peer: {title:'Poof.', text:'The owner poofed the quant-room. ' + NOTHING},
+      banned: {title:'You were removed.', text:'The owner of this quant-room removed you from it. ' + NOTHING},
       connection_lost: {title:'Poof.', text:'The connection dropped, so the quant-room closed. ' + NOTHING},
     })[state.endReason] || {title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING};
   }
@@ -1545,7 +1602,7 @@ window.VeilFox = (function(){
     if(s){ const st0 = s.getState().status; if(st0 !== 'terminated' && st0 !== 'expired' && st0 !== 'error') s.leave().catch(()=>{}); }
     clearInterval(room.timer); room.timer = null; stopPhrase();
     room.link = ''; room.phrase = ''; room.id = '';
-    $('.room-grid').classList.remove('solo');
+    $('.room-grid').classList.remove('solo'); ownerUi(true, false);
     go('#/gone', true);
     $('#goneTitle').textContent = copy.title;
     $('#goneText').textContent = copy.text;
@@ -1553,7 +1610,7 @@ window.VeilFox = (function(){
   async function poofLive(){
     const s = live.session; if(!s) return;
     try{ await (live.owner ? s.destroy() : s.leave()); }catch(e){}
-    if(live.session === s) finishLive({title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING});
+    if(live.session === s) finishLive(live.owner ? {title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING} : {title:'You left.', text:'You left the quant-room. Nothing of it was kept on this device.'});
   }
   async function sendLive(text){
     try{ await live.session.sendMessage(text); $('#msgIn').value = ''; clearTimeout(chatView.typingIdle); }
@@ -1586,22 +1643,165 @@ window.VeilFox = (function(){
     }
   }
   addEventListener('pagehide', ()=>{ if(live.session) live.session.leave().catch(()=>{}); });
+
+  /* ---------- names, the owner's tools (remove, pin) and chat commands ---------- */
+  // Only the owner invites, upgrades and poofs; everyone else can leave. The demo room keeps the old buttons.
+  function ownerUi(owner, isLive){
+    $('#endBtn').textContent = owner ? 'Poof it now' : 'Leave';
+    $('#upBtn').hidden = !owner;
+    $('#meLine').hidden = !isLive;
+    $('#msgIn').placeholder = isLive ? 'Write a message, or / for commands' : 'Write a message';
+  }
+  const display = m => m.nickname || m.name || m.label;
+  function nameOf(state, peerId){
+    const m = state.members.find(x => x.peerId === peerId);
+    if(m){ live.names.set(peerId, display(m)); return display(m); }
+    return live.names.get(peerId) || (live.E && live.E.memberName ? live.E.memberName(peerId) : 'Someone');
+  }
+  const ownTag = () => { const t = document.createElement('span'); t.className = 'own-tag'; t.textContent = 'owner'; return t; };
+  // the sender's name above their first message in a row
+  function whoLabel(state, peerId){
+    if(!peerId || chatView.lastFrom === peerId) return;
+    chatView.lastFrom = peerId;
+    const p = document.createElement('p'); p.className = 'who'; p.dataset.peer = peerId;
+    const n = document.createElement('span'); n.textContent = nameOf(state, peerId); p.appendChild(n);
+    if(state.ownerId === peerId) p.appendChild(ownTag());
+    addToChat(p, false, true);
+  }
+  // names change: say so once someone has been here a moment, and relabel their messages
+  function trackNames(state){
+    const now = Date.now();
+    for(const m of state.members){
+      if(m.state === 'sealed' && !live.sealedAt.has(m.peerId)) live.sealedAt.set(m.peerId, now);
+      const was = live.shownAs.get(m.peerId), is = display(m);
+      live.shownAs.set(m.peerId, is); live.names.set(m.peerId, is);
+      if(was === undefined || was === is) continue;
+      msgs.querySelectorAll('.who[data-peer="' + m.peerId + '"] span:first-child').forEach(el => { el.textContent = is; });
+      if(now - (live.sealedAt.get(m.peerId) || now) > 2000) sys(was + ' is now ' + is + '.');
+    }
+    msgs.querySelectorAll('.who').forEach(el => {
+      const owner = el.dataset.peer === state.ownerId, tag = el.querySelector('.own-tag');
+      if(owner && !tag) el.appendChild(ownTag()); else if(!owner && tag) tag.remove();
+    });
+  }
+  function setName(v){
+    const s = live.session; if(!s || typeof s.setNickname !== 'function') return;
+    const before = s.getState().nickname, after = s.setNickname(v.trim() || null);
+    if(after !== before) sys(after ? 'You are now ' + after + '.' : 'You are ' + s.getState().selfName + ' again.');
+    render(s.getState());
+  }
+  $('#meName').addEventListener('click', ()=>{
+    const s = live.session; if(!s) return;
+    const st0 = s.getState(), btn = $('#meName');
+    const inp = document.createElement('input');
+    inp.className = 'me-edit'; inp.maxLength = 32; inp.value = st0.nickname || ''; inp.placeholder = st0.selfName || 'Your name'; inp.setAttribute('aria-label', 'Your name');
+    btn.hidden = true; btn.after(inp); inp.focus();
+    let done = false;
+    const finish = save => { if(done) return; done = true; const v = inp.value; inp.remove(); btn.hidden = false; if(save) setName(v); };
+    inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); finish(true); } else if(e.key === 'Escape'){ e.preventDefault(); finish(false); btn.focus(); } });
+    inp.addEventListener('blur', () => finish(true));
+  });
+  // the owner pins a message for everyone (hover it, or tap it on a phone)
+  function addPinBtn(b, id){
+    const p = document.createElement('button'); p.type = 'button'; p.className = 'pin-btn'; p.title = 'Pin for everyone'; p.setAttribute('aria-label', 'Pin this message for everyone');
+    p.innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><path d="M4 1h6v2H9v4h2v2H8v4H6V9H3V7h2V3H4z"/></svg>';
+    p.addEventListener('click', e => {
+      e.stopPropagation();
+      const s = live.session; if(!s) return;
+      const pinned = s.getState().pinned;
+      try{ s.pin(pinned && pinned.id === id ? null : id); }catch(err){}
+      b.classList.remove('act');
+    });
+    b.appendChild(p);
+  }
+  msgs.addEventListener('click', e => {
+    const b = e.target.closest('.msg'); if(!b || !b.querySelector('.pin-btn') || !matchMedia('(hover: none)').matches) return;
+    msgs.querySelectorAll('.msg.act').forEach(x => { if(x !== b) x.classList.remove('act'); });
+    b.classList.toggle('act');
+  });
+  function renderPin(state){
+    const pin = state.pinned, bar = $('#pinBar');
+    msgs.querySelectorAll('.msg.pinned').forEach(el => el.classList.remove('pinned'));
+    msgs.querySelectorAll('.pin-btn').forEach(el => { el.title = 'Pin for everyone'; el.setAttribute('aria-label', 'Pin this message for everyone'); });
+    if(!pin){ bar.hidden = true; return; }
+    const author = pin.from === null ? 'you' : (state.members.some(m => m.peerId === pin.from) ? nameOf(state, pin.from) : pin.nickname || pin.name);
+    $('#pinWho').textContent = 'Pinned by the owner · ' + author;
+    $('#pinText').textContent = pin.text;
+    $('#pinX').hidden = !state.isOwner;
+    bar.hidden = false;
+    const el = msgs.querySelector('.msg[data-id="' + CSS.escape(pin.id) + '"]');
+    if(el){ el.classList.add('pinned'); const b = el.querySelector('.pin-btn'); if(b){ b.title = 'Unpin'; b.setAttribute('aria-label', 'Unpin this message'); } }
+  }
+  $('#pinJump').addEventListener('click', ()=>{
+    const s = live.session, pin = s && s.getState().pinned; if(!pin) return;
+    const el = msgs.querySelector('.msg[data-id="' + CSS.escape(pin.id) + '"]');
+    if(!el){ sys('That message was sent before you joined, so it’s only in the pinned bar.'); return; }
+    el.scrollIntoView({block:'center', behavior: reduce ? 'auto' : 'smooth'});
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  });
+  $('#pinX').addEventListener('click', ()=>{ const s = live.session; if(s) try{ s.pin(null); }catch(e){} });
+  // commands: /name, and for the owner /ban and /unpin
+  function commands(){
+    const s = live.session, st0 = s && s.getState();
+    const list = [['/name ', '/name new name', 'change your name']];
+    if(st0 && st0.isOwner && st0.ownerTools) list.push(['/ban ', '/ban name', 'remove someone from this quant-room'], ['/unpin', '/unpin', 'take down the pinned message']);
+    return list;
+  }
+  function runCommand(v){
+    const m = /^\/(\w+)\s*(.*)$/.exec(v); if(!m) return false;
+    const cmd = m[1].toLowerCase(), arg = m[2].trim().replace(/^["'“”]+|["'“”]+$/g, '');
+    const s = live.session, st0 = s.getState();
+    if(cmd === 'name'){ setName(arg); return true; }
+    if(cmd === 'help'){ sys('Commands: ' + commands().map(c => c[1]).join(' · ')); return true; }
+    if(cmd !== 'ban' && cmd !== 'unpin') return false;
+    if(!st0.isOwner){ sys('Only the owner of this quant-room can do that.'); return true; }
+    if(!st0.ownerTools){ sys('That isn’t available yet.'); return true; }
+    if(cmd === 'unpin'){ if(st0.pinned) s.pin(null); else sys('Nothing is pinned.'); return true; }
+    if(!arg){ sys('Type /ban and their name, for example /ban ' + (st0.members[0] ? display(st0.members[0]) : 'Amber Fox') + '.'); return true; }
+    const want = arg.toLowerCase();
+    const hits = st0.members.filter(x => [x.nickname, x.name].some(n => n && n.toLowerCase() === want));
+    if(hits.length === 0){ sys('Nobody here is called “' + arg + '”.'); return true; }
+    if(hits.length > 1){ sys('More than one person is called “' + arg + '”: ' + hits.map(x => x.name).join(', ') + '. Use one of those names.'); return true; }
+    try{ s.ban(hits[0].peerId); }catch(e){ sys('Couldn’t remove them. Try again.'); }
+    return true;
+  }
+  function syncCmds(){
+    const v = $('#msgIn').value, box = $('#cmds');
+    const show = !!live.session && /^\/\w*$/.test(v);
+    box.hidden = !show; if(!show) return;
+    box.innerHTML = '';
+    for(const [fill, label, help] of commands().filter(c => c[0].startsWith(v.toLowerCase()) || v === '/')){
+      const b = document.createElement('button'); b.type = 'button';
+      const k = document.createElement('span'); k.textContent = label;
+      const h = document.createElement('small'); h.textContent = help;
+      b.append(k, h);
+      b.addEventListener('mousedown', e => e.preventDefault());
+      b.addEventListener('click', () => { $('#msgIn').value = fill; box.hidden = true; $('#msgIn').focus(); });
+      box.appendChild(b);
+    }
+    if(!box.children.length) box.hidden = true;
+  }
+  $('#msgIn').addEventListener('input', syncCmds);
+  $('#msgIn').addEventListener('blur', () => { $('#cmds').hidden = true; });
+  $('#msgIn').addEventListener('keydown', e => { if(e.key === 'Escape') $('#cmds').hidden = true; });
   // tell the other person you're typing: on while there's text, off after 3 s of quiet, on blur, or when sent
   // (engines without typing support simply skip this)
   const typingTo = on => { const s = live.session; if(s && typeof s.setTyping === 'function') s.setTyping(on); };
   $('#msgIn').addEventListener('input', ()=>{
     clearTimeout(chatView.typingIdle);
-    if($('#msgIn').value.trim()){ typingTo(true); chatView.typingIdle = setTimeout(()=>typingTo(false), 3000); }
+    const typed = $('#msgIn').value.trim();
+    if(typed && !typed.startsWith('/')){ typingTo(true); chatView.typingIdle = setTimeout(()=>typingTo(false), 3000); }
     else typingTo(false);
   });
   $('#msgIn').addEventListener('blur', ()=>{ clearTimeout(chatView.typingIdle); typingTo(false); });
 
   /* files (Super Quant-Rooms): end-to-end encrypted, browser to browser */
   const kb = n => n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n/1024) + ' KB' : (n/1048576).toFixed(1) + ' MB';
-  function renderFile(m){
+  function renderFile(m, state){
     let b = msgs.querySelector('[data-file="' + m.id + '"]');
     if(!b){
       const empty = $('.empty', msgs); if(empty) empty.remove();
+      if(m.mine) chatView.lastFrom = null; else if(state) whoLabel(state, m.from);
       b = document.createElement('div'); b.className = 'msg file ' + (m.mine ? 'me' : 'them'); b.dataset.file = m.id;
       addToChat(b, m.mine);
     }
