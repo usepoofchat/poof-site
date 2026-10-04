@@ -338,6 +338,11 @@ html.fox-live .fox-slot img{visibility:hidden}
 .lightbox{width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));border:0;background:rgba(8,9,14,.94);color:#f3f1ea}
 .lightbox[open]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 .lightbox::backdrop{background:transparent}
+/* drag a file onto the chat to send it */
+.drop{position:absolute;inset:8px;z-index:5;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--surface) 86%,transparent);box-shadow:inset 0 0 0 2px var(--rust);pointer-events:none}
+.drop[hidden]{display:none}
+.drop span{display:flex;flex-direction:column;align-items:center;gap:6px;font:600 17px/1.3 var(--sans);color:var(--ink);text-align:center}
+.drop small{font:500 11.5px/1.4 var(--mono);color:var(--ink-3)}
 .lightbox img{min-height:0;max-width:100%;max-height:calc(100% - 72px);object-fit:contain;border-radius:8px}
 .lb-bar{display:flex;align-items:center;gap:10px;width:min(100%,640px)}
 .lb-name{flex:1;min-width:0;font:500 12.5px/1.4 var(--mono);opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -546,6 +551,7 @@ html.fox-live .fox-slot img{visibility:hidden}
           <button class="pin-body" id="pinJump" type="button"><b id="pinWho">Pinned</b><span id="pinText"></span></button>
           <button class="x" id="pinX" type="button" aria-label="Unpin" title="Unpin" hidden>×</button>
         </div>
+        <div class="drop" id="dropZone" hidden><span>Drop to send<small>end-to-end encrypted, browser to browser</small></span></div>
         <div class="msgs" id="msgs" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
         <button class="tobottom" id="toBottom" type="button" hidden><span>Latest messages</span></button>
         <div class="cmds" id="cmds" hidden></div>
@@ -553,7 +559,7 @@ html.fox-live .fox-slot img{visibility:hidden}
           <button class="icon-btn" id="fileBtn" type="button" aria-label="Send a file" title="Send a file" hidden>
             <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M15 8.5l-6.2 6.2a3.6 3.6 0 0 1-5.1-5.1L10 3.3a2.4 2.4 0 0 1 3.4 3.4l-6.3 6.3a1.2 1.2 0 0 1-1.7-1.7l5.8-5.8"/></svg>
           </button>
-          <input type="file" id="fileIn" hidden>
+          <input type="file" id="fileIn" multiple hidden>
           <input id="msgIn" aria-label="Message" placeholder="Write a message" autocomplete="off">
           <button class="btn btn-sm" type="submit">Send</button>
         </form>
@@ -1939,16 +1945,51 @@ window.VeilFox = (function(){
     myPics.clear();
   }
   $('#fileBtn').addEventListener('click', ()=>$('#fileIn').click());
+  // one at a time, in the order they were picked or dropped
+  async function sendFiles(files){
+    const s = live.session; if(!s) return;
+    for(const f of files){
+      if(live.session !== s) return;
+      try{
+        const id = await s.sendFile(f);
+        // my own image: preview it from the file I picked (the engine only gives URLs for files I receive)
+        const m = s.getState().messages.find(x=>x.id === id);
+        if(live.session === s && m && /^image\//.test(m.mime)){ myPics.set(id, URL.createObjectURL(f)); renderFile(m, s.getState()); }
+      }catch(e){ sys('Not sent: ' + f.name + ': ' + (e && e.message ? e.message : 'the file could not be sent.')); }
+    }
+  }
   $('#fileIn').addEventListener('change', ()=>{
-    const f = $('#fileIn').files[0]; $('#fileIn').value = '';
-    const s = live.session; if(!f || !s) return;
-    s.sendFile(f).then(id=>{
-      // my own image: preview it from the file I picked (the engine only gives URLs for files I receive)
-      const m = s.getState().messages.find(x=>x.id === id);
-      if(live.session !== s || !m || !/^image\//.test(m.mime)) return;
-      myPics.set(id, URL.createObjectURL(f)); renderFile(m, s.getState());
-    }).catch(e=>sys('Not sent: ' + (e && e.message ? e.message : 'the file could not be sent.')));
+    const files = Array.from($('#fileIn').files); $('#fileIn').value = '';
+    sendFiles(files);
   });
+  // drag and drop onto the chat, whenever the attach button could be used
+  const chatCard = $('.card.chat'), dropZone = $('#dropZone');
+  const canAttach = () => !!live.session && !$('#fileBtn').hidden && !$('#fileBtn').disabled;
+  const hasFiles = e => !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+  let dragDepth = 0;
+  const hideDrop = () => { dragDepth = 0; dropZone.hidden = true; };
+  chatCard.addEventListener('dragenter', e=>{
+    if(!hasFiles(e) || !canAttach()) return;
+    e.preventDefault(); dragDepth++; dropZone.hidden = false;
+  });
+  chatCard.addEventListener('dragover', e=>{
+    if(!hasFiles(e) || !canAttach()) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+  });
+  chatCard.addEventListener('dragleave', e=>{ if(dragDepth && --dragDepth === 0) dropZone.hidden = true; });
+  chatCard.addEventListener('drop', e=>{
+    if(!hasFiles(e)) return;
+    e.preventDefault(); e.stopPropagation(); hideDrop();
+    if(canAttach()) sendFiles(Array.from(e.dataTransfer.files));
+  });
+  // a file dropped anywhere else would make the browser open it and leave the quant-room
+  addEventListener('dragover', e=>{
+    if(!hasFiles(e)) return;
+    e.preventDefault();
+    if(!(canAttach() && chatCard.contains(e.target))) e.dataTransfer.dropEffect = 'none';
+  });
+  addEventListener('drop', e=>{ if(hasFiles(e)){ e.preventDefault(); hideDrop(); } });
+  addEventListener('dragend', hideDrop);
 
   /* ---------- paying for a Super Quant-Room: stablecoins → a one-time blind pass ---------- */
   // Reown / WalletConnect project id (public). Phone wallets connect through WalletConnect's relay.
