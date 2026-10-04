@@ -438,7 +438,7 @@ details .a p:first-child{margin-top:0}
 
     <section id="buybot">
       <h2><a class="hash" href="#buybot" aria-hidden="true">#</a><img src="media/e-fox-dollar.webp" alt="">Buy bot: set up</h2>
-      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Robinhood Chain</b> with <b>Uniswap v2 and v3</b> pools. All <code>/buybot</code> commands are for admins.</p>
+      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Robinhood Chain</b> with <b>Uniswap v2, v3 and v4</b> pools. All <code>/buybot</code> commands are for admins.</p>
       <ol class="steps">
         <li><b>Point it at the token</b><span>Send <code>/buybot set 0x...</code> with the token contract address. The bot finds the token's Uniswap pools on its own (up to 3 pools with at least $500 liquidity).</span></li>
         <li><b>Check the status</b><span>The bot answers with the token, the pools it watches and the current settings. Send <code>/buybot</code> any time to see them again.</span></li>
@@ -450,7 +450,7 @@ details .a p:first-child{margin-top:0}
         <div class="m me"><div class="col"><div class="b">/buybot set 0x…<span class="t">13:00</span></div></div></div>
         <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span>Buy bot is tracking this token now.<div class="gap"></div><b>Poof buy bot</b> · on<div class="gap"></div>Token: <b>$POOF</b> on Robinhood Chain<br><span class="sub">0x… (the contract you sent)</span><br>Pools: uniswap v3 (ETH)<br>Min buy: $10 · Alerts poof after: 10 min<br>Tiers: auto (0.005% / 0.025% / 0.1% of MCap, at least $100 / $500 / $1,500)<br>Custom emoji: on<span class="t">13:00</span></div></div></div>
       </div>
-      <div class="note frost"><img src="media/e-fox-gaze.webp" alt=""><p>Brand new token not found yet? Pools show up once DexScreener lists them. You can also give the pool address: <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</p></div>
+      <div class="note frost"><img src="media/e-fox-gaze.webp" alt=""><p>Brand new token not found yet? Pools show up once DexScreener lists them. You can also give the pool address (for a v4 pool, its pool id): <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</p></div>
     </section>
 
     <section id="alert">
@@ -545,14 +545,14 @@ details .a p:first-child{margin-top:0}
       <div class="faqs">
         <details><summary>No alerts are showing up</summary><div class="a">
           <p>Send <code>/buybot</code> and check:</p>
-          <ul class="list"><li>It says <b>on</b>. If not, <code>/buybot on</code>.</li><li><b>Min buy</b> isn't higher than the buys coming in.</li><li>The pool is Uniswap <b>v2 or v3</b> on Robinhood Chain. v4 pools aren't supported yet.</li><li>The pool has at least $500 liquidity and is listed on DexScreener. For a very new pool, use <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</li></ul>
+          <ul class="list"><li>It says <b>on</b>. If not, <code>/buybot on</code>.</li><li><b>Min buy</b> isn't higher than the buys coming in.</li><li>The pool is Uniswap <b>v2, v3 or v4</b> on Robinhood Chain.</li><li>The pool has at least $500 liquidity and is listed on DexScreener. For a very new pool, use <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</li></ul>
         </div></details>
         <details><summary>Does it show sells?</summary><div class="a"><p>No. Only buys: a swap where someone pays ETH (or the pool's other token) and receives the tracked token.</p></div></details>
         <details><summary>Why are some buys listed under another alert?</summary><div class="a"><p>They landed in the same few seconds. Telegram limits how many messages a bot can send per minute, so the biggest buy gets the full alert and the rest are listed under it. See <a class="inl" href="#live">Live and grouped</a>.</p></div></details>
         <details><summary>Where does the price come from?</summary><div class="a"><p>The dollar value is what the buyer paid, at the current ETH price. Market cap and token price come from DexScreener. If no price is available, the bot waits and posts the buy as soon as it has one.</p></div></details>
         <details><summary>The emoji look plain on my phone</summary><div class="a"><p>Poof animated emoji show in the Telegram apps. If an admin turns them off with <code>/buybot emoji off</code>, the alert uses plain emoji instead.</p></div></details>
         <details><summary>Our group became a supergroup. Do we set it up again?</summary><div class="a"><p>No. The bot follows the group to its new id with every setting.</p></div></details>
-        <details><summary>Which chains are supported?</summary><div class="a"><p>Robinhood Chain today, with Uniswap v2 and v3 pools. More chains can come later.</p></div></details>
+        <details><summary>Which chains are supported?</summary><div class="a"><p>Robinhood Chain today, with Uniswap v2, v3 and v4 pools. More chains can come later.</p></div></details>
         <details><summary>Will the bot ever DM me?</summary><div class="a"><p>No. The bot never sends the first message, never asks for a seed phrase, a private key or wallet access, and never asks you to connect a wallet. Anyone who does is a scammer. Admins never DM first either.</p></div></details>
       </div>
     </section>
