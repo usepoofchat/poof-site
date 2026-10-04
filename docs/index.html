@@ -114,6 +114,46 @@ pre.diagram{margin:22px 0 26px;padding:20px 22px;background:var(--surface);borde
   font:400 12.5px/1.55 var(--mono);color:var(--ink-2);white-space:pre}
 pre.diagram .h{color:var(--rust-text);font-weight:500}
 pre.diagram .f{color:var(--frost-text);font-weight:500}
+/* living schemas: the text diagram drawn step by step as a looping animation (the text stays for screen readers) */
+figure.flow{position:relative;margin:22px 0 26px;padding:16px 18px 12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+figure.flow svg{display:block;width:100%;height:auto;overflow:visible}
+figure.flow pre.diagram{margin:0;border:0;padding:0;background:none}
+figure.flow.ready pre.diagram{position:absolute;left:0;top:0;width:1px;height:1px;padding:0;margin:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.flow .t{font:500 12.5px var(--mono);fill:var(--ink)}
+.flow .n{fill:var(--rust-text);font-weight:700}
+.flow .small{font-size:11px;fill:var(--ink-3)}
+.flow .lane{font-size:11px;letter-spacing:.06em}
+.flow .lane-box{fill:none;stroke:var(--ink-3);stroke-width:1.2}
+.flow .lane-box.srv{stroke:var(--rust)}
+.flow .life{stroke:var(--ink-3);stroke-opacity:.5;stroke-dasharray:2 5}
+.flow .ln{stroke:var(--ink-2);stroke-width:1.5;fill:none}
+.flow .ln.dash{stroke-dasharray:5 4}
+.flow .ln.enc{stroke:var(--frost-text)}
+.flow .ln.pq{stroke:var(--rust)}
+.flow .ah{fill:var(--ink-2)} .flow .ah.r{fill:var(--rust)} .flow .ah.f{fill:var(--frost-text)}
+.flow .chip{fill:var(--frost-text)} .flow .key{fill:var(--rust)}
+.flow .pk{fill:var(--rust)} .flow .pk.msg{fill:var(--frost-text)}
+.flow text.end,.flow text.end tspan{fill:var(--rust-text)}
+.flow svg *{transition:opacity .32s steps(3)}
+.flow .hid{opacity:0}
+.flow .gone{animation:flowGone .9s steps(5) forwards}
+@keyframes flowGone{to{opacity:0}}
+.flow .poof{font:700 36px var(--sans);letter-spacing:-.04em;fill:var(--rust)}
+.flow .poof.pop{animation:flowPop 1.6s steps(8) forwards}
+@keyframes flowPop{0%{opacity:0}20%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.flow .node rect{fill:var(--ground);stroke:var(--ink-3);stroke-width:1.2}
+.flow .node.hot rect{stroke:var(--rust)} .flow .node.hot text{fill:var(--rust-text)}
+.flow .node.frost rect{stroke:var(--frost-text)} .flow .node.frost text{fill:var(--frost-text)}
+.flow .node.lit rect{fill:var(--rust);stroke:var(--rust)} .flow .node.lit text{fill:#1d1f2b}
+.flow .node.frost.lit rect{fill:var(--frost-text);stroke:var(--frost-text)}
+.flow .node.frame rect{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:none}
+.flow .head{font-size:11px;letter-spacing:.06em;fill:var(--ink-3)}
+.flow .edge{font-size:10.5px;fill:var(--ink-3)}
+.flow .fr{fill:var(--frost-text)}
+.flow .blk{fill:var(--ink-3)} .flow .blk.r{fill:var(--rust)} .flow .blk.f{fill:var(--frost-text)}
+.flow .chip.r{fill:var(--rust)}
+.flow .track{fill:var(--line)} .flow .bar{fill:var(--rust)} .flow .bar.f{fill:var(--frost-text)}
+.flow .seg rect{fill:none;stroke:var(--ink-3);stroke-width:1.2} .flow .seg.f rect{stroke:var(--frost-text)} .flow .seg.r rect{stroke:var(--rust)}
 .callout{margin:24px 0;padding:18px 22px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
 .callout .cl{font:500 12px var(--mono);color:var(--rust-text);margin:0 0 8px}
 .callout p:last-child,.callout ul:last-child{margin-bottom:0}
@@ -319,9 +359,9 @@ html.review .cf{background:rgba(232,102,31,.2);box-shadow:0 0 0 1px rgba(232,102
 
 <blockquote>Privacy is not only about hiding information. It is also about reducing how much information exists in the first place.</blockquote>
 <p>Storage is cheap, so most of the internet keeps everything, just in case. Every message, contact list and login stays on someone's server for years. Each of those copies is something that has to be protected, forever.</p>
-<pre class="diagram">MORE DATA ──▶ MORE STORAGE ──▶ MORE METADATA ──▶ MORE ATTACK SURFACE ──▶ MORE TO PROTECT, FOREVER</pre>
+<figure class="flow" data-flow="more"><pre class="diagram">MORE DATA ──▶ MORE STORAGE ──▶ MORE METADATA ──▶ MORE ATTACK SURFACE ──▶ MORE TO PROTECT, FOREVER</pre></figure>
 <p>Poof starts from the opposite default. A conversation exists for as long as people are having it, and not much longer.</p>
-<pre class="diagram"><span class="h">LESS DATA</span> ──▶ LESS RETENTION ──▶ SMALLER ATTACK SURFACE ──▶ <span class="h">LESS LONG-TERM EXPOSURE</span></pre>
+<figure class="flow" data-flow="less"><pre class="diagram"><span class="h">LESS DATA</span> ──▶ LESS RETENTION ──▶ SMALLER ATTACK SURFACE ──▶ <span class="h">LESS LONG-TERM EXPOSURE</span></pre></figure>
 <div class="callout"><p class="cl">Honest footnote</p><p>Keeping less does not make a system secure on its own. It removes some risks completely: a breached database, a subpoena for old messages, someone decrypting an archive years from now. Other risks stay exactly where they were, like a compromised phone or someone taking a screenshot. The <a href="#/threats">threat model</a> lists both.</p></div>
 <h2 id="philosophy--privacy-is-not-the-same-as-security">Privacy is not the same as security</h2>
 <div class="tw"><table><thead><tr><th>Idea</th><th>The question it answers</th></tr></thead><tbody>
@@ -336,13 +376,13 @@ html.review .cf{background:rgba(232,102,31,.2);box-shadow:0 0 0 1px rgba(232,102
 <p>Poof is built around confidentiality and ephemerality. It helps with privacy because it never asks who you are. It is <b>not</b> an anonymity tool on its own: the network still sees which IP addresses connect, and when.</p>
 <h2 id="philosophy--create-use-expire-poof-concept">Create, use, expire, poof <span class="badge concept">Concept</span></h2>
 <p>Grass grows, exists for a season, then returns to the soil. Nothing about it is meant to last forever, and that is not a flaw. Poof treats a conversation the same way.</p>
-<pre class="diagram">NATURE                      POOF
+<figure class="flow" data-flow="nature"><pre class="diagram">NATURE                      POOF
 ──────                      ────
 seed            ──▶         create quant-room
 grow            ──▶         people join
 exist           ──▶         messages are used
 change          ──▶         timer runs down
-return          ──▶         <span class="h">quant-room state disappears · poof</span></pre>
+return          ──▶         <span class="h">quant-room state disappears · poof</span></pre></figure>
 <p class="small">An analogy, not a security proof. What actually expires, and where, is described in <a href="#/lifecycle">Data lifecycle</a>.</p>
 <h2 id="philosophy--why-poof">Why “Poof”?</h2>
 <p>Because that is what the quant-room does at the end.</p>
@@ -352,7 +392,7 @@ return          ──▶         <span class="h">quant-room state disappears ·
 <h1>The life of a quant-room.</h1>
 
 <p class="lead">From the moment you press “Create a quant-room” to the moment it disappears.</p>
-<pre class="diagram">  YOU                          POOF SERVER                       GUEST
+<figure class="flow" data-flow="room"><pre class="diagram">  YOU                          POOF SERVER                       GUEST
    │                                │                              │
    │  1  create quant-room ──────────────▶│  quant-room id + expiry, in memory │
    │  2  your browser makes the     │                              │
@@ -364,7 +404,7 @@ return          ──▶         <span class="h">quant-room state disappears ·
    │◀═══════════ 6  post-quantum upgrade (ML-KEM-768) ═══════════▶│
    │◀═══════════ 7  talk: every message encrypted in-browser ════▶│
    │                                │                              │
-   │                <span class="h">8  timer ends ─▶ quant-room state expires ─▶ poof</span></pre>
+   │                <span class="h">8  timer ends ─▶ quant-room state expires ─▶ poof</span></pre></figure>
 <h2 id="room--1-2-creating-a-room">1-2 · Creating a quant-room</h2>
 <p>Your browser asks Poof's server for a new quant-room. The server records two things in memory only, with an expiry equal to the quant-room lifetime: that the quant-room exists and when it ends. Meanwhile your browser generates a random 256-bit quant-room key with the Web Crypto API. The key goes into the part of the link after the <code>#</code>, the <b>fragment</b>. Browsers never send the fragment to servers, so Poof's server never receives it.</p>
 <h2 id="room--3-sharing-it">3 · Sharing it</h2>
@@ -415,10 +455,10 @@ return          ──▶         <span class="h">quant-room state disappears ·
 <h2 id="super--payment">How payment works</h2>
 <p>Poof doesn't need to know who you are to give you more. Instead of signing up and paying from a profile, you pay in stablecoins from a wallet when you create a Super Quant-Room. The whole amount is used to buy back POOF on the market and burn it, so every Super Quant-Room makes the supply a little smaller.</p>
 <p>The payment and the quant-room stay apart through <b>blind signatures</b>. After you pay, your browser gets a one-time pass: it “blinds” the pass and Poof signs it without seeing it (RSA blind signature). Your browser then unblinds it. When you spend it, Poof can check its own signature, but it has never seen that pass before, so it cannot link the payment to the quant-room or to you. Each pass works exactly once.</p>
-<pre class="diagram">STABLECOINS ──▶ ONE-TIME PASS ──▶ <span class="h">SUPER QUANT-ROOM</span> ──▶ TIMER ENDS ──▶ POOF
+<figure class="flow" data-flow="super"><pre class="diagram">STABLECOINS ──▶ ONE-TIME PASS ──▶ <span class="h">SUPER QUANT-ROOM</span> ──▶ TIMER ENDS ──▶ POOF
      │                                    │
      └── 100% buys back                   └── same encryption,
-         and burns POOF                       same nothing-kept</pre>
+         and burns POOF                       same nothing-kept</pre></figure>
 <p>Prices for the 1-hour and 24-hour options are shown when you create a Super Quant-Room.</p>
 <nav class="pn" aria-label="Pager"><a href="#/room"><span>previous</span>How a quant-room works</a><a class="r" href="#/quantum"><span>next</span>The quantum problem</a></nav></div><aside class="rail"><figure class="fox"><div class="fox-slot" data-pose="raise" data-frame="full" data-look data-px="3" data-view="45.5 45.0 214.5 256.0 260 340" data-bleed=".08 .1 0 .1" style="aspect-ratio:214.5/256.0" role="img" aria-label="The Poof fox, Super Quant-Room unlocked"><img class="t-light" src="data:image/png;base64,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" alt=""><img class="t-dark" src="data:image/png;base64,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" alt=""></div><figcaption><b>Super Quant-Room unlocked</b>More time, more people. Same privacy.</figcaption></figure><nav class="toc" aria-label="On this page"><p class="tl">on this page</p><ul><li><a href="#/super" data-goto="super--how-a-group-stays-private">How a group stays private</a></li><li><a href="#/super" data-goto="super--files">Files</a></li><li><a href="#/super" data-goto="super--uncensored-ai">An uncensored AI model</a></li><li><a href="#/super" data-goto="super--payment">How payment works</a></li></ul></nav></aside></article>
 <article class="page" id="p-quantum" data-title="The quantum problem" hidden><div class="body">
@@ -430,7 +470,7 @@ return          ──▶         <span class="h">quant-room state disappears ·
 <p>A normal bit is 0 or 1. A <b>qubit</b> can be in a combination of both, called <b>superposition</b>, until you measure it, and then it becomes a plain 0 or 1. Quantum algorithms use <b>quantum gates</b> to arrange those combinations so that wrong answers cancel out and right answers become likely when you measure. That is not “trying every answer at once”. It only helps for problems with special structure. Try it in the <a href="#/lab">Quantum Lab</a>.</p>
 <h2 id="quantum--two-kinds-of-encryption-two-kinds-of-risk">Two kinds of encryption, two kinds of risk</h2>
 <p><b>Public-key</b> cryptography (RSA, elliptic curves, ECDH key exchange, digital signatures) lets two strangers agree on a secret. It relies on problems like factoring large numbers or computing discrete logarithms. <b>Symmetric</b> cryptography (AES) encrypts the actual data once both sides share a key. It relies on the key simply being too big to guess.</p>
-<pre class="diagram">          CLASSICAL COMPUTER                       QUANTUM COMPUTER
+<figure class="flow" data-flow="quantum"><pre class="diagram">          CLASSICAL COMPUTER                       QUANTUM COMPUTER
                   │                                        │
          ┌────────▼────────┐                     ┌─────────▼─────────┐
          │  RSA · ECC      │                     │  <span class="f">Shor's algorithm</span>  │
@@ -439,7 +479,7 @@ return          ──▶         <span class="h">quant-room state disappears ·
          └────────┬────────┘                     └─────────┬─────────┘
                   ▼                                        ▼
         impractical to solve                 <span class="h">solvable, on a large enough
-                                             error-corrected machine</span></pre>
+                                             error-corrected machine</span></pre></figure>
 <p class="small">A picture of the idea, not a description of how Shor's algorithm works inside. <span class="badge concept">Concept</span></p>
 <div class="tw"><table><thead><tr><th>Algorithm</th><th>Used for</th><th>Quantum attack</th><th>Effect</th></tr></thead><tbody>
 <tr><td>RSA</td><td>Key exchange, signatures</td><td>Shor</td><td>Broken by a large enough quantum computer</td></tr>
@@ -456,7 +496,7 @@ return          ──▶         <span class="h">quant-room state disappears ·
 <h1>Harvest now, decrypt later.</h1>
 
 <p class="lead">You do not need a quantum computer today to attack today's messages. You only need to record them and wait.</p>
-<pre class="diagram">TODAY                                         SOMEDAY
+<figure class="flow" data-flow="hndl"><pre class="diagram">TODAY                                         SOMEDAY
 ─────                                         ───────
 encrypted traffic                             <span class="f">quantum capability</span>
       │                                              │
@@ -464,15 +504,15 @@ encrypted traffic                             <span class="f">quantum capability
 ┌──────────────┐   store   ┌──────────────┐   ┌──────────────────┐
 │   attacker   │ ────────▶ │  encrypted   │──▶│ try to recover   │
 │ records it   │           │   archive    │   │ the key exchange │
-└──────────────┘           └──────────────┘   └──────────────────┘</pre>
+└──────────────┘           └──────────────┘   └──────────────────┘</pre></figure>
 <p>Anyone who can watch a network (an internet provider, a compromised router, a state agency) can save encrypted traffic cheaply and keep it for years. If that traffic relied only on RSA or elliptic-curve key exchange, a future quantum computer could unlock it. For conversations that must stay private for a long time, the risk starts the day they are recorded.</p>
 <h2 id="hndl--how-poof-answers-it">How Poof answers it</h2>
-<pre class="diagram">  MINIMIZE WHAT EXISTS          nothing stored on servers, quant-rooms expire
+<figure class="flow" data-flow="defense"><pre class="diagram">  MINIMIZE WHAT EXISTS          nothing stored on servers, quant-rooms expire
 + HYBRID POST-QUANTUM KEYS      classical key + ML-KEM-768
 + FRESH KEYS PER QUANT-ROOM           each quant-room gets new keys, then they're gone
 + KEYS STAY IN THE BROWSER      the server never holds them
 ──────────────────────────
-= <span class="h">LESS LONG-TERM EXPOSURE</span></pre>
+= <span class="h">LESS LONG-TERM EXPOSURE</span></pre></figure>
 <p>Ephemerality alone is not enough. Poof deleting things does not stop someone else from recording traffic on the network. That is why the encryption itself holds up against future quantum attacks, which is the job of the <a href="#/pqc">hybrid post-quantum key</a>. See it play out in the <a href="#/lab">Quantum Lab</a>.</p>
 <h2 id="hndl--what-this-does-not-solve">What this does not solve</h2>
 <ul>
@@ -506,7 +546,7 @@ encrypted traffic                             <span class="f">quantum capability
 <p>The keys are bigger, but for a chat handshake a couple of kilobytes, once per quant-room, makes no noticeable difference.</p>
 <h2 id="pqc--why-hybrid">Why hybrid</h2>
 <p>Post-quantum algorithms are newer than RSA or elliptic curves. A hybrid design does not bet everything on one of them: it combines a classical secret with a post-quantum one, so an attacker has to break both.</p>
-<pre class="diagram">  QUANT-ROOM KEY (classical)                    ML-KEM-768 SHARED SECRET
+<figure class="flow" data-flow="pqc"><pre class="diagram">  QUANT-ROOM KEY (classical)                    ML-KEM-768 SHARED SECRET
   256-bit, made in your browser,          agreed directly between browsers
   carried in the link after #             over the encrypted data channel
             │                                         │
@@ -517,7 +557,7 @@ encrypted traffic                             <span class="f">quantum capability
                      └─────────┬──────────┘
                                ▼
                  <span class="h">HYBRID SESSION KEY · AES-GCM-256</span>
-                 used for every message in the quant-room</pre>
+                 used for every message in the quant-room</pre></figure>
 <p>The quant-room key is the HKDF salt, the ML-KEM shared secret is the input key material, and a fixed, versioned Poof context string keeps the derivation separate from anything else. Before switching, both browsers prove they hold the same post-quantum secret with an HMAC-SHA-256, each side using its own label, so a confirmation can't simply be bounced back. Only then does the quant-room use the hybrid key. A tampered handshake fails this check and the quant-room refuses to upgrade.</p>
 <h2 id="pqc--implementation-notes">Implementation notes</h2>
 <ul>
@@ -563,7 +603,7 @@ encrypted traffic                             <span class="f">quantum capability
 <h1>Every lock, and what it rests on.</h1>
 
 <p class="lead">For each protection: the threat it answers, the mechanism, what has to be true for it to work, and where it stops.</p>
-<pre class="diagram">┌─────────────────────── YOUR BROWSER ───────────────────────┐
+<figure class="flow" data-flow="security"><pre class="diagram">┌─────────────────────── YOUR BROWSER ───────────────────────┐
 │  quant-room key (Web Crypto)  ─┐                                  │
 │                          ├─▶ HKDF ─▶ session key ─▶ AES-GCM │──┐
 │  ML-KEM-768 secret  ─────┘                                  │  │ ciphertext only
@@ -573,7 +613,7 @@ encrypted traffic                             <span class="f">quantum capability
 │  POOF SERVER   │  quant-room id + expiry, in memory      │ WebRTC data channel│
 │  no message    │                                   │ direct, or via a   │
 │  storage       │                                   │ TURN relay         │
-└────────────────┘                                   └────────────────────┘</pre>
+└────────────────┘                                   └────────────────────┘</pre></figure>
 <div class="tw"><table><thead><tr><th>Protection</th><th>Threat</th><th>Mechanism</th><th>Assumption</th><th>Limitation</th></tr></thead><tbody>
 <tr><td>End-to-end encryption</td><td>Servers or networks reading messages</td><td>AES-GCM-256 in the browser, fresh nonce per message</td><td>Your browser and device are not compromised</td><td>Doesn't protect what's on screen</td></tr>
 <tr><td>Key in the fragment</td><td>The server learning the key</td><td>Key lives after <code>#</code>, never sent in requests</td><td>The code you run is genuine</td><td>Anyone with the link has the key</td></tr>
@@ -590,7 +630,7 @@ encrypted traffic                             <span class="f">quantum capability
 <p class="kicker">Where does data go?</p>
 <h1>Everything Poof touches, and when it's gone.</h1>
 
-<pre class="diagram">CREATE ──▶ PROCESS ──▶ TRANSMIT ──▶ USE ──▶ EXPIRE ──▶ DELETE ──▶ <span class="h">POOF</span></pre>
+<figure class="flow" data-flow="lifecycle"><pre class="diagram">CREATE ──▶ PROCESS ──▶ TRANSMIT ──▶ USE ──▶ EXPIRE ──▶ DELETE ──▶ <span class="h">POOF</span></pre></figure>
 <div class="tw"><table><thead><tr><th>Data</th><th>Created</th><th>Lives in</th><th>How long</th><th>Then</th></tr></thead><tbody>
 <tr><td>Quant-room id + expiry</td><td>When you create a quant-room</td><td>Server memory</td><td>The quant-room lifetime (10 min, 1 h or 24 h)</td><td>Expires automatically</td></tr>
 <tr><td>Quant-room key</td><td>In your browser</td><td>The link fragment, browser memory</td><td>While the tab is open</td><td>Gone when the tab closes</td></tr>
@@ -689,7 +729,7 @@ encrypted traffic                             <span class="f">quantum capability
 <tr><td>NAT traversal</td><td>STUN + TURN over TLS</td></tr>
 </tbody></table></div>
 <h2 id="dev--handshake">Handshake</h2>
-<pre class="diagram">CLIENT A (creator)                                   CLIENT B (guest)
+<figure class="flow" data-flow="handshake"><pre class="diagram">CLIENT A (creator)                                   CLIENT B (guest)
 ──────────────────                                   ────────────────
 key K = random 256 bits (fragment)                   reads K from fragment
         ── SDP offer / ICE via signaling ──────────────▶
@@ -704,12 +744,12 @@ ss = ML-KEM.Decaps(sk, ct)
 check cB
   3 ── proof cA = HMAC(ss, label_A) ──────────────────▶  check cA
 S = HKDF-SHA-256(salt = K, ikm = ss, info = poof context)   (both sides)
-<span class="h">every message: AES-GCM(S, random 96-bit IV, plaintext)</span></pre>
+<span class="h">every message: AES-GCM(S, random 96-bit IV, plaintext)</span></pre></figure>
 <p class="small">If a confirmation fails, the upgrade is rejected and the quant-room reports it instead of switching keys silently.</p>
 <h2 id="dev--message-envelope">Message envelope</h2>
-<pre class="diagram">base64( IV (12 bytes) ‖ AES-GCM ciphertext + 16-byte tag )
+<figure class="flow" data-flow="wire"><pre class="diagram">base64( IV (12 bytes) ‖ AES-GCM ciphertext + 16-byte tag )
 
-files: each chunk = IV (12 bytes) ‖ ciphertext + tag</pre>
+files: each chunk = IV (12 bytes) ‖ ciphertext + tag</pre></figure>
 <h2 id="dev--example-concept">Example <span class="badge concept">Concept</span></h2>
 <pre class="diagram">// Illustrative only: shows the order of operations, not the production API.
 const K   = crypto.getRandomValues(new Uint8Array(32));        // quant-room key
@@ -1471,6 +1511,544 @@ window.VeilFox = (function(){
   });
   mq.addEventListener && mq.addEventListener('change', sync);
   sync();
+})();
+</script>
+<script>
+/* ---------- living schemas ----------
+   <figure class="flow" data-flow="NAME"> keeps the original text diagram (screen readers, no JS) and gets an SVG that
+   draws the same schema step by step, like a looping GIF, while it is on screen. Drawn at the real pixel width, so the
+   text stays readable on phones; colours come from the theme tokens. */
+(function(){
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let uid = 0;
+  const mk = (tag, a, p) => { const e = document.createElementNS(NS, tag); for(const k in a) e.setAttribute(k, a[k]); if(p) p.appendChild(e); return e; };
+  function label(p, x, y, num, s, anchor){
+    const t = mk('text', {x, y, class:'t lbl', 'text-anchor': anchor || 'middle'}, p);
+    if(num){ const n = mk('tspan', {class:'n'}, t); n.textContent = num + '  '; }
+    const b = mk('tspan', {}, t); b.textContent = s; return t;
+  }
+  class Stop extends Error {}
+
+  /* one running figure */
+  function Flow(fig){
+    const name = fig.dataset.flow, scene = SCENES[name]; if(!scene) return;
+    let token = 0, W = 0, svg = null, api = null;
+    function build(){
+      const cs = getComputedStyle(fig); W = Math.round(fig.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)); if(W < 200) return false;
+      if(svg) svg.remove();
+      const H = scene.h(W);
+      svg = mk('svg', {viewBox:'0 0 ' + W + ' ' + H, width:W, height:H, 'aria-hidden':'true', focusable:'false'});
+      const id = 'f' + (++uid), defs = mk('defs', {}, svg);
+      [['a', 'ah'], ['r', 'ah r'], ['f', 'ah f']].forEach(([k, cls])=>{
+        const m = mk('marker', {id: id + k, viewBox:'0 0 10 10', refX:'8.5', refY:'5', markerWidth:'7', markerHeight:'7', orient:'auto-start-reverse'}, defs);
+        mk('path', {d:'M0,1 L9,5 L0,9 z', class: cls}, m);
+      });
+      const ctx = {svg, W, H, mk, label, id,
+        hid(el){ el.classList.add('hid'); return el; },
+        show(el){ el.classList.remove('hid'); return el; },
+        wait(ms){ const t = token; return new Promise((res, rej)=>setTimeout(()=> t === token ? res() : rej(new Stop()), ms)); },
+        line(x1, y1, x2, y2, cls, head){
+          const l = mk('line', {x1, y1, x2, y2, class:'ln ' + (cls || '')}, svg);
+          if(head === 'end' || head === 'both') l.setAttribute('marker-end', 'url(#' + id + (cls && cls.includes('pq') ? 'r' : cls && cls.includes('enc') ? 'f' : 'a') + ')');
+          if(head === 'both') l.setAttribute('marker-start', l.getAttribute('marker-end'));
+          return l;
+        },
+        async draw(l, ms){
+          if(reduce){ ctx.show(l); return; }
+          const len = Math.hypot(l.x2.baseVal.value - l.x1.baseVal.value, l.y2.baseVal.value - l.y1.baseVal.value);
+          l.style.strokeDasharray = len; l.style.strokeDashoffset = len; ctx.show(l);
+          await l.animate([{strokeDashoffset: len}, {strokeDashoffset: 0}], {duration: ms, easing:'cubic-bezier(.5,0,.25,1)', fill:'forwards'}).finished.catch(()=>{});
+          l.style.strokeDasharray = ''; l.style.strokeDashoffset = '';
+        },
+        async packet(x1, y1, x2, y2, ms, cls){
+          if(reduce) return;
+          const p = mk('rect', {x:-4.5, y:-4.5, width:9, height:9, class:'pk ' + (cls || '')}, svg);
+          await p.animate([{transform:`translate(${x1}px,${y1}px)`}, {transform:`translate(${x2}px,${y2}px)`}], {duration: ms, easing:'cubic-bezier(.45,0,.3,1)', fill:'forwards'}).finished.catch(()=>{});
+          p.remove();
+        }
+      };
+      api = scene.build(ctx);
+      fig.prepend(svg); fig.classList.add('ready');
+      return true;
+    }
+    async function loop(){
+      const t = ++token;
+      try{
+        if(reduce){ api.final(); return; }
+        while(t === token){ await api.run(); }
+      }catch(e){ if(!(e instanceof Stop)) throw e; }
+    }
+    function start(){ if(!svg && !build()) return; loop(); }
+    function stop(){ token++; }
+    let seen = false;
+    new IntersectionObserver(es=>es.forEach(e=>{ seen = e.isIntersecting; seen ? start() : stop(); }), {threshold:0.2}).observe(fig);
+    let rt; addEventListener('resize', ()=>{ clearTimeout(rt); rt = setTimeout(()=>{ if(svg && Math.abs(fig.clientWidth - 36 - W) > 16){ stop(); svg.remove(); svg = null; if(seen) start(); } }, 200); });
+  }
+
+  /* ---------- scenes ---------- */
+  const SCENES = {
+    /* How a quant-room works: you, the Poof server and a guest, eight steps, then poof */
+    room: {
+      h: () => 452,
+      build(c){
+        const {svg, W, mk} = c, X = [Math.max(44, W*0.1), W/2, Math.min(W - 44, W*0.9)];
+        const top = 16, y0 = 92, row = 44, life = [];
+        ['YOU', 'POOF SERVER', 'GUEST'].forEach((n, i)=>{
+          const w = n.length*7.4 + 26;
+          mk('rect', {x: X[i] - w/2, y: top, width: w, height: 26, rx: 13, class:'lane-box' + (i === 1 ? ' srv' : '')}, svg);
+          const t = mk('text', {x: X[i], y: top + 17.5, class:'t lane', 'text-anchor':'middle'}, svg); t.textContent = n;
+          life.push(mk('line', {x1: X[i], y1: top + 30, x2: X[i], y2: c.H - 30, class:'life'}, svg));
+        });
+        const Y = k => y0 + (k - 1)*row;               // row k: the arrow sits at Y(k) + 7, its label just above
+        const all = [];                               // everything a run adds; poof takes it away
+        const add = el => { all.push(el); return c.hid(el); };
+        const L = (k, s, x, anchor) => add(label(svg, x == null ? (X[0] + X[2])/2 : x, Y(k) - 4, String(k), s, anchor));
+        // 1 create
+        const l1 = L(1, 'create quant-room', (X[0] + X[1])/2), a1 = add(c.line(X[0] + 6, Y(1) + 8, X[1] - 6, Y(1) + 8, '', 'end'));
+        const mem = add(mk('g', {}, svg)); mk('rect', {x: X[1] + 8, y: Y(1) + 15, width: 8, height: 8, class:'chip'}, mem);
+        const memT = mk('text', {x: X[1] + 22, y: Y(1) + 23, class:'t small', 'text-anchor':'start'}, mem); memT.textContent = W < 520 ? 'id + expiry' : 'id + expiry, in memory';
+        // 2 key, never sent
+        const l2 = L(2, 'your browser makes the key', X[0] - 10, 'start');
+        const key = add(mk('g', {}, svg)); mk('rect', {x: X[0] - 6, y: Y(2) + 4, width: 12, height: 12, class:'key'}, key);
+        const keyT = mk('text', {x: X[0] + 14, y: Y(2) + 14, class:'t small', 'text-anchor':'start'}, key); keyT.textContent = 'never sent';
+        // 3 share
+        const l3 = L(3, 'share: link · QR · 4 words'), a3 = add(c.line(X[0] + 6, Y(3) + 8, X[2] - 6, Y(3) + 8, 'dash', 'end'));
+        // 4 signaling
+        const l4 = L(4, W < 520 ? 'signaling: how to reach each other' : 'signaling relay: how to reach each other');
+        const a4a = add(c.line(X[0] + 6, Y(4) + 8, X[1] - 4, Y(4) + 8, '', 'both')), a4b = add(c.line(X[1] + 4, Y(4) + 8, X[2] - 6, Y(4) + 8, '', 'both'));
+        const sig = add(mk('text', {x: X[1], y: Y(4) + 24, class:'t small', 'text-anchor':'middle'}, svg)); sig.textContent = 'no keys, no messages';
+        // 5-7 the direct channel
+        const dbl = (k, cls) => [add(c.line(X[0] + 6, Y(k) + 6, X[2] - 6, Y(k) + 6, cls)), add(c.line(X[0] + 6, Y(k) + 10, X[2] - 6, Y(k) + 10, cls, 'both'))];
+        const l5 = L(5, 'direct encrypted channel (WebRTC)'), a5 = dbl(5, 'enc');
+        const l6 = L(6, 'post-quantum upgrade (ML-KEM-768)'), a6 = dbl(6, 'pq');
+        const l7 = L(7, W < 520 ? 'talk: encrypted in-browser' : 'talk: every message encrypted in-browser'), a7 = dbl(7, 'pq');
+        // 8 poof
+        const l8 = add(label(svg, W/2, Y(8) + 18, '8', W < 520 ? 'timer ends → state expires → poof' : 'timer ends → quant-room state expires → poof'));
+        l8.classList.add('end');
+        const poof = c.hid(mk('text', {x: W/2, y: c.H/2 + 14, class:'poof', 'text-anchor':'middle'}, svg)); poof.textContent = 'poof.';
+
+        const show = (...els) => els.flat().forEach(e => c.show(e));
+        return {
+          final(){ show(all); },
+          async run(){
+            all.forEach(e => { c.hid(e); e.classList.remove('gone'); }); life.forEach(l => l.classList.remove('gone'));
+            await c.wait(600);
+            show(l1); await c.packet(X[0], Y(1) + 8, X[1], Y(1) + 8, 700); await c.draw(a1, 250); show(mem); await c.wait(700);
+            show(l2, key); await c.wait(1100);
+            show(l3); await c.packet(X[0], Y(3) + 8, X[2], Y(3) + 8, 1000); await c.draw(a3, 250); await c.wait(600);
+            show(l4); await c.packet(X[0], Y(4) + 8, X[1], Y(4) + 8, 550); await c.packet(X[1], Y(4) + 8, X[2], Y(4) + 8, 550);
+            show(a4a, a4b, sig); await c.packet(X[2], Y(4) + 8, X[0], Y(4) + 8, 800); await c.wait(500);
+            show(l5); await Promise.all(a5.map(l => c.draw(l, 700))); await c.wait(600);
+            show(l6); await Promise.all(a6.map(l => c.draw(l, 700))); await c.wait(600);
+            show(l7); await Promise.all(a7.map(l => c.draw(l, 500)));
+            for(let i = 0; i < 3; i++){ const r = i % 2 === 0; await c.packet(r ? X[0] : X[2], Y(7) + 8, r ? X[2] : X[0], Y(7) + 8, 650, 'msg'); }
+            await c.wait(400);
+            show(l8); await c.wait(1300);
+            all.concat(life).forEach(e => e.classList.add('gone')); c.show(poof); poof.classList.add('pop');
+            await c.wait(1600);
+            poof.classList.remove('pop'); c.hid(poof); await c.wait(500);
+          }
+        };
+      }
+    }
+  };
+
+  /* ---------- building blocks ---------- */
+  const CW = size => size*0.6;                                     // Geist Mono: one character is ~0.6em wide
+  function pill(c, cx, cy, s, cls, size){
+    size = size || 11.5;
+    const w = s.length*CW(size) + 22, h = size + 15;
+    const g = mk('g', {class:'node ' + (cls || '')}, c.svg);
+    mk('rect', {x: cx - w/2, y: cy - h/2, width: w, height: h, rx: 8}, g);
+    const t = mk('text', {x: cx, y: cy + size*0.36, 'text-anchor':'middle', class:'t'}, g); t.style.fontSize = size + 'px'; t.textContent = s;
+    return {g, w, h, cx, cy};
+  }
+  function note(c, x, y, s, anchor, cls){ const t = mk('text', {x, y, class:'t small ' + (cls || ''), 'text-anchor': anchor || 'middle'}, c.svg); t.textContent = s; return t; }
+  function path(c, d, cls, head){ const p = mk('path', {d, class:'ln ' + (cls || '')}, c.svg); if(head) p.setAttribute('marker-end', 'url(#' + c.id + (cls && cls.includes('pq') ? 'r' : cls && cls.includes('enc') ? 'f' : 'a') + ')'); return p; }
+  async function drawPath(c, p, ms){
+    if(reduce){ c.show(p); return; }
+    const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len; c.show(p);
+    await p.animate([{strokeDashoffset: len}, {strokeDashoffset: 0}], {duration: ms, easing:'cubic-bezier(.5,0,.25,1)', fill:'forwards'}).finished.catch(()=>{});
+    p.style.strokeDasharray = ''; p.style.strokeDashoffset = '';
+  }
+  async function along(c, p, ms, cls){                              // a packet that follows a path
+    if(reduce) return;
+    const len = p.getTotalLength(), k = mk('rect', {x:-4.5, y:-4.5, width:9, height:9, class:'pk ' + (cls || '')}, c.svg);
+    const frames = []; for(let i = 0; i <= 24; i++){ const q = p.getPointAtLength(len*i/24); frames.push({transform:`translate(${q.x}px,${q.y}px)`}); }
+    await k.animate(frames, {duration: ms, easing:'ease-in-out', fill:'forwards'}).finished.catch(()=>{});
+    k.remove();
+  }
+  const hideAll = (c, els) => els.forEach(e => { c.hid(e); e.classList.remove('gone', 'lit'); });
+  const poofAll = els => els.forEach(e => e.classList.add('gone'));
+
+  /* a chain of steps: one row when it fits, else rows that wrap (each row centred), arrows between, an optional note under a step
+     and an optional label on the arrow that leads into a step */
+  function chainLayout(W, items, size){
+    const gap = 46, rowH = 74;
+    const ws = items.map(it => it.s.length*CW(size) + 22);
+    const rows = []; let cur = [], cw = 0;
+    ws.forEach((w, i)=>{ const need = cur.length ? cw + gap + w : w; if(cur.length && need > W - 8){ rows.push(cur); cur = [i]; cw = w; } else { cur.push(i); cw = need; } });
+    if(cur.length) rows.push(cur);
+    const pos = [];
+    rows.forEach((r, ri)=>{
+      const total = r.reduce((a, i)=> a + ws[i], 0) + gap*(r.length - 1);
+      let x = (W - total)/2;
+      r.forEach(i=>{ pos[i] = {cx: x + ws[i]/2, cy: 36 + ri*rowH, w: ws[i], row: ri}; x += ws[i] + gap; });
+    });
+    return {pos, rows, H: 36 + (rows.length - 1)*rowH + 54};
+  }
+  function chain(c, items, size){
+    const L = chainLayout(c.W, items, size), nodes = [], arrows = [], extra = [];
+    items.forEach((it, i)=>{
+      const p = L.pos[i], n = pill(c, p.cx, p.cy, it.s, it.cls, size); nodes.push(n);
+      if(it.sub){ const half = it.sub.length*CW(11)/2 + 2, nx = Math.min(c.W - half, Math.max(half, p.cx)); extra[i] = note(c, nx, p.cy + n.h/2 + 15, it.sub); }
+      if(i > 0){
+        const a = L.pos[i - 1], ah = n.h/2;
+        let d;
+        if(a.row === p.row) d = `M${a.cx + a.w/2 + 5},${p.cy} L${p.cx - p.w/2 - 6},${p.cy}`;
+        else { const ymid = (a.cy + p.cy)/2 + (items[i - 1].sub ? 9 : 0); d = `M${a.cx},${a.cy + ah + (items[i - 1].sub ? 22 : 4)} L${a.cx},${ymid} L${p.cx},${ymid} L${p.cx},${p.cy - ah - 6}`; }
+        const ar = path(c, d, it.edgeCls || '', true); arrows[i] = ar;
+        if(it.edge){ const q = ar.getPointAtLength(ar.getTotalLength()/2), vert = a.row !== p.row && Math.abs(a.cx - p.cx) < 2; extra[i + 100] = vert ? note(c, q.x + 9, q.y + 4, it.edge, 'start', 'edge') : note(c, q.x, q.y - 7, it.edge, 'middle', 'edge'); }
+      }
+    });
+    return {nodes, arrows, extra, L};
+  }
+  const chainH = (W, items, size) => { const L = chainLayout(W, items, size), last = L.rows.length - 1; return L.H + (items.some((it, i) => it.sub && L.pos[i].row === last) ? 22 : 0); };
+  async function playChain(c, ch, opts){
+    opts = opts || {};
+    for(let i = 0; i < ch.nodes.length; i++){
+      if(i > 0){ if(ch.extra[i + 100]) c.show(ch.extra[i + 100]); await along(c, ch.arrows[i], opts.ms || 650, opts.pk); await drawPath(c, ch.arrows[i], 160); }
+      c.show(ch.nodes[i].g); if(opts.each) opts.each(i);
+      if(ch.extra[i]){ await c.wait(250); c.show(ch.extra[i]); }
+      await c.wait(opts.pause || 420);
+    }
+  }
+  const chainEls = ch => [...ch.nodes.map(n => n.g), ...ch.arrows.filter(Boolean), ...ch.extra.filter(Boolean)];
+
+  /* ---------- the other schemas ---------- */
+  Object.assign(SCENES, {
+    /* Philosophy: more data piles up, forever */
+    more: {
+      items: [{s:'MORE DATA'}, {s:'MORE STORAGE'}, {s:'MORE METADATA'}, {s:'MORE ATTACK SURFACE'}, {s:'MORE TO PROTECT, FOREVER', cls:'hot'}],
+      h(W){ return chainH(W, this.items, 11.5) + 18; },
+      build(c){
+        const ch = chain(c, this.items, 11.5), els = chainEls(ch), stacks = [];
+        ch.nodes.forEach((n, i)=>{ const g = c.hid(mk('g', {}, c.svg)); for(let k = 0; k <= i; k++) mk('rect', {x: n.cx - n.w/2 + 6 + k*9, y: n.cy - n.h/2 - 11, width: 6, height: 6, class:'blk'}, g); stacks.push(g); });
+        const all = els.concat(stacks);
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){ hideAll(c, all); await c.wait(500); await playChain(c, ch, {each: i => c.show(stacks[i])}); ch.nodes.forEach(n => n.g.classList.add('lit')); await c.wait(2200); }
+        };
+      }
+    },
+    /* Philosophy: less data, and the end of the line is nothing */
+    less: {
+      items: [{s:'LESS DATA'}, {s:'LESS RETENTION'}, {s:'SMALLER ATTACK SURFACE'}, {s:'LESS LONG-TERM EXPOSURE', cls:'hot'}],
+      h(W){ return chainH(W, this.items, 11.5) + 18; },
+      build(c){
+        const ch = chain(c, this.items, 11.5), els = chainEls(ch), stacks = [];
+        ch.nodes.forEach((n, i)=>{ const g = c.hid(mk('g', {}, c.svg)); for(let k = 0; k < 4 - i; k++) mk('rect', {x: n.cx - n.w/2 + 6 + k*9, y: n.cy - n.h/2 - 11, width: 6, height: 6, class:'blk'}, g); stacks.push(g); });
+        const all = els.concat(stacks);
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){ hideAll(c, all); await c.wait(500); await playChain(c, ch, {each: i => c.show(stacks[i])}); await c.wait(1400); poofAll(stacks); await c.wait(1600); }
+        };
+      }
+    },
+    /* Philosophy: a quant-room follows a natural cycle */
+    nature: {
+      rows: [['seed', 'create quant-room'], ['grow', 'people join'], ['exist', 'messages are used'], ['change', 'timer runs down'], ['return', 'quant-room state disappears · poof']],
+      h(W){ return W < 520 ? 44 + this.rows.length*52 : 44 + this.rows.length*38; },
+      build(c){
+        const narrow = c.W < 520, all = [];
+        const hx = narrow ? 0 : c.W*0.18, px = narrow ? 0 : c.W*0.5;
+        all.push(c.hid(note(c, narrow ? 0 : hx, 18, 'NATURE', narrow ? 'start' : 'middle', 'head')), c.hid(note(c, narrow ? c.W : px + 4, 18, 'POOF', narrow ? 'end' : 'start', 'head')));
+        const R = this.rows.map(([a, b], i)=>{
+          const y = narrow ? 52 + i*52 : 52 + i*38, last = i === this.rows.length - 1;
+          const L = c.hid(mk('text', {x: narrow ? 0 : hx, y, class:'t', 'text-anchor': narrow ? 'start' : 'middle'}, c.svg)); L.textContent = a;
+          const ar = c.hid(c.line(narrow ? 8 : hx + 46, narrow ? y + 13 : y - 4, narrow ? 30 : px - 12, narrow ? y + 13 : y - 4, last ? 'pq' : '', 'end'));
+          const Rt = c.hid(mk('text', {x: narrow ? 38 : px, y: narrow ? y + 17 : y, class:'t' + (last ? ' end' : ''), 'text-anchor':'start'}, c.svg)); Rt.textContent = b;
+          all.push(L, ar, Rt); return {L, ar, Rt};
+        });
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){
+            hideAll(c, all); await c.wait(400); c.show(all[0]); c.show(all[1]); await c.wait(500);
+            for(const r of R){ c.show(r.L); await c.wait(350); await c.draw(r.ar, 420); c.show(r.Rt); await c.wait(700); }
+            await c.wait(1000); poofAll([R[R.length - 1].Rt]); await c.wait(1300);
+          }
+        };
+      }
+    },
+    /* Super Quant-Rooms: pay in stablecoins, the payment buys back and burns POOF */
+    super: {
+      items: [{s:'STABLECOINS', sub:'100% buys back and burns POOF'}, {s:'ONE-TIME PASS'}, {s:'SUPER QUANT-ROOM', cls:'hot', sub:'same encryption, same nothing-kept'}, {s:'TIMER ENDS'}, {s:'POOF', cls:'hot'}],
+      h(W){ return chainH(W, this.items, 11.5) + 20; },
+      build(c){
+        const ch = chain(c, this.items, 11.5), els = chainEls(ch);
+        const n0 = ch.nodes[0], burn = c.hid(mk('g', {}, c.svg)), coins = [];
+        for(let k = 0; k < 5; k++) coins.push(mk('rect', {x: n0.cx - 22 + k*9, y: n0.cy - n0.h/2 - 12, width: 6, height: 6, class:'blk r'}, burn));
+        const all = els.concat(burn);
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){
+            hideAll(c, all); coins.forEach(k => k.classList.remove('gone')); await c.wait(500);
+            await playChain(c, ch, {each: async i => { if(i === 0){ c.show(burn); setTimeout(()=>coins.forEach((k, j)=>setTimeout(()=>k.classList.add('gone'), j*160)), 900); } }});
+            await c.wait(900); poofAll(els); await c.wait(1500);
+          }
+        };
+      }
+    },
+    /* The lifecycle of everything in a quant-room */
+    lifecycle: {
+      items: [{s:'CREATE'}, {s:'PROCESS'}, {s:'TRANSMIT'}, {s:'USE'}, {s:'EXPIRE'}, {s:'DELETE'}, {s:'POOF', cls:'hot'}],
+      h(W){ return chainH(W, this.items, 11.5) + 10; },
+      build(c){
+        const ch = chain(c, this.items, 11.5), els = chainEls(ch);
+        return {
+          final(){ els.forEach(e => c.show(e)); },
+          async run(){ hideAll(c, els); await c.wait(400); await playChain(c, ch, {ms: 480, pause: 260}); await c.wait(800); poofAll(els); await c.wait(1500); }
+        };
+      }
+    },
+    /* Harvest now, decrypt later */
+    hndl: {
+      items: [{s:'ENCRYPTED TRAFFIC'}, {s:'ATTACKER RECORDS IT', edge:'today'}, {s:'ENCRYPTED ARCHIVE', edge:'store'}, {s:'QUANTUM CAPABILITY', edge:'someday', edgeCls:'dash', cls:'frost'}, {s:'TRY TO RECOVER THE KEY EXCHANGE', cls:'hot'}],
+      h(W){ return chainH(W, this.items, 11) + 30; },
+      build(c){
+        const ch = chain(c, this.items, 11), els = chainEls(ch), a = ch.nodes[2];
+        const pile = c.hid(mk('g', {}, c.svg)), bits = [];
+        const side = c.W < 520; for(let k = 0; k < 8; k++) bits.push(mk('rect', side ? {x: a.cx + a.w/2 + 8 + (k % 4)*9, y: a.cy - 9 + Math.floor(k/4)*9, width: 6, height: 6, class:'blk f hid'} : {x: a.cx - 36 + k*9, y: a.cy + a.h/2 + 8, width: 6, height: 6, class:'blk f hid'}, pile));
+        const q = c.hid(note(c, ch.nodes[4].cx, ch.nodes[4].cy + ch.nodes[4].h/2 + 18, 'the key exchange is the target', 'middle', 'end'));
+        const all = els.concat(pile, q);
+        return {
+          final(){ all.forEach(e => c.show(e)); bits.forEach(b => c.show(b)); },
+          async run(){
+            hideAll(c, all); bits.forEach(b => c.hid(b)); await c.wait(400);
+            await playChain(c, ch, {pk:'msg', each: i => { if(i === 2){ c.show(pile); bits.forEach((b, k)=>setTimeout(()=>c.show(b), k*140)); } }});
+            c.show(q); await c.wait(2200);
+          }
+        };
+      }
+    },
+    /* Harvest now, decrypt later: how Poof shrinks what there is to harvest */
+    defense: {
+      rows: [['MINIMIZE WHAT EXISTS', 'nothing stored on servers, quant-rooms expire', 'nothing stored, quant-rooms expire'], ['HYBRID POST-QUANTUM KEYS', 'classical key + ML-KEM-768'], ['FRESH KEYS PER QUANT-ROOM', 'each quant-room gets new keys, then they\'re gone', 'new keys each time, then gone'], ['KEYS STAY IN THE BROWSER', 'the server never holds them']],
+      h(W){ return 46*4 + (W < 520 ? 104 : 72); },
+      build(c){
+        const all = [], R = [], W = c.W;
+        this.rows.forEach(([a, b, short], i)=>{
+          if(short && W < 520) b = short;
+          const y = 24 + i*46;
+          const sign = c.hid(mk('text', {x: 4, y, class:'t n', 'text-anchor':'start'}, c.svg)); sign.textContent = i ? '+' : ' ';
+          const t = c.hid(mk('text', {x: 22, y, class:'t', 'text-anchor':'start'}, c.svg)); t.textContent = a;
+          const d = c.hid(note(c, 22, y + 17, b, 'start')); R.push([sign, t, d]); all.push(sign, t, d);
+        });
+        const yl = 24 + 4*46 - 12, rule = c.hid(c.line(0, yl, W, yl, ''));
+        const tot = c.hid(mk('text', {x: 4, y: yl + 26, class:'t end', 'text-anchor':'start'}, c.svg)); tot.textContent = '= LESS LONG-TERM EXPOSURE';
+        // exposure meter: shrinks with every layer
+        const mw = Math.min(220, W < 520 ? W - 4 : W*0.36), mx = W - mw, my = W < 520 ? yl + 62 : yl + 22;
+        const mlab = c.hid(note(c, mx, my - 6, 'exposure', 'start'));
+        const track = c.hid(mk('rect', {x: mx, y: my, width: mw, height: 8, rx: 4, class:'track'}, c.svg));
+        const bar = c.hid(mk('rect', {x: mx, y: my, width: mw, height: 8, rx: 4, class:'bar'}, c.svg));
+        all.push(rule, tot, mlab, track, bar);
+        return {
+          final(){ all.forEach(e => c.show(e)); bar.setAttribute('width', mw*0.12); },
+          async run(){
+            hideAll(c, all); bar.setAttribute('width', mw); await c.wait(400); c.show(mlab); c.show(track); c.show(bar); await c.wait(500);
+            for(let i = 0; i < R.length; i++){ R[i].forEach(e => c.show(e)); bar.animate([{width: bar.getAttribute('width') + 'px'}, {width: mw*(1 - (i + 1)*0.22) + 'px'}], {duration: 600, fill:'forwards'}); bar.setAttribute('width', mw*(1 - (i + 1)*0.22)); await c.wait(1000); }
+            c.show(rule); c.show(tot); await c.wait(2400);
+          }
+        };
+      }
+    },
+    /* The quantum problem: same lock, two machines */
+    quantum: {
+      h(W){ return W < 520 ? 400 : 220; },
+      build(c){
+        const narrow = c.W < 520, all = [];
+        const cols = narrow ? [{x: c.W/2, y: 0}, {x: c.W/2, y: 196}] : [{x: c.W*0.27, y: 0}, {x: c.W*0.73, y: 0}];
+        const spec = [
+          {head:'CLASSICAL COMPUTER', box:['RSA · ECC', 'factoring / discrete logs'], res:['impractical to solve'], cls:''},
+          {head:'QUANTUM COMPUTER', box:["Shor's algorithm", 'factoring and discrete logs'], res:['solvable, on a large enough', 'error-corrected machine'], cls:'frost'}
+        ];
+        const parts = spec.map((s, i)=>{
+          const {x, y} = cols[i], bw = Math.min(narrow ? c.W - 20 : c.W*0.42, 250);
+          const h = c.hid(note(c, x, y + 14, s.head, 'middle', 'head'));
+          const g = c.hid(mk('g', {class:'node ' + s.cls}, c.svg)); mk('rect', {x: x - bw/2, y: y + 28, width: bw, height: 56, rx: 10}, g);
+          s.box.forEach((line, k)=>{ const t = mk('text', {x, y: y + 51 + k*18, class:'t', 'text-anchor':'middle'}, g); t.textContent = line; });
+          const track = c.hid(mk('rect', {x: x - bw/2, y: y + 98, width: bw, height: 6, rx: 3, class:'track'}, c.svg));
+          const bar = c.hid(mk('rect', {x: x - bw/2, y: y + 98, width: 0, height: 6, rx: 3, class:'bar' + (i ? ' f' : '')}, c.svg));
+          const res = s.res.map((line, k)=>{ const t = c.hid(mk('text', {x, y: y + 128 + k*17, class:'t small' + (i ? ' fr' : ''), 'text-anchor':'middle'}, c.svg)); t.textContent = line; return t; });
+          all.push(h, g, track, bar, ...res); return {h, g, track, bar, res, bw};
+        });
+        const anim = (el, w, ms) => el.animate([{width:'0px'}, {width: w + 'px'}], {duration: ms, easing:'linear', fill:'forwards'}).finished.catch(()=>{}).then(()=>el.setAttribute('width', w));
+        return {
+          final(){ all.forEach(e => c.show(e)); parts[0].bar.setAttribute('width', parts[0].bw*0.08); parts[1].bar.setAttribute('width', parts[1].bw); },
+          async run(){
+            hideAll(c, all); parts.forEach(p => { p.bar.getAnimations().forEach(a => a.cancel()); p.bar.setAttribute('width', 0); });
+            await c.wait(400);
+            parts.forEach(p => { c.show(p.h); c.show(p.g); c.show(p.track); c.show(p.bar); }); await c.wait(600);
+            anim(parts[0].bar, parts[0].bw*0.08, 4200); await c.wait(500); await anim(parts[1].bar, parts[1].bw, 1700);
+            parts[1].g.classList.add('lit'); parts[1].res.forEach(e => c.show(e)); await c.wait(1900);
+            parts[0].res.forEach(e => c.show(e)); await c.wait(2600);
+          }
+        };
+      }
+    },
+    /* Post-quantum: two secrets, one hybrid session key */
+    pqc: {
+      h(W){ return W < 520 ? 330 : 300; },
+      build(c){
+        const W = c.W, narrow = W < 520, all = [];
+        const lx = narrow ? W*0.25 : W*0.24, rx = narrow ? W*0.75 : W*0.76, cx = W/2;
+        const inp = (x, head, lines, cls) => {
+          const h = c.hid(mk('text', {x, y: 18, class:'t ' + (cls === 'frost' ? 'fr' : 'n'), 'text-anchor':'middle'}, c.svg)); h.textContent = head;
+          const ls = lines.map((s, k)=>{ const t = c.hid(note(c, x, 38 + k*15, s)); return t; });
+          all.push(h, ...ls); return [h, ...ls];
+        };
+        const A = inp(lx, narrow ? 'QUANT-ROOM KEY' : 'QUANT-ROOM KEY (classical)', narrow ? ['256-bit, in your browser', 'in the link after #'] : ['256-bit, made in your browser', 'carried in the link after #']);
+        const B = inp(rx, narrow ? 'ML-KEM-768' : 'ML-KEM-768 SHARED SECRET', narrow ? ['agreed between browsers', 'over the data channel'] : ['agreed directly between browsers', 'over the encrypted data channel'], 'frost');
+        const hk = pill(c, cx, 150, 'HKDF-SHA-256', 'hot', 12.5); c.hid(hk.g);
+        const hkN = c.hid(note(c, cx, 180, 'one fixed, labelled derivation'));
+        const pa = path(c, `M${lx},${76} L${lx},${110} L${cx - 30},${110} L${cx - 30},${136}`, '', true), pb = path(c, `M${rx},${76} L${rx},${110} L${cx + 30},${110} L${cx + 30},${136}`, 'enc', true);
+        const po = path(c, `M${cx},${166 + 22} L${cx},${222}`, 'pq', true);
+        const key = pill(c, cx, 240, narrow ? 'SESSION KEY · AES-GCM-256' : 'HYBRID SESSION KEY · AES-GCM-256', 'hot', 12); c.hid(key.g);
+        const keyN = c.hid(note(c, cx, 274, 'used for every message in the quant-room'));
+        [pa, pb, po].forEach(p => c.hid(p)); all.push(hk.g, hkN, pa, pb, po, key.g, keyN);
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){
+            hideAll(c, all); await c.wait(400);
+            A.forEach(e => c.show(e)); await c.wait(600); B.forEach(e => c.show(e)); await c.wait(700);
+            c.show(hk.g); await Promise.all([along(c, pa, 900), along(c, pb, 900, 'msg')]); c.show(pa); c.show(pb); c.show(hkN);
+            hk.g.classList.add('lit'); await c.wait(700);
+            await along(c, po, 600); c.show(po); c.show(key.g); await c.wait(400); c.show(keyN);
+            for(let i = 0; i < 3; i++){ await c.packet(cx - 120, 296, cx + 120, 296, 650, 'msg'); }
+            await c.wait(1600);
+          }
+        };
+      }
+    },
+    /* Security architecture: what lives in your browser, what the server sees */
+    security: {
+      h(W){ return W < 520 ? 420 : 330; },
+      build(c){
+        const W = c.W, narrow = W < 520, all = [];
+        const bx = 2, bw = W - 4, by = 4, bh = narrow ? 168 : 132;
+        const browser = c.hid(mk('g', {class:'node frame'}, c.svg)); mk('rect', {x: bx, y: by, width: bw, height: bh, rx: 12}, browser);
+        const bt = mk('text', {x: bx + 14, y: by + 20, class:'t small head', 'text-anchor':'start'}, browser); bt.textContent = 'YOUR BROWSER';
+        // inside: two secrets -> HKDF -> session key -> AES-GCM
+        const k1 = pill(c, narrow ? W*0.3 : W*0.16, by + 52, 'quant-room key', '', 11), k2 = pill(c, narrow ? W*0.7 : W*0.16, by + (narrow ? 52 : 96), 'ML-KEM-768', 'frost', 11);
+        const hk = pill(c, narrow ? W*0.5 : W*0.42, by + (narrow ? 104 : 74), 'HKDF → session key', '', 11);
+        const ae = pill(c, narrow ? W*0.5 : W*0.74, by + (narrow ? 146 : 74), 'AES-GCM', 'hot', 11);
+        const p1 = narrow ? path(c, `M${k1.cx},${k1.cy + 13} L${k1.cx},${hk.cy - 20} L${hk.cx - 20},${hk.cy - 20} L${hk.cx - 20},${hk.cy - 14}`, '', true) : path(c, `M${k1.cx + k1.w/2 + 4},${k1.cy} L${hk.cx - hk.w/2 - 20},${k1.cy} L${hk.cx - hk.w/2 - 20},${hk.cy - 6} L${hk.cx - hk.w/2 - 6},${hk.cy - 6}`, '', true);
+        const p2 = narrow ? path(c, `M${k2.cx},${k2.cy + 13} L${k2.cx},${hk.cy - 20} L${hk.cx + 20},${hk.cy - 20} L${hk.cx + 20},${hk.cy - 14}`, 'enc', true) : path(c, `M${k2.cx + k2.w/2 + 4},${k2.cy} L${hk.cx - hk.w/2 - 20},${k2.cy} L${hk.cx - hk.w/2 - 20},${hk.cy + 6} L${hk.cx - hk.w/2 - 6},${hk.cy + 6}`, 'enc', true);
+        const p3 = narrow ? path(c, `M${hk.cx},${hk.cy + 14} L${ae.cx},${ae.cy - 14}`, 'pq', true) : path(c, `M${hk.cx + hk.w/2 + 4},${hk.cy} L${ae.cx - ae.w/2 - 6},${ae.cy}`, 'pq', true);
+        // outside: the server (signaling) and the data channel (ciphertext)
+        const oy = by + bh + (narrow ? 54 : 58);
+        const sx = narrow ? W/2 - 12 : W*0.22, dx = narrow ? W/2 - 12 : W*0.74, sy = oy + (narrow ? 0 : 30), dy = narrow ? oy + 90 : oy + 30;
+        const srv = c.hid(mk('g', {class:'node'}, c.svg)), sw = Math.min(narrow ? W - 60 : W*0.38, 260);
+        mk('rect', {x: sx - sw/2, y: sy - 26, width: sw, height: 64, rx: 10}, srv);
+        [['POOF SERVER', 't'], ['quant-room id + expiry, in memory', 't small'], ['no message storage', 't small']].forEach(([s, cl], k)=>{ const t = mk('text', {x: sx, y: sy - 8 + k*16, class: cl, 'text-anchor':'middle'}, srv); t.textContent = s; });
+        const dc = c.hid(mk('g', {class:'node frost'}, c.svg));
+        mk('rect', {x: dx - sw/2, y: dy - 26, width: sw, height: 64, rx: 10}, dc);
+        [['WEBRTC DATA CHANNEL', 't'], ['direct, or via a TURN relay', 't small'], ['ciphertext only', 't small']].forEach(([s, cl], k)=>{ const t = mk('text', {x: dx, y: dy - 8 + k*16, class: cl, 'text-anchor':'middle'}, dc); t.textContent = s; });
+        const sigP = narrow ? path(c, `M${W*0.18},${by + bh + 2} L${W*0.18},${sy - 30}`, 'dash', true) : path(c, `M${sx},${by + bh + 2} L${sx},${sy - 30}`, 'dash', true);
+        const sigN = c.hid(note(c, narrow ? W*0.18 + 8 : sx + 8, by + bh + 26, 'signaling: no keys, no content', 'start'));
+        const ctP = narrow ? path(c, `M${ae.cx + ae.w/2 + 4},${ae.cy} L${W - 12},${ae.cy} L${W - 12},${dy + 6} L${dx + sw/2 + 6},${dy + 6}`, 'pq', true) : path(c, `M${ae.cx},${ae.cy + 14} L${ae.cx},${dy - 30}`, 'pq', true);
+        [p1, p2, p3, sigP, ctP].forEach(p => c.hid(p));
+        [k1, k2, hk, ae].forEach(n => c.hid(n.g));
+        all.push(browser, k1.g, k2.g, hk.g, ae.g, p1, p2, p3, srv, dc, sigP, sigN, ctP);
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){
+            hideAll(c, all); await c.wait(400);
+            c.show(browser); await c.wait(400); c.show(k1.g); await c.wait(300); c.show(k2.g); await c.wait(400);
+            c.show(hk.g); await Promise.all([along(c, p1, 600), along(c, p2, 600, 'msg')]); c.show(p1); c.show(p2); hk.g.classList.add('lit'); await c.wait(300);
+            c.show(ae.g); await along(c, p3, 450); c.show(p3); await c.wait(400);
+            c.show(srv); await along(c, sigP, 700); c.show(sigP); c.show(sigN); await c.wait(500);
+            c.show(dc); for(let i = 0; i < 2; i++){ await along(c, ctP, 700); } c.show(ctP); await c.wait(2200);
+          }
+        };
+      }
+    },
+    /* Developer guide: the handshake between two browsers */
+    handshake: {
+      steps: [
+        ['A', 'key K = random 256 bits (fragment)'], ['B', 'reads K from the fragment'],
+        ['>', 'SDP offer / ICE via signaling'], ['<', 'SDP answer / ICE'], ['=', 'data channel open (DTLS)', 'enc'],
+        ['A', '(pk, sk) = ML-KEM.KeyGen()'], ['>', '1  public key pk'],
+        ['B', '(ct, ss) = ML-KEM.Encaps(pk)'], ['B', 'cB = HMAC(ss, label_B)'], ['<', '2  ciphertext ct + proof cB'],
+        ['A', 'ss = Decaps(sk, ct) · check cB'], ['>', '3  proof cA = HMAC(ss, label_A)'], ['B', 'check cA'],
+        ['=', 'S = HKDF(salt = K, ikm = ss, info)', 'pq'], ['=', 'each message: AES-GCM(S, IV, text)', 'pq']
+      ],
+      h(){ return 56 + this.steps.length*32 + 20; },
+      build(c){
+        const W = c.W, XA = Math.max(30, W*0.08), XB = Math.min(W - 30, W*0.92), all = [], R = [];
+        [['CLIENT A', XA], ['CLIENT B', XB]].forEach(([n, x], i)=>{
+          const w = n.length*7.2 + 22; mk('rect', {x: x - w/2, y: 6, width: w, height: 24, rx: 12, class:'lane-box'}, c.svg);
+          const t = mk('text', {x, y: 22, class:'t lane', 'text-anchor':'middle'}, c.svg); t.textContent = n;
+          mk('line', {x1: x, y1: 34, x2: x, y2: c.H - 6, class:'life'}, c.svg);
+        });
+        this.steps.forEach(([k, s, cls], i)=>{
+          const y = 62 + i*32, els = [];
+          if(k === 'A' || k === 'B'){
+            const x = k === 'A' ? XA : XB;
+            els.push(mk('rect', {x: x - 4, y: y - 9, width: 8, height: 8, class:'chip' + (k === 'B' ? '' : ' r')}, c.svg));
+            const t = mk('text', {x: W/2, y, class:'t small', 'text-anchor':'middle'}, c.svg); t.textContent = (k === 'A' ? 'A · ' : 'B · ') + s; els.push(t);
+          } else {
+            const t = mk('text', {x: W/2, y: y - 4, class:'t lbl', 'text-anchor':'middle'}, c.svg); t.textContent = s; els.push(t);
+            if(k === '=') { els.push(c.line(XA + 6, y + 6, XB - 6, y + 6, cls || 'enc'), c.line(XA + 6, y + 10, XB - 6, y + 10, cls || 'enc', 'both')); }
+            else els.push(c.line(k === '>' ? XA + 6 : XB - 6, y + 8, k === '>' ? XB - 6 : XA + 6, y + 8, '', 'end'));
+          }
+          els.forEach(e => c.hid(e)); all.push(...els); R.push({k, y, els});
+        });
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){
+            hideAll(c, all); await c.wait(500);
+            for(const r of R){
+              if(r.k === '>' || r.k === '<'){ c.show(r.els[0]); await c.packet(r.k === '>' ? XA : XB, r.y + 8, r.k === '>' ? XB : XA, r.y + 8, 650); c.show(r.els[1]); }
+              else { r.els.forEach(e => c.show(e)); }
+              await c.wait(r.k === '=' ? 650 : 420);
+            }
+            await c.wait(2200);
+          }
+        };
+      }
+    },
+    /* Developer guide: what one encrypted message looks like on the wire */
+    wire: {
+      h(){ return 190; },
+      build(c){
+        const W = c.W, all = [], x0 = 10, w = W - 20;
+        const seg = (x, y, sw, s, cls) => { const g = c.hid(mk('g', {class:'seg ' + (cls || '')}, c.svg)); mk('rect', {x, y, width: sw, height: 30, rx: 6}, g); const t = mk('text', {x: x + sw/2, y: y + 19, class:'t small', 'text-anchor':'middle'}, g); t.textContent = s; return g; };
+        const t1 = c.hid(note(c, x0, 18, 'ONE MESSAGE', 'start', 'head'));
+        const iv = w*0.2, tag = w*0.2, ctw = w - iv - tag - 8;
+        const nw = W < 520, sIV = seg(x0, 30, iv, nw ? 'IV 12B' : 'IV · 12 bytes', 'f'), sCT = seg(x0 + iv + 4, 30, ctw, nw ? 'ciphertext' : 'AES-GCM ciphertext'), sTag = seg(x0 + iv + ctw + 8, 30, tag, nw ? 'tag 16B' : 'tag · 16 bytes', 'r');
+        const b64 = c.hid(path(c, `M${x0},${70} L${x0},${78} L${x0 + w},${78} L${x0 + w},${70}`, ''));
+        const b64t = c.hid(note(c, W/2, 96, W < 520 ? 'sent as base64(IV ‖ ct + tag)' : 'sent as base64( IV ‖ ciphertext + tag )'));
+        const t2 = c.hid(note(c, x0, 126, 'FILES', 'start', 'head'));
+        const n = W < 520 ? 3 : 5, cw = (w - (n - 1)*6)/n, chunks = [];
+        for(let i = 0; i < n; i++){ chunks.push(seg(x0 + i*(cw + 6), 138, cw, W < 520 ? 'chunk' : 'IV ‖ chunk ‖ tag', i % 2 ? 'r' : 'f')); }
+        const ft = c.hid(note(c, W/2, 186, 'each chunk is locked on its own'));
+        all.push(t1, sIV, sCT, sTag, b64, b64t, t2, ...chunks, ft);
+        return {
+          final(){ all.forEach(e => c.show(e)); },
+          async run(){
+            hideAll(c, all); await c.wait(400); c.show(t1); await c.wait(300);
+            c.show(sIV); await c.wait(500); c.show(sCT); await c.wait(500); c.show(sTag); await c.wait(600);
+            await drawPath(c, b64, 500); c.show(b64t); await c.wait(900);
+            c.show(t2); for(const k of chunks){ c.show(k); await c.wait(280); } c.show(ft); await c.wait(2600);
+          }
+        };
+      }
+    }
+  });
+
+  document.querySelectorAll('figure.flow[data-flow]').forEach(Flow);
 })();
 </script>
 </body>
