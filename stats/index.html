@@ -110,7 +110,7 @@ html.fox-live .fox-slot img{visibility:hidden}
 .sec-h h2{font:600 13px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .sec-h p{font:500 12px var(--mono);color:var(--ink-3)}
 .grid{display:grid;gap:clamp(12px,1.6vw,18px)}
-.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g4{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.45fr)}   /* the token card (last) is wider: its numbers are the longest */
 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .g57{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
 .g75{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
@@ -125,7 +125,7 @@ html.fox-live .fox-slot img{visibility:hidden}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pair div{min-width:0}
 .per{font:500 11px var(--mono);letter-spacing:.08em;color:var(--ink-3);margin-bottom:4px}
-.big{font:600 clamp(26px,2.4vw,36px)/1.05 var(--sans);letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{font:600 clamp(26px,2.4vw,36px)/1.05 var(--sans);letter-spacing:-.04em;white-space:nowrap;overflow:hidden}   /* never cut: fitNums() shrinks a card's numbers to fit */
 .big small{font:500 12px var(--mono);letter-spacing:0;margin-left:4px;color:var(--ink-3)}
 .usd{font:500 12.5px var(--mono);color:var(--ink-2);margin-top:4px;white-space:nowrap}
 .usd.na{color:var(--ink-3)}
@@ -176,10 +176,11 @@ html.fox-live .fox-slot img{visibility:hidden}
 .mini svg{width:14px;height:14px}
 .type{display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 9px;border-radius:999px;font:600 10.5px var(--mono);letter-spacing:.05em;white-space:nowrap;justify-self:start}
 .type.super{background:var(--rust);color:#1d1f2b}
-.type.classic{box-shadow:inset 0 0 0 1.5px var(--ink);color:var(--ink)}
+.type.ai{box-shadow:inset 0 0 0 1.5px var(--rust);color:var(--ink)}
 .type i{width:8px;height:8px}
 .type.super i{background:repeating-conic-gradient(#1d1f2b 0 25%,transparent 0 50%) 0 0/4px 4px}
-.type.classic i{background:var(--ink)}
+.type.ai i{background:var(--rust)}
+.ai-ic{font:700 9.5px/1 var(--mono);letter-spacing:.02em;color:#e8661f}   /* "AI" mark for Super Quant-Room + AI */
 .tx .amt{font:600 15px var(--mono);letter-spacing:-.02em;white-space:nowrap}
 .tx .amt small{font-weight:500;font-size:11.5px;color:var(--ink-3);margin-left:4px}
 .tx .amtc{display:block;min-width:0}
@@ -298,17 +299,18 @@ html.fox-live .fox-slot img{visibility:hidden}
         <p class="lbl"><svg class="ico" viewBox="0 0 4 4" shape-rendering="crispEdges" aria-hidden="true" fill="#e8661f"><rect x="1" width="1" height="1"/><rect x="3" width="1" height="1"/><rect y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/></svg> Super Quant-Rooms</p>
         <div class="pair"><div><p class="per">TODAY</p><p class="big num" data-k="rooms.super.today"><span class="sk"></span></p></div><div><p class="per">ALL TIME</p><p class="big num" data-k="rooms.super.all"><span class="sk"></span></p></div></div>
       </article>
+      <article class="card kpi">
+        <p class="lbl"><span class="ai-ic" aria-hidden="true">AI</span> Super + AI Quant-Rooms</p>
+        <div class="pair"><div><p class="per">TODAY</p><p class="big num" data-k="rooms.ai.today"><span class="sk"></span></p></div><div><p class="per">ALL TIME</p><p class="big num" data-k="rooms.ai.all"><span class="sk"></span></p></div></div>
+      </article>
       <article class="card kpi rust">
-        <p class="lbl"><svg class="ico" viewBox="0 0 7 8" shape-rendering="crispEdges" aria-hidden="true" fill="currentColor"><rect x="3" width="1" height="1"/><rect x="2" y="1" width="2" height="1"/><rect x="2" y="2" width="3" height="1"/><rect x="1" y="3" width="4" height="1"/><rect x="1" y="4" width="5" height="1"/><rect x="1" y="5" width="2" height="1"/><rect x="4" y="5" width="2" height="1"/><rect x="1" y="6" width="5" height="1"/><rect x="2" y="7" width="3" height="1"/></svg> Tokens Burned</p>
+        <p class="lbl"><svg class="ico" viewBox="0 0 7 8" shape-rendering="crispEdges" aria-hidden="true" fill="currentColor"><rect x="3" width="1" height="1"/><rect x="2" y="1" width="2" height="1"/><rect x="2" y="2" width="3" height="1"/><rect x="1" y="3" width="4" height="1"/><rect x="1" y="4" width="5" height="1"/><rect x="1" y="5" width="2" height="1"/><rect x="4" y="5" width="2" height="1"/><rect x="1" y="6" width="5" height="1"/><rect x="2" y="7" width="3" height="1"/></svg> Tokens Burned · <span class="sym">POOF</span></p>
         <div class="pair">
-          <div><p class="per">TODAY</p><p class="big num"><span data-k="burn.today.amount" data-f="tok"><span class="sk"></span></span><small class="sym">POOF</small></p><p class="usd num" data-usd="burn.today.amount">&nbsp;</p></div>
-          <div><p class="per">ALL TIME</p><p class="big num"><span data-k="burn.all.amount" data-f="tok"><span class="sk"></span></span><small class="sym">POOF</small></p><p class="usd num" data-usd="burn.all.amount">&nbsp;</p></div>
+          <div><p class="per">TODAY</p><p class="big num"><span data-k="burn.today.amount" data-f="tok"><span class="sk"></span></span></p><p class="usd num" data-usd="burn.today.amount">&nbsp;</p></div>
+          <div><p class="per">ALL TIME</p><p class="big num"><span data-k="burn.all.amount" data-f="tok"><span class="sk"></span></span></p><p class="usd num" data-usd="burn.all.amount">&nbsp;</p></div>
         </div>
       </article>
-      <article class="card kpi">
-        <p class="lbl"><svg class="ico" viewBox="0 0 6 6" shape-rendering="crispEdges" aria-hidden="true" fill="currentColor"><rect width="6" height="1"/><rect y="2" width="4" height="1"/><rect y="4" width="5" height="1"/><rect x="5" y="2" width="1" height="1"/></svg> Burn Transactions</p>
-        <div class="pair"><div><p class="per">TODAY</p><p class="big num" data-k="burn.today.count"><span class="sk"></span></p></div><div><p class="per">ALL TIME</p><p class="big num" data-k="burn.all.count"><span class="sk"></span></p></div></div>
-      </article>
+
     </div>
   </section>
 
@@ -317,8 +319,9 @@ html.fox-live .fox-slot img{visibility:hidden}
     <section aria-labelledby="rcH">
       <div class="sec-h"><h2 id="rcH">Quant-room creation</h2><p>updates as quant-rooms open</p></div>
       <div class="card rooms">
-        <div class="row"><h3>Quant-Rooms</h3><div class="vals"><div><span>TODAY</span><b class="num" data-k="rooms.classic.today"><span class="sk"></span></b></div><div><span>ALL TIME</span><b class="num" data-k="rooms.classic.all"><span class="sk"></span></b></div></div></div>
-        <div class="row"><h3>Super Quant-Rooms</h3><div class="vals"><div><span>TODAY</span><b class="num" data-k="rooms.super.today"><span class="sk"></span></b></div><div><span>ALL TIME</span><b class="num" data-k="rooms.super.all"><span class="sk"></span></b></div></div></div>
+        <div class="row"><h3>Quant-Rooms</h3><div class="vals"><div><span>PER HOUR · TODAY</span><b class="num" data-k="pace.classic" data-f="dec1"><span class="sk"></span></b></div></div></div>
+        <div class="row"><h3>Super Quant-Rooms</h3><div class="vals"><div><span>PER HOUR · TODAY</span><b class="num" data-k="pace.sup" data-f="dec1"><span class="sk"></span></b></div></div></div>
+        <div class="row"><h3>Super + AI Quant-Rooms</h3><div class="vals"><div><span>PER HOUR · TODAY</span><b class="num" data-k="pace.ai" data-f="dec1"><span class="sk"></span></b></div></div></div>
         <div class="split">
           <p><span>TODAY</span><span id="shareToday">…</span></p>
           <div class="bar" id="barToday" role="img" aria-label="Classic and Super Quant-Rooms today"><i class="c" style="flex-grow:1"></i><i class="s" style="flex-grow:1"></i></div>
@@ -333,16 +336,16 @@ html.fox-live .fox-slot img{visibility:hidden}
       <div class="card rust burn">
         <div class="periods">
           <div>
-            <p class="per">TODAY</p>
-            <p class="amt num"><span data-k="burn.today.amount" data-f="tok"><span class="sk"></span></span><small class="sym">POOF</small></p>
-            <p class="usd num" data-usd="burn.today.amount">&nbsp;</p>
-            <p class="cnt"><span class="num" data-k="burn.today.count">…</span> burn transactions</p>
+            <p class="per">AVERAGE BURN · TODAY</p>
+            <p class="amt num"><span data-k="avg.today" data-f="tok"><span class="sk"></span></span><small class="sym">POOF</small></p>
+            <p class="usd num" data-usd="avg.today">&nbsp;</p>
+            <p class="cnt">per burn transaction</p>
           </div>
           <div>
-            <p class="per">ALL TIME</p>
-            <p class="amt num"><span data-k="burn.all.amount" data-f="tok"><span class="sk"></span></span><small class="sym">POOF</small></p>
-            <p class="usd num" data-usd="burn.all.amount">&nbsp;</p>
-            <p class="cnt"><span class="num" data-k="burn.all.count">…</span> burn transactions</p>
+            <p class="per">AVERAGE BURN · ALL TIME</p>
+            <p class="amt num"><span data-k="avg.all" data-f="tok"><span class="sk"></span></span><small class="sym">POOF</small></p>
+            <p class="usd num" data-usd="avg.all">&nbsp;</p>
+            <p class="cnt">per burn transaction</p>
           </div>
         </div>
         <p class="price" id="priceRow"><span>1 <span class="sym">POOF</span> = <b id="price">…</b></span><span id="priceAge"></span></p>
@@ -363,20 +366,9 @@ html.fox-live .fox-slot img{visibility:hidden}
   <!-- BURN BREAKDOWN + ACTIVITY -->
   <div class="grid g75 sec">
     <section aria-labelledby="bdH">
-      <div class="sec-h"><h2 id="bdH">Burn breakdown</h2><p>by quant-room type</p></div>
+      <div class="sec-h"><h2 id="bdH">Burn breakdown</h2><p>only Super Quant-Rooms burn tokens</p></div>
       <div class="grid g2">
         <div class="card bd">
-          <h3><svg class="ico" viewBox="0 0 4 4" shape-rendering="crispEdges" aria-hidden="true"><rect width="4" height="4" fill="currentColor"/></svg> Quant-Room Burns</h3>
-          <table>
-            <thead><tr><th scope="col"><span class="sr">Measure</span></th><th scope="col">TODAY</th><th scope="col">ALL TIME</th></tr></thead>
-            <tbody>
-              <tr><td>Burned</td><td class="num"><span data-k="burns.classic.today.amount" data-f="tok">…</span></td><td class="num"><span data-k="burns.classic.all.amount" data-f="tok">…</span></td></tr>
-              <tr><td>USD</td><td class="num" data-usd="burns.classic.today.amount">…</td><td class="num" data-usd="burns.classic.all.amount">…</td></tr>
-              <tr><td>Transactions</td><td class="num" data-k="burns.classic.today.count">…</td><td class="num" data-k="burns.classic.all.count">…</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="card bd dark">
           <h3><svg class="ico" viewBox="0 0 4 4" shape-rendering="crispEdges" aria-hidden="true" fill="#e8661f"><rect x="1" width="1" height="1"/><rect x="3" width="1" height="1"/><rect y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/></svg> Super Quant-Room Burns</h3>
           <table>
             <thead><tr><th scope="col"><span class="sr">Measure</span></th><th scope="col">TODAY</th><th scope="col">ALL TIME</th></tr></thead>
@@ -387,13 +379,24 @@ html.fox-live .fox-slot img{visibility:hidden}
             </tbody>
           </table>
         </div>
+        <div class="card bd dark">
+          <h3><span class="ai-ic" aria-hidden="true">AI</span> Super + AI Burns</h3>
+          <table>
+            <thead><tr><th scope="col"><span class="sr">Measure</span></th><th scope="col">TODAY</th><th scope="col">ALL TIME</th></tr></thead>
+            <tbody>
+              <tr><td>Burned</td><td class="num"><span data-k="burns.ai.today.amount" data-f="tok">…</span></td><td class="num"><span data-k="burns.ai.all.amount" data-f="tok">…</span></td></tr>
+              <tr><td>USD</td><td class="num" data-usd="burns.ai.today.amount">…</td><td class="num" data-usd="burns.ai.all.amount">…</td></tr>
+              <tr><td>Transactions</td><td class="num" data-k="burns.ai.today.count">…</td><td class="num" data-k="burns.ai.all.count">…</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="card share">
         <div class="split" style="margin:0">
           <p style="margin-top:0"><span>SHARE OF TOKENS BURNED · TODAY</span><span id="bShareToday">…</span></p>
-          <div class="bar" id="bBarToday" role="img" aria-label="Share of tokens burned today by quant-room type"><i class="c" style="flex-grow:1"></i><i class="s" style="flex-grow:1"></i></div>
+          <div class="bar" id="bBarToday" role="img" aria-label="Share of tokens burned today: Super Quant-Room and Super Quant-Room with AI"><i class="c" style="flex-grow:1"></i><i class="s" style="flex-grow:1"></i></div>
           <p><span>ALL TIME</span><span id="bShareAll">…</span></p>
-          <div class="bar" id="bBarAll" role="img" aria-label="Share of tokens burned all time by quant-room type"><i class="c" style="flex-grow:1"></i><i class="s" style="flex-grow:1"></i></div>
+          <div class="bar" id="bBarAll" role="img" aria-label="Share of tokens burned all time: Super Quant-Room and Super Quant-Room with AI"><i class="c" style="flex-grow:1"></i><i class="s" style="flex-grow:1"></i></div>
         </div>
       </div>
     </section>
@@ -908,17 +911,18 @@ const CONFIG = {
      subscribe(fn)     -> unsubscribe()       pushes Events as they happen
    Snapshot = {
      price: {usd, at} | null,
-     rooms: {classic:{today, all}, super:{today, all}},
-     burns: {classic:{today:{amount,count}, all:{amount,count}}, super:{...}},
+     rooms: {classic:{today, all}, super:{today, all}, ai:{today, all}}   classic = free Quant-Room, super = Super Quant-Room
+                                                                          without the AI, ai = Super Quant-Room with the AI model
+     burns: {super:{today:{amount,count}, all:{amount,count}}, ai:{...}}   only Super Quant-Rooms burn tokens
      txs:   [Tx]   newest first
      activity: [Activity] newest first
    }
-   Tx       = {hash, kind:'classic'|'super', amount, status:'pending'|'confirmed'|'failed', block, at}
-   Event    = {type:'room', kind, at}
+   Tx       = {hash, kind:'super'|'ai', amount, status:'pending'|'confirmed'|'failed', block, at}
+   Event    = {type:'room', kind:'classic'|'super'|'ai', life?, people?, at}   life in seconds, people = humans
             | {type:'burn', tx}                      a new burn (usually pending)
             | {type:'tx', hash, status, block, at}   a burn confirmed or failed
             | {type:'price', usd, at}
-   Activity = {type:'room'|'burn', kind, amount?, at}
+   Activity = {type:'room'|'burn', kind, amount?, life?, people?, at}
    Totals only ever count confirmed burns. Times are milliseconds since epoch; "today" is the UTC day.
    ===================================================================== */
 const DataSources = {
@@ -927,26 +931,29 @@ const DataSources = {
     const rnd = (a, b) => a + Math.random()*(b - a);
     const hex = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, '0')).join('');
     let block = 18402117, price = 0.0412, subs = [];
-    const roomUsd = () => +(0.49 + Math.floor(rnd(0, 9))*0.049).toFixed(3);   // Super Room prices from the site
+    // a Super Quant-Room as sold on the site: lifetime, people, optional AI model (+$2 / +$5), price in USD
+    const pick = ai => { const life = Math.random() < .7 ? 3600 : 86400, people = ai ? Math.floor(rnd(1, 4)) : Math.floor(rnd(2, 11));
+      const usd = (life === 3600 ? 0.49 + (people - 2)*0.049 : 1.49 + (people - 2)*0.009) + (ai ? (life === 3600 ? 2 : 5) : 0);
+      return {life, people, usd: Math.max(0.49, +usd.toFixed(3))}; };
     const now = Date.now(), dayStart = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
     const sinceMidnight = (now - dayStart)/864e5;
     const txs = [], activity = [];
     let at = now - rnd(5e3, 20e3), bk = block;
     for(let i=0; i<14; i++){
       at -= rnd(40e3, 160e3); bk -= Math.floor(rnd(8, 40));
-      const kind = Math.random() < .82 ? 'super' : 'classic';
-      const amount = kind === 'super' ? roomUsd()/price : rnd(1, 6);
+      const kind = Math.random() < .3 ? 'ai' : 'super', r = pick(kind === 'ai'), amount = r.usd/price;
       txs.push({hash:'0x' + hex(32), kind, amount, status:'confirmed', block:bk, at});
       activity.push({type:'burn', kind, amount, at});
-      activity.push({type:'room', kind, at: at - 1500});
+      activity.push({type:'room', kind, life:r.life, people:r.people, at: at - 1500});
+      if(Math.random() < .7) activity.push({type:'room', kind:'classic', at: at - rnd(5e3, 30e3)});
     }
-    const cT = Math.round(310*sinceMidnight + 4), sT = Math.round(58*sinceMidnight + 1);
+    const cT = Math.round(310*sinceMidnight + 4), sT = Math.round(41*sinceMidnight + 1), aT = Math.round(17*sinceMidnight + 1);
     const snap = {
       price: {usd: price, at: now},
-      rooms: {classic:{today:cT, all:41862 + cT}, super:{today:sT, all:6215 + sT}},
+      rooms: {classic:{today:cT, all:41862 + cT}, super:{today:sT, all:4380 + sT}, ai:{today:aT, all:1835 + aT}},
       burns: {
-        classic:{today:{amount:sT*0.09*3.1, count:Math.round(sT*0.09)}, all:{amount:1907.42, count:612}},
-        super:{today:{amount:sT*16.4, count:sT}, all:{amount:98213.55, count:6215 + sT}}
+        super:{today:{amount:sT*16.4, count:sT}, all:{amount:71802.31, count:4380 + sT}},
+        ai:{today:{amount:aT*101.2, count:aT}, all:{amount:186240.75, count:1835 + aT}}
       },
       txs, activity: activity.sort((a, b) => b.at - a.at)
     };
@@ -955,19 +962,16 @@ const DataSources = {
       setTimeout(()=>{
         const r = Math.random();
         if(r < .58){ emit({type:'room', kind:'classic', at:Date.now()}); }
-        else if(r < .9){
-          const tx = {hash:'0x' + hex(32), kind:'super', amount:roomUsd()/price, status:'pending', block:null, at:Date.now()};
+        else {   // a Super Quant-Room: the burn first, the room opens once it confirms
+          const kind = r < .86 ? 'super' : 'ai', room = pick(kind === 'ai');
+          const tx = {hash:'0x' + hex(32), kind, amount:room.usd/price, status:'pending', block:null, at:Date.now()};
           emit({type:'burn', tx});
           setTimeout(()=>{
             block += Math.floor(rnd(2, 9));
             const failed = Math.random() < .04;
             emit({type:'tx', hash:tx.hash, status: failed ? 'failed' : 'confirmed', block, at:Date.now()});
-            if(!failed) emit({type:'room', kind:'super', at:Date.now()});
+            if(!failed) emit({type:'room', kind, life:room.life, people:room.people, at:Date.now()});
           }, rnd(1800, 4200));
-        } else {
-          const tx = {hash:'0x' + hex(32), kind:'classic', amount:rnd(1, 6), status:'pending', block:null, at:Date.now()};
-          emit({type:'burn', tx});
-          setTimeout(()=>{ block += 3; emit({type:'tx', hash:tx.hash, status:'confirmed', block, at:Date.now()}); }, rnd(1800, 3600));
         }
         loop();
       }, rnd(2200, 6500));
@@ -1025,6 +1029,17 @@ const DataSources = {
   /* ---------- formatting ---------- */
   const compact = (n, d=2) => n >= 1e9 ? (n/1e9).toFixed(d) + 'B' : n >= 1e6 ? (n/1e6).toFixed(d) + 'M' : null;
   const fInt = n => compact(n) || Math.round(n).toLocaleString('en-US');
+  const fDec1 = n => n.toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1});
+  // overview cards: if a number is wider than its column, shrink that card's numbers together until the whole number fits
+  function fitNums(){
+    $$('.kpi').forEach(card => {
+      const nums = $$('.big', card); nums.forEach(n => n.style.fontSize = '');
+      const over = () => nums.some(n => n.scrollWidth > n.clientWidth + 0.5);
+      let px = parseFloat(getComputedStyle(nums[0]).fontSize);
+      while(over() && px > 12){ px -= 1; nums.forEach(n => n.style.fontSize = px + 'px'); }   // step down until every number fits whole
+    });
+  }
+  addEventListener('resize', () => { clearTimeout(fitNums.r); fitNums.r = setTimeout(fitNums, 120); });
   const fTok = n => compact(n) || n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   const fUsd = n => n > 0 && n < 0.01 ? '<$0.01' : '$' + (compact(n) || n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}));
   const fPrice = n => '$' + (n < 1 ? n.toPrecision(3) : n.toFixed(2));
@@ -1038,13 +1053,19 @@ const DataSources = {
   const get = (o, path) => path.split('.').reduce((a, k) => a && a[k], o);
   function derived(){
     const b = S.burns;
-    return {
+    const D0 = {
       rooms: S.rooms, burns: b,
       burn: {
-        today: {amount: b.classic.today.amount + b.super.today.amount, count: b.classic.today.count + b.super.today.count},
-        all: {amount: b.classic.all.amount + b.super.all.amount, count: b.classic.all.count + b.super.all.count}
+        today: {amount: b.super.today.amount + b.ai.today.amount, count: b.super.today.count + b.ai.today.count},
+        all: {amount: b.super.all.amount + b.ai.all.amount, count: b.super.all.count + b.ai.all.count}
       }
     };
+    const t = D0.burn.today, a = D0.burn.all, hrs = Math.max(1/60, (Date.now() % 864e5) / 36e5);   // hours since 00:00 UTC
+    D0.avg = {today: t.count ? t.amount / t.count : 0, all: a.count ? a.amount / a.count : 0};
+    const R = S.rooms;
+    D0.superAll = {today: R.super.today + R.ai.today, all: R.super.all + R.ai.all};   // every Super Quant-Room, with or without the AI
+    D0.pace = {classic: R.classic.today / hrs, sup: R.super.today / hrs, ai: R.ai.today / hrs};
+    return D0;
   }
   const priceOk = () => S.price && S.price.usd > 0 && (Date.now() - S.price.at)/1000 <= CONFIG.priceMaxAge;
 
@@ -1060,7 +1081,8 @@ const DataSources = {
   function render(){
     if(!S.ready) return;
     const D = derived();
-    $$('[data-k]').forEach(el => { const v = get(D, el.dataset.k); if(v == null) return; tween(el, v, el.dataset.f === 'tok' ? fTok : fInt); el._v0 = v; });
+    $$('[data-k]').forEach(el => { const v = get(D, el.dataset.k); if(v == null) return; tween(el, v, el.dataset.f === 'tok' ? fTok : el.dataset.f === 'dec1' ? fDec1 : fInt); el._v0 = v; });
+    fitNums(); clearTimeout(fitNums.t); fitNums.t = setTimeout(fitNums, 700);   // again after the number animation
     const ok = priceOk();
     $$('[data-usd]').forEach(el => {
       const v = get(D, el.dataset.usd);
@@ -1070,23 +1092,28 @@ const DataSources = {
     });
     $('#price').textContent = S.price ? fPrice(S.price.usd) : 'unavailable';
     $('#priceAge').textContent = !S.price ? 'USD values hidden until a price arrives' : ok ? 'updated ' + rel(S.price.at) : 'price is stale, USD values hidden';
-    const bar = (id, c, s, lbl) => { const el = $(id), t = c + s; $('.c', el).style.flexGrow = t ? c : 1; $('.s', el).style.flexGrow = t ? s : 1;
-      $(lbl).textContent = t ? Math.round(c/t*100) + '% quant-room · ' + Math.round(s/t*100) + '% super' : 'no data yet'; };
-    bar('#barToday', S.rooms.classic.today, S.rooms.super.today, '#shareToday');
-    bar('#barAll', S.rooms.classic.all, S.rooms.super.all, '#shareAll');
-    bar('#bBarToday', S.burns.classic.today.amount, S.burns.super.today.amount, '#bShareToday');
-    bar('#bBarAll', S.burns.classic.all.amount, S.burns.super.all.amount, '#bShareAll');
+    const bar = (id, c, s, lbl, a, b) => { const el = $(id), t = c + s; $('.c', el).style.flexGrow = t ? c : 1; $('.s', el).style.flexGrow = t ? s : 1;
+      $(lbl).textContent = t ? Math.round(c/t*100) + '% ' + a + ' · ' + Math.round(s/t*100) + '% ' + b : 'no data yet'; };
+    bar('#barToday', S.rooms.classic.today, D.superAll.today, '#shareToday', 'quant-room', 'super');
+    bar('#barAll', S.rooms.classic.all, D.superAll.all, '#shareAll', 'quant-room', 'super');
+    bar('#bBarToday', S.burns.super.today.amount, S.burns.ai.today.amount, '#bShareToday', 'super', 'super + AI');
+    bar('#bBarAll', S.burns.super.all.amount, S.burns.ai.all.amount, '#bShareAll', 'super', 'super + AI');
     $('#txCount').textContent = fInt(D.burn.all.count) + ' burns all time';
   }
 
   /* ---------- feeds ---------- */
   const ICON = {
     classic: '<svg viewBox="0 0 4 4" shape-rendering="crispEdges" aria-hidden="true"><rect width="4" height="4" fill="currentColor"/></svg>',
+    ai: '<span class="ai-ic" aria-hidden="true">AI</span>',
     super: '<svg viewBox="0 0 4 4" shape-rendering="crispEdges" aria-hidden="true" fill="#e8661f"><rect x="1" width="1" height="1"/><rect x="3" width="1" height="1"/><rect y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/></svg>',
     burn: '<svg viewBox="0 0 7 8" shape-rendering="crispEdges" aria-hidden="true" fill="#e8661f"><rect x="3" width="1" height="1"/><rect x="2" y="1" width="2" height="1"/><rect x="2" y="2" width="3" height="1"/><rect x="1" y="3" width="4" height="1"/><rect x="1" y="4" width="5" height="1"/><rect x="1" y="5" width="2" height="1"/><rect x="4" y="5" width="2" height="1"/><rect x="1" y="6" width="5" height="1"/><rect x="2" y="7" width="3" height="1"/></svg>'
   };
   const COPY = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6" y="6" width="9.5" height="9.5" rx="2"/><path d="M12 3.5H4.5a1 1 0 0 0-1 1V12"/></svg>';
-  const typeLabel = k => k === 'super' ? 'SUPER QUANT-ROOM BURN' : 'QUANT-ROOM BURN';
+  const typeLabel = k => k === 'ai' ? 'SUPER + AI BURN' : 'SUPER QUANT-ROOM BURN';
+  const lifeTxt = s => s === 86400 ? '24 hours' : '1 hour';
+  const roomSub = a => a.kind === 'classic' ? '10 minutes, 2 people'
+    : a.kind === 'ai' ? (a.life ? lifeTxt(a.life) + ', ' : '') + (a.people > 1 ? 'up to ' + a.people + ' people' : '1 person') + ' + the AI model'
+    : (a.life ? lifeTxt(a.life) + ', ' : '') + 'up to ' + (a.people || 10) + ' people';
   function usdLine(amount){ return priceOk() ? '≈ ' + fUsd(amount*S.price.usd) + ' USD' : 'USD unavailable'; }
   function txRow(tx, fresh){
     const row = document.createElement('div'); row.className = 'tx' + (fresh ? ' new' : ''); row.setAttribute('role', 'listitem'); row.dataset.hash = tx.hash;
@@ -1120,8 +1147,9 @@ const DataSources = {
   function actItem(a, fresh){
     const li = document.createElement('li'); if(fresh) li.className = 'new';
     const isBurn = a.type === 'burn';
-    const title = isBurn ? fTok(a.amount) + ' ' + CONFIG.token + ' burned' : (a.kind === 'super' ? 'Super Quant-Room created' : 'Quant-Room created');
-    const sub = isBurn ? (a.kind === 'super' ? 'Super Quant-Room burn' : 'Quant-Room burn') : (a.kind === 'super' ? 'up to 10 people' : '10 minutes, 2 people');
+    const NAME = {classic:'Quant-Room', super:'Super Quant-Room', ai:'Super Quant-Room + AI'};
+    const title = isBurn ? fTok(a.amount) + ' ' + CONFIG.token + ' burned' : NAME[a.kind] + ' created';
+    const sub = isBurn ? NAME[a.kind] + ' burn' : roomSub(a);
     li.innerHTML = '<span class="ic">' + (isBurn ? ICON.burn : ICON[a.kind]) + '</span><div><b>' + title + '</b><span>' + sub + '</span></div>' +
       '<time datetime="' + new Date(a.at).toISOString() + '" title="' + exact(a.at) + '" data-at="' + a.at + '">' + rel(a.at) + '</time>';
     return li;
@@ -1150,8 +1178,8 @@ const DataSources = {
     if(S.ready){
       if(utcDay(Date.now()) !== S.day){   // new UTC day: today starts from zero
         S.day = utcDay(Date.now());
-        S.rooms.classic.today = S.rooms.super.today = 0;
-        ['classic','super'].forEach(k => S.burns[k].today = {amount:0, count:0});
+        S.rooms.classic.today = S.rooms.super.today = S.rooms.ai.today = 0;
+        ['super','ai'].forEach(k => S.burns[k].today = {amount:0, count:0});
       }
       render();
       $$('.usd[data-amt]').forEach(el => el.textContent = usdLine(+el.dataset.amt));
@@ -1165,7 +1193,7 @@ const DataSources = {
     S.lastAt = Date.now(); if(state !== 'live') setLive('live');
     if(e.type === 'room'){
       S.rooms[e.kind].today++; S.rooms[e.kind].all++;
-      addAct({type:'room', kind:e.kind, at:e.at});
+      addAct({type:'room', kind:e.kind, life:e.life, people:e.people, at:e.at});
     } else if(e.type === 'burn'){
       addTx(e.tx);
     } else if(e.type === 'tx'){
