@@ -292,6 +292,8 @@ html.fox-live .fox-slot img{visibility:hidden}
 .msg.file small{font:500 11.5px/1.4 var(--mono);opacity:.75}
 .ai-toggle small{display:block;margin-top:2px;font:500 9.5px/1.4 var(--mono);color:var(--panel-ink-2);opacity:.7}
 .msg.ai{align-self:flex-start;background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rust);border-bottom-left-radius:4px}
+.msg.ai{white-space:pre-wrap}
+.msg.ai .ai-err{display:block;margin-top:4px;font:500 11px/1.4 var(--mono);color:var(--ink-3);white-space:normal}
 .msg.ai::before{content:"AI";display:block;font:600 10.5px var(--mono);letter-spacing:.08em;color:var(--rust-text);margin-bottom:3px}
 .room-grid.solo{grid-template-columns:minmax(0,1fr)}
 .room-grid.solo .share{display:none}
@@ -401,8 +403,8 @@ html.fox-live .fox-slot img{visibility:hidden}
             </div>
           </div>
           <div class="cfg-row ai-row">
-            <label class="ai-toggle"><input type="checkbox" id="aiOn" disabled><span class="sw" aria-hidden="true"></span>
-              <span><b>Include an uncensored AI model <span class="soon">Coming soon</span></b><small>Runs on Poof's own servers. No logs, no memory after the poof. +$2 for 1 hour, +$5 for 24 hours. With the AI, you can also talk to it alone.</small></span></label>
+            <label class="ai-toggle"><input type="checkbox" id="aiOn"><span class="sw" aria-hidden="true"></span>
+              <span><b>Include an uncensored AI model</b><small>Runs on Poof's own servers. No logs, no memory after the poof. +$2 for 1 hour, +$5 for 24 hours. With the AI, you can also talk to it alone.</small></span></label>
           </div>
           <div class="cfg-row">
             <span class="cfg-lbl">Price</span>
@@ -1114,7 +1116,6 @@ window.VeilFox = (function(){
   const superPrice = () => { const p = PRICE[st.life]; return p.base + Math.max(0, st.people - 2)*p.extra + (st.ai ? AI_PRICE[st.life] : 0); };
   const pplTxt = n => n === 1 ? 'just you' : 'up to ' + n + ' people';
   function syncChoose(){
-    st.ai = false;   // the AI model isn't live yet (its toggle is disabled, "Coming soon")
     plans.forEach(p=>{ const on = p.dataset.plan === st.plan; p.setAttribute('aria-checked', String(on)); p.tabIndex = on ? 0 : -1; $('.sel', p).textContent = on ? 'Selected' : 'Select'; });
     $('#superClock').textContent = st.life === 3600 ? '1:00:00' : '24:00:00';
     if(st.people < minPeople()) st.people = minPeople();
@@ -1369,7 +1370,7 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=8a3ab8e083b8'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=332be9c1bfde'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0};
   const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
 
@@ -1426,7 +1427,7 @@ window.VeilFox = (function(){
       ...(ownerSecret ? {ownerSecret} : {}),
       fetch: fetch.bind(window), createSocket: E.browserSocketFactory, createPeerConnection: E.browserRtcFactory,
     });
-    live.session = s; live.owner = !!ownerSecret; live.shown = new Set(); live.joined = false;
+    live.session = s; live.owner = !!ownerSecret; live.shown = new Set(); live.joined = false; live.aiEls = new Map(); live.aiOn = false;
     room.type = 'classic'; room.people = 2; room.ai = false; room.total = 600; room.left = 600; room.warned = false;
     room.id = roomId; room.link = s.getState().inviteUrl;
     $('#rid').textContent = roomId;
@@ -1453,13 +1454,20 @@ window.VeilFox = (function(){
       room.type = 'super'; room.people = state.maxPeers; room.total = state.tier === '24h' ? 86400 : 3600;
       $('#roomType').textContent = typeLabel();
     }
-    $('.room-grid').classList.toggle('solo', !live.owner && !group);
+    const alone = state.maxPeers === 1;   // a quant-room for one: you and the AI model
+    $('.room-grid').classList.toggle('solo', (!live.owner && !group) || alone);
     const here = 1 + state.members.filter(m=>m.state === 'sealed').length;
-    if(group && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = here === 1 ? 'waiting for people to join' : here + ' of ' + state.maxPeers + ' here';
+    if(alone && state.ai && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = 'you and the AI model';
+    else if(group && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = here === 1 ? 'waiting for people to join' : here + ' of ' + state.maxPeers + ' here';
     else if(state.status === 'sealed') $('#liveTxt').textContent = 'sealed' + (state.connectionType === 'relay' ? ' · via relay' : ' · direct');
     else if(LIVE_TXT[state.status]) $('#liveTxt').textContent = LIVE_TXT[state.status];
     const open = state.status === 'sealed';
-    $('#msgIn').disabled = !open; $('#composer button[type="submit"]').disabled = !open;
+    // with the AI model you can write even with nobody else here: messages go to the AI
+    const canWrite = open || (state.ai && state.status === 'waiting');
+    $('#msgIn').disabled = !canWrite; $('#composer button[type="submit"]').disabled = !canWrite;
+    $('#msgIn').placeholder = state.ai && !alone ? 'Start with @ai to ask the AI' : 'Write a message';
+    if(state.ai && !live.aiOn){ live.aiOn = true; sys('An uncensored AI model joined. It reads what is sent here, runs on Poof\'s own servers and forgets everything when the quant-room poofs.'); }
+    if(!state.ai) live.aiOn = false;
     $('#fileBtn').hidden = !(state.limits && state.limits.fileTransfer); $('#fileBtn').disabled = !open;
     for(const m of state.messages) if(m.kind === 'file') renderFile(m);
     if(state.expiresAt) room.left = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
@@ -1471,14 +1479,35 @@ window.VeilFox = (function(){
     }
     for(const m of state.messages){
       if(m.kind === 'system' && !live.shown.has(m.id)){ live.shown.add(m.id); sys(m.event === 'joined' ? 'Someone joined this quant-room.' : 'Someone left this quant-room.'); continue; }
+      if(m.kind === 'ai'){ renderAi(m); continue; }
       if(m.kind !== 'text' || live.shown.has(m.id)) continue;
       live.shown.add(m.id);
       const b = document.createElement('div'); b.className = 'msg ' + (m.mine ? 'me' : 'them'); b.textContent = m.text;
       addToChat(b, m.mine);
       if(!m.mine) Fox.flash($('#foxChat'), 'excited', 700);
     }
-    showTyping(open && Array.isArray(state.typing) && state.typing.length > 0);
+    const aiThinking = Array.isArray(state.aiPending) && state.aiPending.some(p=>p.askedBy !== null);   // someone else asked the AI
+    showTyping(open && ((Array.isArray(state.typing) && state.typing.length > 0) || aiThinking));
     if(state.status === 'terminated' || state.status === 'expired' || state.status === 'error') finishLive(endCopy(state));
+  }
+  // AI answers: mine stream in (the bubble grows), other people's arrive whole
+  const AI_FAIL = {
+    ai_budget_exhausted: 'The AI is done for this quant-room: it has used all its questions.',
+    ai_unavailable: 'The AI can’t be reached right now. Try again in a moment.',
+    ai_attestation_failed: 'The AI’s enclave couldn’t be verified, so nothing was sent to it.',
+    ai_not_ready: 'The AI isn’t ready yet: the person who made the quant-room has to open it first.',
+    rate_limited: 'Too many questions at once. Wait a minute, then ask again.',
+  };
+  function renderAi(m){
+    let b = live.aiEls.get(m.id), added = false;
+    if(!b){ b = document.createElement('div'); b.className = 'msg ai'; live.aiEls.set(m.id, b); added = true; }
+    const key = m.status + '|' + m.text.length;
+    if(b.dataset.k === key) return;
+    b.dataset.k = key;
+    b.textContent = m.text || (m.status === 'streaming' ? '…' : '');
+    if(m.status === 'failed'){ const e = document.createElement('small'); e.className = 'ai-err'; e.textContent = AI_FAIL[m.error] || 'The AI’s answer broke off. Ask again.'; b.appendChild(e); }
+    if(added){ addToChat(b, m.askedBy === null); if(m.askedBy !== null) Fox.flash($('#foxChat'), 'excited', 700); }
+    else if(chatView.stick) toBottom(false);
   }
   function liveTick(){
     const s = live.session && live.session.getState();
@@ -1528,7 +1557,7 @@ window.VeilFox = (function(){
   }
   async function sendLive(text){
     try{ await live.session.sendMessage(text); $('#msgIn').value = ''; clearTimeout(chatView.typingIdle); }
-    catch(e){ sys('Not sent: the other person isn’t connected.'); }
+    catch(e){ sys(e && e.code === 'invalid_message' && /@ai/.test(text) ? 'Not sent: ask the AI something after @ai.' : 'Not sent: the other person isn’t connected.'); }
   }
   /* the 4-word phrase: a new one when the old one runs out, for as long as the quant-room lives */
   async function newLivePhrase(){
@@ -1602,7 +1631,7 @@ window.VeilFox = (function(){
   const injected = new Map();
   addEventListener('eip6963:announceProvider', e=>{ const d = e.detail; if(d && d.info && d.provider) injected.set(d.info.uuid, d); });
   dispatchEvent(new Event('eip6963:requestProvider'));
-  const variantNow = () => ({lifetime: st.life, people: st.people, ai: false});
+  const variantNow = () => ({lifetime: st.life, people: st.people, ai: st.ai});
   const realSleep = ms => new Promise(r=>setTimeout(r, ms));
   const utf8Hex = t => '0x' + Array.from(new TextEncoder().encode(t), b=>b.toString(16).padStart(2, '0')).join('');
   const shortHex = h => h.slice(0, 10) + '…' + h.slice(-6);
