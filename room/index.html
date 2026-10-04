@@ -1462,8 +1462,23 @@ window.VeilFox = (function(){
       finishLive({title:'Couldn’t reach Poof.', text:'Check your connection and try again.'});
     }
   }
+  // The creator's secret stays in this browser until the quant-room ends (localStorage, with the room's end
+  // time): leave, close the tab, open the link again, and the creator is still the owner. It's removed at the
+  // poof or when the room expires, and anything past its end is swept on every visit. Only the secret, never the key.
+  const OWNER_KEY = 'poof:owner:';
+  const DAY_MS = 25 * 3600 * 1000;   // longer than any quant-room, until the real end time is known
+  const ownerStore = {
+    read(id){ try{ const v = JSON.parse(localStorage.getItem(OWNER_KEY + id)); return v && /^[A-Za-z0-9_-]{43}$/.test(v.s) && v.e > Date.now() ? v : null; }catch(e){ return null; } },
+    get(id){ const v = this.read(id); return v ? v.s : null; },
+    set(id, s, e){ try{ localStorage.setItem(OWNER_KEY + id, JSON.stringify({s, e: e || Date.now() + DAY_MS})); }catch(e2){} },
+    until(id, e){ const v = this.read(id); if(v && e && v.e !== e) this.set(id, v.s, e); },
+    drop(id){ try{ localStorage.removeItem(OWNER_KEY + id); }catch(e){} },
+    sweep(){ try{ for(let i = localStorage.length - 1; i >= 0; i--){ const k = localStorage.key(i); if(k && k.startsWith(OWNER_KEY) && !this.read(k.slice(OWNER_KEY.length))) localStorage.removeItem(k); } }catch(e){} },
+  };
+  ownerStore.sweep();
   function startLive(E, roomId, key, ownerSecret){
     stopLive();
+    if(ownerSecret) ownerStore.set(roomId, ownerSecret); else ownerSecret = ownerStore.get(roomId);
     const s = new E.RoomSession({
       roomId, roomKey: key, origin: API, appOrigin: location.origin,
       ...(ownerSecret ? {ownerSecret} : {}),
@@ -1517,6 +1532,7 @@ window.VeilFox = (function(){
     $('#fileBtn').hidden = !(state.limits && state.limits.fileTransfer); $('#fileBtn').disabled = !open;
     for(const m of state.messages) if(m.kind === 'file') renderFile(m, state);
     if(state.expiresAt) room.left = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+    if(state.isOwner && state.expiresAt) ownerStore.until(state.roomId, Math.ceil(state.expiresAt));   // follows upgrades too
     // a room for two has no join lines of its own: say who's here the first time it's sealed (group rooms get the engine's lines)
     if(open && !group && !live.joined){
       live.joined = true;
@@ -1599,7 +1615,12 @@ window.VeilFox = (function(){
   function finishLive(copy){
     const s = live.session;
     stopLive();
-    if(s){ const st0 = s.getState().status; if(st0 !== 'terminated' && st0 !== 'expired' && st0 !== 'error') s.leave().catch(()=>{}); }
+    if(s){
+      const st1 = s.getState(), st0 = st1.status;
+      if(st0 !== 'terminated' && st0 !== 'expired' && st0 !== 'error') s.leave().catch(()=>{});
+      // the room itself is gone: nothing left to be the owner of
+      if(st0 === 'expired' || (st0 === 'terminated' && /^destroyed/.test(st1.endReason || '')) || (st1.error && st1.error.code === 'room_not_found')) ownerStore.drop(st1.roomId);
+    }
     clearInterval(room.timer); room.timer = null; stopPhrase();
     room.link = ''; room.phrase = ''; room.id = '';
     $('.room-grid').classList.remove('solo'); ownerUi(true, false);
@@ -2082,8 +2103,11 @@ window.VeilFox = (function(){
     else if(h === '#/gone'){ $('#goneTitle').textContent = 'Poof.'; show('gone'); }
     else if(h.startsWith('#/r/')){
       // a reload or an old link: the room lived only in the tab that opened it
-      $('#goneTitle').textContent = 'Poof.';
-      $('#goneText').textContent = 'This quant-room no longer exists. Quant-rooms live only in the tab that opened them, and nothing is kept.';
+      const mine = ownerStore.get(h.slice(4));
+      $('#goneTitle').textContent = mine ? 'You stepped out.' : 'Poof.';
+      $('#goneText').textContent = mine
+        ? 'If your quant-room still has time, open its link again in this browser and you are back in as the owner.'
+        : 'This quant-room no longer exists. Quant-rooms live only in the tab that opened them, and nothing is kept.';
       show('gone');
     }
     else { history.replaceState(null, '', '#/new'); route(); }
