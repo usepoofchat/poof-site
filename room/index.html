@@ -1632,6 +1632,14 @@ window.VeilFox = (function(){
   function keepPass(pass){ store.set(PASSES_KEY, [...(store.get(PASSES_KEY) || []), pass]); }
   function dropPass(pass){ store.set(PASSES_KEY, (store.get(PASSES_KEY) || []).filter(p=>p.msg !== pass.msg)); }
 
+  /** The wallet's balance of a 6-decimal token (micro-dollars), or null if the wallet can't say. */
+  async function tokenBalance(w, tokenAddress){
+    try{
+      const data = '0x70a08231' + w.address.slice(2).toLowerCase().padStart(64, '0');
+      const out = await w.request({method:'eth_call', params:[{to: tokenAddress, data}, 'latest']});
+      return BigInt(out);
+    }catch(e){ return null; }
+  }
   function payErrorText(err){
     if(err && (err.code === 4001 || err.code === 'ACTION_REJECTED' || /reject|denied|cancel/i.test(err.message || ''))) return 'cancelled in the wallet. Nothing was charged.';
     return (err && err.message) ? err.message : 'something went wrong.';
@@ -1646,8 +1654,11 @@ window.VeilFox = (function(){
       let pass = passesFor(vid)[0];
       if(pass) payLog('› using the pass you already paid for');
       else{
+        // Pick up a payment already sent from this browser; anything not sent yet follows the current choice.
         let a = store.get(PAY_KEY);
-        if(!a || a.vid !== vid) a = {vid, chain: pay.chain, token: pay.token, pending: await E.startPass(cfg.keys, v)};
+        if(!a || a.vid !== vid || (!a.txHash && (a.chain !== pay.chain || a.token !== pay.token))){
+          a = {vid, chain: pay.chain, token: pay.token, pending: await E.startPass(cfg.keys, v)};
+        }else if(a.txHash) payLog('› finishing the payment you already sent (' + a.token + ' on ' + a.chain + ')');
         store.set(PAY_KEY, a);
         const chain = cfg.chains.find(c=>c.name === a.chain), token = chain.tokens.find(t=>t.symbol === a.token);
         const w = await connectWallet(cfg, chain); if(id !== payRun) return;
@@ -1655,6 +1666,15 @@ window.VeilFox = (function(){
           throw new Error('connect the wallet that paid (' + shortHex(a.payer) + ') to finish.');
         }
         if(!a.txHash){
+          // Check first, so the wallet isn't asked for a transfer that can only fail.
+          const bal = await tokenBalance(w, token.address);
+          if(bal !== null && bal < BigInt(price)){
+            throw new Error('this wallet has ' + E.formatUsd(Number(bal)) + ' ' + token.symbol + ' on ' + chain.label + '; the quant-room costs ' + E.formatUsd(price) + '.');
+          }
+          const gas = await w.request({method:'eth_getBalance', params:[w.address, 'latest']}).catch(()=>null);
+          if(gas !== null && BigInt(gas) === 0n){
+            throw new Error('this wallet has no ETH on ' + chain.label + ' for the network fee. Add a little, then try again.');
+          }
           payLog('› paying ' + E.formatUsd(price) + ' in ' + token.symbol + ' on ' + chain.label + ' …');
           a.txHash = await w.request({method:'eth_sendTransaction', params:[{from: w.address, to: token.address, data: E.transferData(cfg.treasury, price), value:'0x0'}]});
           a.payer = w.address; store.set(PAY_KEY, a);
