@@ -1511,7 +1511,7 @@ window.VeilFox = (function(){
     // with the AI model you can write even with nobody else here: messages go to the AI
     const canWrite = open || (state.ai && state.status === 'waiting');
     $('#msgIn').disabled = !canWrite; $('#composer button[type="submit"]').disabled = !canWrite;
-    $('#msgIn').placeholder = state.ai && !alone ? 'Start with @ai to ask the AI' : 'Write a message';
+    $('#msgIn').placeholder = state.ai && !alone ? 'Start with @ai to ask the AI, or / for commands' : 'Write a message, or / for commands';
     if(state.ai && !live.aiOn){ live.aiOn = true; sys('An uncensored AI model joined. It reads what is sent here, runs on Poof\'s own servers and forgets everything when the quant-room poofs.'); }
     if(!state.ai) live.aiOn = false;
     $('#fileBtn').hidden = !(state.limits && state.limits.fileTransfer); $('#fileBtn').disabled = !open;
