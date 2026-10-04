@@ -509,7 +509,7 @@ body.menu-open{overflow:hidden}
   .rooms .clock{font-size:76px;margin:10px 0 8px}
   .rooms .specs{margin:10px 0;gap:4px 18px;font-size:15px}
   .rooms .incl{margin:0 0 12px;line-height:1.8}
-  .rooms .classic .price{margin:0 0 12px}
+  .rooms .classic .price{margin-bottom:12px}
   .rooms .config{gap:12px;margin:14px 0;padding:14px 0}
   .rooms .seg span{min-height:36px;padding:0 15px;font-size:14px}
   .rooms .stepper button{width:36px;height:36px;font-size:18px}
@@ -957,13 +957,13 @@ footer .brand{font-size:18px}
           <li>Additional quant-room controls</li>
           <li>Optional uncensored AI model</li>
         </ul>
-        <p class="burn">Burn Poof tokens to unlock. All built on the same privacy architecture.</p>
+        <p class="burn">Pay in stablecoins. Every payment buys back and burns POOF. Same privacy architecture.</p>
         <button class="btn" data-create="super" data-direct data-magnetic><span class="pip" aria-hidden="true"></span>Create Super Quant-Room</button>
         <details class="why">
-          <summary>Why tokens?</summary>
-          <p>Poof doesn't need your personal information to give you more. Super Quant-Rooms use a simple token mechanism instead.</p>
-          <p>You burn tokens when you need additional capacity. More time. More people. More functionality.</p>
-          <p>No identity upgrade required.</p>
+          <summary>How does payment work?</summary>
+          <p>Poof doesn't need your personal information to give you more. You pay for a Super Quant-Room in stablecoins, from a wallet, with no account.</p>
+          <p>The whole payment goes to buying back POOF on the market and burning it. Every Super Quant-Room makes the supply a little smaller.</p>
+          <p>The payment is never linked to the quant-room. No identity upgrade required.</p>
         </details>
       </article>
     </div>
@@ -2139,7 +2139,7 @@ window.VeilFox = (function(){
   Fox.param(peekFox, 'back', true);
   $$('input[name="life"]').forEach(r=>r.addEventListener('change', ()=>{ updPrice(); Fox.flash(peekFox, 'excited', 700); }));
 
-  // "Why tokens?" grows the Super Room card; keep the Classic Room card at its closed height meanwhile
+  // "How does payment work?" grows the Super Room card; keep the Classic Room card at its closed height meanwhile
   const why = $('.why'), classicCard = $('.room.classic');
   if(why && classicCard){
     why.querySelector('summary').addEventListener('click', ()=>{
@@ -2310,6 +2310,7 @@ window.VeilFox = (function(){
     location.href = '/room/#/new' + (b.dataset.create === 'super' ? '?plan=super&life=' + lifetime() + '&people=' + people + (ai ? '&ai=1' : '') + go : (go ? '?plan=classic' + go : ''));
   }));
   $$('[data-join]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openJoin(); }));
+  if(location.hash === '#join'){ history.replaceState(null, '', location.pathname); openJoin(); }   // /#join from other pages (stats) opens the Join dialog
   $('#joinBtn').addEventListener('click', tryJoin);
   $('#copyPhrase').addEventListener('click', ()=>{
     const t = $('#roomPhrase').textContent;

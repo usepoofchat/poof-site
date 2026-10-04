@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Stats | Poof</title>
-<meta name="description" content="Quant-rooms created and tokens burned on Poof, live: Classic and Super Quant-Rooms, burn transactions and their USD value. Today and all time.">
+<meta name="description" content="Quant-rooms created and POOF bought back and burned, live: Quant-Rooms, Super Quant-Rooms, burn transactions and their USD value. Today and all time.">
 <link rel="canonical" href="https://usepoof.chat/stats/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Poof">
 <meta property="og:title" content="Quant-rooms opened. Tokens burned.">
-<meta property="og:description" content="Every Quant-Room and Super Quant-Room created and every token burned to unlock one, live. Today and all time, with the USD value.">
+<meta property="og:description" content="Every quant-room created, and every POOF bought back and burned from Super Quant-Room payments. Live, today and all time.">
 <meta property="og:url" content="https://usepoof.chat/stats/">
 <meta property="og:image" content="https://usepoof.chat/og/stats.png">
 <meta property="og:image:width" content="1200">
@@ -20,7 +20,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@usepoofchat">
 <meta name="twitter:title" content="Quant-rooms opened. Tokens burned.">
-<meta name="twitter:description" content="Every Quant-Room and Super Quant-Room created and every token burned to unlock one, live. Today and all time, with the USD value.">
+<meta name="twitter:description" content="Every quant-room created, and every POOF bought back and burned from Super Quant-Room payments. Live, today and all time.">
 <meta name="twitter:image" content="https://usepoof.chat/og/stats.png">
 <meta name="theme-color" content="#16171f">
 <script>try{var t=localStorage.getItem('poof-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
@@ -75,10 +75,62 @@ html.fox-live .fox-slot img{visibility:hidden}
 /* header: the site's dark glass bar */
 .nav{position:sticky;top:0;z-index:40;height:var(--nav-h);color:#f1efe8;background:rgba(22,23,31,.86);
   -webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.08)}
-.nav .in{height:100%;max-width:1280px;margin:0 auto;padding:0 var(--pad);display:flex;align-items:center;gap:12px}
+.nav .in{height:100%;max-width:1280px;margin:0 auto;padding:0 var(--pad);display:flex;align-items:center;gap:32px}
+/* the site header: links, theme switch, Create / Join, pixel menu on phones (same sizes as the site) */
+.nav-links{display:flex;gap:30px;margin-left:auto}
+.nav-links a{color:#bdbcb6;text-decoration:none;font-size:14.5px}
+.nav-links a:hover,.nav-links a[aria-current="page"]{color:#f1efe8}
+.nav-links a[aria-current="page"]{box-shadow:0 2px 0 var(--rust)}
+.nav-links + .theme-btn{margin-left:-6px}
+.nav .nav-btn{height:33px;padding:0 14px;gap:9px;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.nav .nav-btn .pip,.mnav-cta .btn .pip{width:10px;height:10px;flex:none;background:repeating-conic-gradient(currentColor 0 25%,transparent 0 50%) 0 0/5px 5px}
+.theme-btn + .nav-btn{margin-left:-20px}
+.nav .nav-btn + .nav-join{margin-left:-22px}
+.btn.ghost{background:transparent;color:#f1efe8;box-shadow:inset 0 0 0 1.5px #f1efe8}
+.btn.ghost:hover{background:#f1efe8;color:#1d1f2b}
+.menu-btn{display:none;flex:none;width:31px;height:31px;margin-left:auto;border:0;border-radius:999px;background:transparent;color:#f1efe8;cursor:pointer;place-items:center;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.menu-btn svg{width:14px;height:14px;fill:currentColor}
+.menu-btn .px{fill:var(--rust)}
+.menu-btn .i-close,.menu-btn[aria-expanded="true"] .i-menu{display:none}
+.menu-btn[aria-expanded="true"] .i-close{display:block}
+.mnav{position:absolute;left:0;right:0;top:100%;height:calc(100dvh - var(--nav-h));overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;
+  padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));background:#16171f;color:#f1efe8;border-top:1px solid rgba(255,255,255,.08)}
+.mnav[hidden]{display:none}
+.mnav-links a{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.08);color:#f1efe8;text-decoration:none;font:600 30px/1 var(--sans);letter-spacing:-.04em}
+.mnav-links a i{font:500 12px var(--mono);font-style:normal;color:#9e9d97}
+.mnav-links a[aria-current="page"],.mnav-links a:hover{color:#f08a4b}
+.mnav-cta{display:grid;gap:10px;margin-top:28px}
+.mnav-cta .btn{height:54px;width:100%;justify-content:center;font-size:16px;text-decoration:none}
+.mnav-theme{margin-top:auto;padding-top:24px;display:flex;align-items:center;justify-content:space-between}
+.mt-lbl{font:500 12.5px var(--mono);color:#9e9d97}
+.mt-seg{display:flex;gap:6px}
+.mt-seg button{min-height:40px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:#f1efe8;cursor:pointer;font:550 14px var(--sans);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.mt-seg button[aria-pressed="true"]{background:var(--rust);color:#1d1f2b;box-shadow:none}
+body.menu-open{overflow:hidden}
+@media (max-width:1060px){.nav-links{gap:20px}.nav .in{gap:22px}}
+@media (max-width:900px){.nav-links,.nav-join{display:none}.nav .theme-btn{margin-left:auto}}
+@media (max-width:760px){.nav .theme-btn,.nav .nav-btn{display:none}.menu-btn{display:grid}.nav .in{gap:10px}}
+/* live status, under the header */
+.statusbar .in{max-width:1280px;margin:0 auto;padding:14px var(--pad) 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;position:relative;z-index:2}
+.statusbar .pill,.statusbar .updated,.statusbar .chain{color:var(--ink-3)}
+.statusbar .pill{box-shadow:inset 0 0 0 1px var(--line)}
+.statusbar .live{color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+/* the site footer */
+.site-foot{position:relative;z-index:2;padding:40px 0 calc(40px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.site-foot .foot{max-width:1280px;margin:0 auto;padding:0 var(--pad);display:flex;flex-direction:column;gap:28px}
+.foot-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
+.site-foot .brand{color:var(--ink)}
+.site-foot .brand .logo{height:17px}
+.social{display:flex;flex-wrap:wrap;gap:8px}
+.soc{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 18px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink);text-decoration:none;font:500 13.5px var(--mono);transition:background .25s,color .25s,box-shadow .25s}
+.soc .pip{width:10px;height:10px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/5px 5px;transition:background .25s,transform .4s var(--ease, ease)}
+.soc:hover{background:var(--rust);color:#1d1f2b;box-shadow:none}
+.soc:hover .pip{background:#1d1f2b;transform:rotate(90deg)}
+.foot-bottom{display:flex;flex-wrap:wrap;gap:12px 40px;justify-content:space-between;font:500 12px/1.6 var(--mono);color:var(--ink-3);padding-top:22px;border-top:1px solid var(--line)}
 .brand{display:flex;align-items:center;color:#f1efe8;text-decoration:none}
 .brand .logo{display:block;height:18px;width:auto}
 .pill{font:500 12px var(--mono);color:#b9b8b1;padding:3px 9px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.sp{margin-left:auto}
 .nav .sp{margin-left:auto}
 .live{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-radius:999px;font:600 12px var(--mono);letter-spacing:.06em;color:#f1efe8;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.2)}
 .live i{width:8px;height:8px;background:var(--rust)}
@@ -262,17 +314,54 @@ html.fox-live .fox-slot img{visibility:hidden}
 <header class="nav" id="nav">
   <div class="in">
     <a class="brand" href="/" aria-label="Poof home page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
-    <span class="pill">stats</span>
-    <span class="sp"></span>
-    <span class="chain" id="chain" data-tip="Network">preview</span>
-    <span class="updated" id="updated" aria-live="off">connecting…</span>
-    <span class="live" id="live" data-state="connecting" role="status"><i aria-hidden="true"></i><span id="liveTxt">CONNECTING</span></span>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="/#security">Security</a>
+      <a href="/#rooms">Quant-Rooms</a>
+      <a href="/#protocol">Protocol</a>
+      <a href="/docs/">Docs</a>
+      <a href="/stats/" aria-current="page">Stats</a>
+    </nav>
     <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode">
       <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
       <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
     </button>
+    <a class="btn nav-btn" href="/room/#/new"><span class="pip" aria-hidden="true"></span>Create quant-room</a>
+    <a class="btn nav-btn ghost nav-join" href="/#join">Join quant-room</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav">
+      <svg class="i-menu" viewBox="0 0 14 14" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="2" width="4" height="2"/><rect x="5" y="2" width="4" height="2"/><rect x="10" y="2" width="4" height="2"/><rect x="0" y="6" width="4" height="2"/><rect x="5" y="6" width="4" height="2"/><rect x="10" y="6" width="4" height="2"/><rect x="0" y="10" width="4" height="2"/><rect x="5" y="10" width="4" height="2"/><rect x="10" y="10" width="4" height="2"/></svg>
+      <svg class="i-close" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect class="px" x="3" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg>
+    </button>
+  </div>
+  <div class="mnav" id="mnav" hidden>
+    <nav class="mnav-links" aria-label="Menu">
+      <a href="/#security"><span>Security</span><i>01</i></a>
+      <a href="/#rooms"><span>Quant-Rooms</span><i>02</i></a>
+      <a href="/#protocol"><span>Protocol</span><i>03</i></a>
+      <a href="/docs/"><span>Docs</span><i>04</i></a>
+      <a href="/stats/" aria-current="page"><span>Stats</span><i>05</i></a>
+    </nav>
+    <div class="mnav-cta">
+      <a class="btn" href="/room/#/new"><span class="pip" aria-hidden="true"></span>Create a quant-room</a>
+      <a class="btn ghost" href="/#join">Join a quant-room</a>
+    </div>
+    <div class="mnav-theme">
+      <span class="mt-lbl" id="mtLbl">Theme</span>
+      <div class="mt-seg" role="group" aria-labelledby="mtLbl">
+        <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
   </div>
 </header>
+<div class="statusbar">
+  <div class="in">
+    <span class="pill">stats</span>
+    <span class="chain" id="chain" data-tip="Network">preview</span>
+    <span class="sp"></span>
+    <span class="updated" id="updated" aria-live="off">connecting…</span>
+    <span class="live" id="live" data-state="connecting" role="status"><i aria-hidden="true"></i><span id="liveTxt">CONNECTING</span></span>
+  </div>
+</div>
 
 <main class="app" id="main">
   <p class="preview" id="previewNote">Preview data. These numbers are simulated in your browser until the Poof token launches; then this page reads the chain.</p>
@@ -282,7 +371,7 @@ html.fox-live .fox-slot img{visibility:hidden}
     <div>
       <p class="kick">› poof / stats <b>· today = UTC day</b></p>
       <h1>Quant-rooms opened.<br><span>Tokens burned.</span></h1>
-      <p class="sub">Every quant-room ever created and every token burned to unlock one, as it happens. Nothing about the people in them.</p>
+      <p class="sub">Every quant-room ever created, and every POOF bought back and burned with Super Quant-Room payments, as it happens. Nothing about the people in them.</p>
     </div>
     <div class="fox-slot watch" id="foxWatch" data-pose="gaze" data-frame="full" data-px="3" data-look aria-hidden="true"><img class="t-light" src="data:image/png;base64,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" alt=""><img class="t-dark" src="data:image/png;base64,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" alt=""></div>
   </div>
@@ -366,7 +455,7 @@ html.fox-live .fox-slot img{visibility:hidden}
   <!-- BURN BREAKDOWN + ACTIVITY -->
   <div class="grid g75 sec">
     <section aria-labelledby="bdH">
-      <div class="sec-h"><h2 id="bdH">Burn breakdown</h2><p>only Super Quant-Rooms burn tokens</p></div>
+      <div class="sec-h"><h2 id="bdH">Burn breakdown</h2><p>funded by Super Quant-Room payments</p></div>
       <div class="grid g2">
         <div class="card bd">
           <h3><svg class="ico" viewBox="0 0 4 4" shape-rendering="crispEdges" aria-hidden="true" fill="#e8661f"><rect x="1" width="1" height="1"/><rect x="3" width="1" height="1"/><rect y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/></svg> Super Quant-Room Burns</h3>
@@ -408,6 +497,26 @@ html.fox-live .fox-slot img{visibility:hidden}
     </section>
   </div>
 </main>
+<footer class="site-foot">
+  <div class="foot">
+    <div class="foot-top">
+      <a class="brand" href="/" aria-label="Poof home page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
+      <nav class="social" aria-label="Poof elsewhere">
+        <a class="soc" href="https://x.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>X</a>
+        <a class="soc" href="https://t.me/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Telegram</a>
+        <a class="soc" href="https://github.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>GitHub</a>
+        <a class="soc" href="/docs/"><span class="pip" aria-hidden="true"></span>Docs</a>
+        <a class="soc" href="mailto:contact@usepoof.chat"><span class="pip" aria-hidden="true"></span>Contact</a>
+      </nav>
+    </div>
+    <div class="foot-bottom">
+      <span>Private by default. Temporary by design.</span>
+      <span>E2E encrypted / Post-quantum protected / Zero-knowledge architecture</span>
+      <span>No account required.</span>
+    </div>
+  </div>
+</footer>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -913,7 +1022,7 @@ const CONFIG = {
      price: {usd, at} | null,
      rooms: {classic:{today, all}, super:{today, all}, ai:{today, all}}   classic = free Quant-Room, super = Super Quant-Room
                                                                           without the AI, ai = Super Quant-Room with the AI model
-     burns: {super:{today:{amount,count}, all:{amount,count}}, ai:{...}}   only Super Quant-Rooms burn tokens
+     burns: {super:{today:{amount,count}, all:{amount,count}}, ai:{...}}   POOF bought back and burned with Super Quant-Room payments
      txs:   [Tx]   newest first
      activity: [Activity] newest first
    }
@@ -1026,6 +1135,16 @@ const DataSources = {
   });
   darkMQ.addEventListener && darkMQ.addEventListener('change', syncTheme); syncTheme();
 
+  /* ---------- phone menu (same as the site header) ---------- */
+  const menuBtn = $('#menuBtn'), mnav = $('#mnav'), mtBtns = $$('[data-theme-set]');
+  const syncMt = () => mtBtns.forEach(b => b.setAttribute('aria-pressed', String((b.dataset.themeSet === 'dark') === modeDark())));
+  function setMenu(open){ mnav.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu'); document.body.classList.toggle('menu-open', open); }
+  menuBtn.addEventListener('click', () => setMenu(mnav.hidden));
+  mnav.addEventListener('click', e => { if(e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', e => { if(e.key === 'Escape' && !mnav.hidden){ setMenu(false); menuBtn.focus(); } });
+  mtBtns.forEach(b => b.addEventListener('click', () => { document.documentElement.dataset.theme = b.dataset.themeSet; try{ localStorage.setItem('poof-theme', b.dataset.themeSet); }catch(e){} syncTheme(); syncMt(); }));
+  themeBtn.addEventListener('click', syncMt); syncMt();
+
   /* ---------- formatting ---------- */
   const compact = (n, d=2) => n >= 1e9 ? (n/1e9).toFixed(d) + 'B' : n >= 1e6 ? (n/1e6).toFixed(d) + 'M' : null;
   const fInt = n => compact(n) || Math.round(n).toLocaleString('en-US');
@@ -1131,7 +1250,7 @@ const DataSources = {
   }
   function drawTxs(){
     const list = $('#txList'); list.innerHTML = '';
-    if(!S.txs.length){ list.innerHTML = '<div class="empty">No burns yet. Every Super Quant-Room burns tokens when it opens; the first one appears here.</div>'; return; }
+    if(!S.txs.length){ list.innerHTML = '<div class="empty">No burns yet. Every Super Quant-Room payment buys back and burns POOF; the first one appears here.</div>'; return; }
     S.txs.forEach(tx => list.appendChild(txRow(tx, false)));
   }
   function addTx(tx){
