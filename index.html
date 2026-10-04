@@ -2267,7 +2267,7 @@ window.VeilFox = (function(){
     // The engine is built from the public repository usepoofchat/poof-app.
     const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
     try{
-      const E = await import('/engine/poof-engine.js?v=518e7842477d');
+      const E = await import('/engine/poof-engine.js?v=b94effec0d44');
       genLog.textContent += '› deriving the quant-room key\n';
       const path = await E.joinByPhrase({fetch: fetch.bind(window), origin: API, appOrigin: location.origin, code: words.join(' ')});
       if(id !== run) return;

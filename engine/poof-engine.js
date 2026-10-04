@@ -5845,6 +5845,10 @@ var ctlPlaintextSchema = discriminatedUnion("kind", [
 	object({
 		kind: literal("members"),
 		peerIds: array(peerIdSchema).max(10)
+	}),
+	object({
+		kind: literal("typing"),
+		on: boolean()
 	})
 ]);
 var sha256b64 = string().regex(/^[A-Za-z0-9_-]{43}$/, "invalid sha256");
@@ -13778,6 +13782,10 @@ var DEFAULT_JOIN_TIMEOUT_MS = 15e3;
 var DEFAULT_MEMBERS_GRACE_MS = 1e4;
 /** After the deadline passes, wait this long for the server's room.expired before asking it. */
 var EXPIRY_GRACE_MS = 3e3;
+/** A typing hint shows for at most this long without a refresh (covers a lost "off"). */
+var TYPING_TTL_MS = 6e3;
+/** While someone keeps typing, "on" is sent again at most this often (keeps their indicator alive). */
+var TYPING_RESEND_MS = 2500;
 var EXPIRY_RETRY_MS = 1e4;
 var TERMINAL = /* @__PURE__ */ new Set([
 	"terminated",
@@ -13829,6 +13837,9 @@ var RoomSession = class {
 	signaling = null;
 	links = /* @__PURE__ */ new Map();
 	lossTimers = /* @__PURE__ */ new Map();
+	typingTimers = /* @__PURE__ */ new Map();
+	typingOn = false;
+	typingSentAt = 0;
 	joinTimer = null;
 	expiryTimer = null;
 	phraseTimer = null;
@@ -13863,7 +13874,8 @@ var RoomSession = class {
 			limits: EMPTY_LIMITS,
 			messages: [],
 			log: [],
-			phrase: null
+			phrase: null,
+			typing: []
 		};
 	}
 	/** Group rules apply when the room can hold more than two people. */
@@ -13925,6 +13937,7 @@ var RoomSession = class {
 			ts,
 			status: "sent"
 		});
+		this.typingOn = false;
 		return id;
 	}
 	/**
@@ -13975,6 +13988,26 @@ var RoomSession = class {
 	* Set (or clear, with null/empty) your display name. It's normalised, shown to others as
 	* "Ana · Peer 3FA2", and sent only over the encrypted links. Returns the normalised value.
 	*/
+	/**
+	* Tell the others you're typing (true) or stopped (false). Call it as often as you like (e.g. on
+	* every keystroke): "on" goes out at most every few seconds, "off" only after an "on".
+	*/
+	setTyping(on) {
+		if (this.state.status !== "sealed") return;
+		const now = this.now();
+		if (on) {
+			if (this.typingOn && now - this.typingSentAt < TYPING_RESEND_MS) return;
+			this.typingOn = true;
+			this.typingSentAt = now;
+		} else {
+			if (!this.typingOn) return;
+			this.typingOn = false;
+		}
+		for (const link of this.connectedLinks()) link.sendCtl({
+			kind: "typing",
+			on
+		});
+	}
 	setNickname(name) {
 		const nickname = normalizeNickname(name);
 		if (TERMINAL.has(this.state.status) || nickname === this.state.nickname) return this.state.nickname;
@@ -14326,6 +14359,7 @@ var RoomSession = class {
 		}, this.deps.linkLossGraceMs ?? DEFAULT_LINK_LOSS_GRACE_MS));
 	}
 	dropLink(peerId) {
+		this.markTyping(peerId, false);
 		this.links.get(peerId)?.close();
 		this.links.delete(peerId);
 		const timer = this.lossTimers.get(peerId);
@@ -14339,6 +14373,7 @@ var RoomSession = class {
 		if (TERMINAL.has(this.state.status) || this.links.get(link.peerId) !== link) return;
 		const text = normalizeChatText(chat.text);
 		if (!text) return;
+		this.markTyping(link.peerId, false);
 		this.addMessage({
 			kind: "text",
 			id: chat.id,
@@ -14364,8 +14399,23 @@ var RoomSession = class {
 				link.reportedMembers = ctl.peerIds;
 				this.checkMembers();
 				return;
+			case "typing":
+				this.markTyping(link.peerId, ctl.on);
+				return;
 			case "connection_type": return;
 		}
+	}
+	/** Someone started or stopped typing. "on" expires by itself, so a lost "off" can't stick. */
+	markTyping(peerId, on) {
+		const timer = this.typingTimers.get(peerId);
+		if (timer) clearTimeout(timer);
+		this.typingTimers.delete(peerId);
+		if (TERMINAL.has(this.state.status)) return;
+		const has = this.state.typing.includes(peerId);
+		if (on) {
+			this.typingTimers.set(peerId, setTimeout(() => this.markTyping(peerId, false), TYPING_TTL_MS));
+			if (!has) this.setState({ typing: [...this.state.typing, peerId] });
+		} else if (has) this.setState({ typing: this.state.typing.filter((id) => id !== peerId) });
 	}
 	/** Tell everyone connected which members we have a confirmed link with. */
 	announceMembers() {
@@ -14527,6 +14577,9 @@ var RoomSession = class {
 		this.phraseTimer = null;
 		if (this.mismatchTimer) clearTimeout(this.mismatchTimer);
 		this.mismatchTimer = null;
+		for (const timer of this.typingTimers.values()) clearTimeout(timer);
+		this.typingTimers.clear();
+		this.typingOn = false;
 		for (const id of [...this.links.keys()]) this.dropLink(id);
 		this.outgoingFiles.clear();
 		this.signaling?.close();
@@ -14544,7 +14597,8 @@ var RoomSession = class {
 			members: [],
 			membersMismatch: false,
 			messages: [],
-			phrase: null
+			phrase: null,
+			typing: []
 		});
 	}
 	/**
@@ -14559,7 +14613,8 @@ var RoomSession = class {
 			status: "expired",
 			peerPresent: false,
 			members: [],
-			phrase: null
+			phrase: null,
+			typing: []
 		});
 	}
 	fail(code, message) {
@@ -14576,7 +14631,8 @@ var RoomSession = class {
 			peerPresent: false,
 			members: [],
 			messages: [],
-			phrase: null
+			phrase: null,
+			typing: []
 		});
 	}
 	clearJoinTimer() {

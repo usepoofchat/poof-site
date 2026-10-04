@@ -205,7 +205,7 @@ button{font:inherit}
 .phrase-live[hidden]{display:none}
 
 /* chat */
-.chat{display:flex;flex-direction:column;min-height:min(560px,max(380px,calc(100svh - 290px)));padding:0;overflow:hidden}   /* the composer stays on screen on laptops */
+.chat{position:relative;display:flex;flex-direction:column;height:clamp(420px,calc(100svh - 270px),760px);padding:0;overflow:hidden}   /* fixed height: the messages scroll inside, the composer never moves */
 .chat-bar{display:flex;align-items:center;justify-content:space-between;gap:12px 18px;padding:14px 18px;border-bottom:1px solid var(--line);font:500 12px/1.3 var(--mono);color:var(--ink-3)}
 .chat-bar b{color:var(--ink);font-weight:500}
 .chat-bar .live{display:inline-flex;align-items:center;gap:8px}
@@ -219,7 +219,19 @@ button{font:inherit}
 .notice .btn{--h:34px;padding:0 14px;font-size:13.5px;flex:none}
 .notice .x{flex:none;width:30px;height:30px;border:0;background:none;color:var(--ink-3);cursor:pointer;border-radius:8px;font-size:18px;line-height:1}
 .notice .x:hover{color:var(--ink);background:var(--line)}
-.msgs{flex:1;overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.msgs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+/* "new messages" button: shows while you've scrolled up, takes you back to the latest */
+.tobottom{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);z-index:3;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:0;border-radius:999px;
+  background:var(--ink);color:var(--ground);font:550 13px var(--sans);cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.tobottom[hidden]{display:none}
+.tobottom::before{content:"";width:9px;height:9px;background:linear-gradient(currentColor,currentColor) 50% 0/3px 6px no-repeat,linear-gradient(currentColor,currentColor) 0 6px/9px 3px no-repeat}
+.tobottom.new{background:var(--rust);color:#1d1f2b}
+/* someone is typing: three pixels that light up in turn */
+.msg.typing{display:inline-flex;gap:5px;align-items:center;padding:13px 14px}
+.msg.typing i{width:6px;height:6px;background:var(--ink-3);animation:typingDot 1.2s steps(1,end) infinite}
+.msg.typing i:nth-child(2){animation-delay:.2s}
+.msg.typing i:nth-child(3){animation-delay:.4s}
+@keyframes typingDot{0%,100%{opacity:.25}30%{opacity:1;background:var(--rust)}60%{opacity:.25}}
 .msgs .empty{margin:auto;text-align:center;font:400 13px/1.6 var(--mono);color:var(--ink-3);max-width:32ch}
 .msg{max-width:84%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.4;word-wrap:break-word}
 .msg.them{align-self:flex-start;background:var(--ground);color:var(--ink);border-bottom-left-radius:4px}
@@ -316,7 +328,7 @@ html.fox-live .fox-slot img{visibility:hidden}
   .notice{flex-wrap:wrap}
   .notice p{flex-basis:calc(100% - 60px)}
   .notice .btn{margin-left:22px}
-  .chat{min-height:440px}
+  .chat{height:calc(100svh - 190px);min-height:420px}
   .chat-bar{flex-wrap:wrap}
   .chat-bar .cb-time{width:100%;justify-content:space-between;text-align:left}
 }
@@ -474,6 +486,7 @@ html.fox-live .fox-slot img{visibility:hidden}
           <button class="x" id="noticeX" type="button" aria-label="Dismiss">×</button>
         </div>
         <div class="msgs" id="msgs" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
+        <button class="tobottom" id="toBottom" type="button" hidden><span>Latest messages</span></button>
         <form class="composer" id="composer">
           <button class="icon-btn" id="fileBtn" type="button" aria-label="Send a file" title="Send a file" hidden>
             <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M15 8.5l-6.2 6.2a3.6 3.6 0 0 1-5.1-5.1L10 3.3a2.4 2.4 0 0 1 3.4 3.4l-6.3 6.3a1.2 1.2 0 0 1-1.7-1.7l5.8-5.8"/></svg>
@@ -1192,7 +1205,7 @@ window.VeilFox = (function(){
       if(!room.timer) return;
       const b = document.createElement('div'); b.className = 'msg ai';
       b.textContent = 'Preview: I am not connected yet. When quant-rooms go live, I answer here, inside this room, and nothing leaves it.';
-      msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+      addToChat(b, false);
     }, reduce ? 0 : 900);
   }
   function openRoom(){
@@ -1211,7 +1224,7 @@ window.VeilFox = (function(){
     $('#linkMsg').textContent = '';
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
-    msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    resetChat();
     $('#msgIn').disabled = false; $('#composer button[type="submit"]').disabled = false;
     aiSetup();
     clearInterval(room.timer); room.timer = setInterval(()=>{ room.left--; tick(); }, 1000);
@@ -1225,7 +1238,45 @@ window.VeilFox = (function(){
     if(room.type === 'classic' && room.left <= WARN_SECS && room.left > 0 && !room.warned){ room.warned = true; notice.hidden = false; Fox.flash($('#foxChat'), 'sad', 1800); }
     if(room.left <= 0) endRoom();
   }
-  function sys(text){ const p = document.createElement('p'); p.className = 'msg sys'; p.textContent = text; msgs.appendChild(p); }
+  /* chat scrolling: stay on the latest message while you're at the bottom; if you scrolled up, keep your place
+     and show a button with the count of new messages */
+  const chatView = {stick: true, unseen: 0, typingEl: null, typingIdle: 0};
+  const nearBottom = () => msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 48;
+  function toBottom(smooth){ msgs.scrollTo({top: msgs.scrollHeight, behavior: smooth && !reduce ? 'smooth' : 'auto'}); }
+  function syncToBottom(){
+    const b = $('#toBottom'), show = !chatView.stick && msgs.scrollHeight > msgs.clientHeight + 4;
+    b.hidden = !show; b.classList.toggle('new', chatView.unseen > 0);
+    $('span', b).textContent = chatView.unseen ? (chatView.unseen === 1 ? '1 new message' : chatView.unseen + ' new messages') : 'Latest messages';
+  }
+  // every chat line goes through here (kept above the typing bubble); mine always scrolls to it
+  function addToChat(el, mine, quiet){
+    const empty = $('.empty', msgs); if(empty) empty.remove();
+    const t = chatView.typingEl;
+    msgs.insertBefore(el, t && t.isConnected ? t : null);
+    if(mine || chatView.stick){ chatView.stick = true; chatView.unseen = 0; toBottom(false); }
+    else if(!quiet) chatView.unseen++;
+    syncToBottom();
+  }
+  function resetChat(){
+    chatView.stick = true; chatView.unseen = 0; clearTimeout(chatView.typingIdle);
+    if(chatView.typingEl) chatView.typingEl.remove();
+    msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    syncToBottom();
+  }
+  msgs.addEventListener('scroll', ()=>{ chatView.stick = nearBottom(); if(chatView.stick) chatView.unseen = 0; syncToBottom(); }, {passive:true});
+  $('#toBottom').addEventListener('click', ()=>{ chatView.stick = true; chatView.unseen = 0; toBottom(true); syncToBottom(); });
+  addEventListener('resize', ()=>{ if(chatView.stick) toBottom(false); });
+  // the other person is typing
+  function showTyping(on){
+    if(on){
+      let t = chatView.typingEl;
+      if(!t){ t = chatView.typingEl = document.createElement('div'); t.className = 'msg them typing'; t.setAttribute('aria-hidden', 'true'); t.innerHTML = '<i></i><i></i><i></i>'; }
+      if(!t.isConnected){ msgs.appendChild(t); if(chatView.stick) toBottom(false); }
+    } else if(chatView.typingEl && chatView.typingEl.isConnected){
+      chatView.typingEl.remove();
+    }
+  }
+  function sys(text){ const p = document.createElement('p'); p.className = 'msg sys'; p.textContent = text; addToChat(p, false, true); }
   function endRoom(){
     clearInterval(room.timer); room.timer = null; stopPhrase();
     room.link = ''; room.phrase = ''; room.id = '';
@@ -1237,9 +1288,8 @@ window.VeilFox = (function(){
     e.preventDefault();
     const v = $('#msgIn').value.trim(); if(!v) return;
     if(live.session){ sendLive(v); return; }
-    const empty = $('.empty', msgs); if(empty) empty.remove();
-    const b = document.createElement('div'); b.className = 'msg me'; b.textContent = v; msgs.appendChild(b);
-    msgs.scrollTop = msgs.scrollHeight; $('#msgIn').value = '';
+    const b = document.createElement('div'); b.className = 'msg me'; b.textContent = v; addToChat(b, true);
+    $('#msgIn').value = '';
     Fox.flash($('#foxChat'), 'excited', 700);
     aiReply();
   });
@@ -1319,7 +1369,7 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=518e7842477d'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=b94effec0d44'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0};
   const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
 
@@ -1376,7 +1426,7 @@ window.VeilFox = (function(){
       ...(ownerSecret ? {ownerSecret} : {}),
       fetch: fetch.bind(window), createSocket: E.browserSocketFactory, createPeerConnection: E.browserRtcFactory,
     });
-    live.session = s; live.owner = !!ownerSecret; live.shown = new Set();
+    live.session = s; live.owner = !!ownerSecret; live.shown = new Set(); live.joined = false;
     room.type = 'classic'; room.people = 2; room.ai = false; room.total = 600; room.left = 600; room.warned = false;
     room.id = roomId; room.link = s.getState().inviteUrl;
     $('#rid').textContent = roomId;
@@ -1388,7 +1438,7 @@ window.VeilFox = (function(){
     $('#linkMsg').textContent = '';
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
-    msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    resetChat();
     $('#liveTxt').textContent = LIVE_TXT.loading;
     live.unsub = s.subscribe(render);
     clearInterval(room.timer); room.timer = setInterval(liveTick, 1000);
@@ -1413,15 +1463,21 @@ window.VeilFox = (function(){
     $('#fileBtn').hidden = !(state.limits && state.limits.fileTransfer); $('#fileBtn').disabled = !open;
     for(const m of state.messages) if(m.kind === 'file') renderFile(m);
     if(state.expiresAt) room.left = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+    // a room for two has no join lines of its own: say who's here the first time it's sealed (group rooms get the engine's lines)
+    if(open && !group && !live.joined){
+      live.joined = true;
+      sys(live.owner ? 'Someone joined this quant-room.' : 'You joined this quant-room.');
+      if(live.owner) Fox.flash($('#foxChat'), 'excited', 900);
+    }
     for(const m of state.messages){
-      if(m.kind === 'system' && !live.shown.has(m.id)){ live.shown.add(m.id); sys(m.event === 'joined' ? 'Someone joined.' : 'Someone left.'); continue; }
+      if(m.kind === 'system' && !live.shown.has(m.id)){ live.shown.add(m.id); sys(m.event === 'joined' ? 'Someone joined this quant-room.' : 'Someone left this quant-room.'); continue; }
       if(m.kind !== 'text' || live.shown.has(m.id)) continue;
       live.shown.add(m.id);
-      const empty = $('.empty', msgs); if(empty) empty.remove();
       const b = document.createElement('div'); b.className = 'msg ' + (m.mine ? 'me' : 'them'); b.textContent = m.text;
-      msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+      addToChat(b, m.mine);
       if(!m.mine) Fox.flash($('#foxChat'), 'excited', 700);
     }
+    showTyping(open && Array.isArray(state.typing) && state.typing.length > 0);
     if(state.status === 'terminated' || state.status === 'expired' || state.status === 'error') finishLive(endCopy(state));
   }
   function liveTick(){
@@ -1471,7 +1527,7 @@ window.VeilFox = (function(){
     if(live.session === s) finishLive({title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING});
   }
   async function sendLive(text){
-    try{ await live.session.sendMessage(text); $('#msgIn').value = ''; }
+    try{ await live.session.sendMessage(text); $('#msgIn').value = ''; clearTimeout(chatView.typingIdle); }
     catch(e){ sys('Not sent: the other person isn’t connected.'); }
   }
   /* the 4-word phrase: a new one when the old one runs out, for as long as the quant-room lives */
@@ -1501,6 +1557,15 @@ window.VeilFox = (function(){
     }
   }
   addEventListener('pagehide', ()=>{ if(live.session) live.session.leave().catch(()=>{}); });
+  // tell the other person you're typing: on while there's text, off after 3 s of quiet, on blur, or when sent
+  // (engines without typing support simply skip this)
+  const typingTo = on => { const s = live.session; if(s && typeof s.setTyping === 'function') s.setTyping(on); };
+  $('#msgIn').addEventListener('input', ()=>{
+    clearTimeout(chatView.typingIdle);
+    if($('#msgIn').value.trim()){ typingTo(true); chatView.typingIdle = setTimeout(()=>typingTo(false), 3000); }
+    else typingTo(false);
+  });
+  $('#msgIn').addEventListener('blur', ()=>{ clearTimeout(chatView.typingIdle); typingTo(false); });
 
   /* files (Super Quant-Rooms): end-to-end encrypted, browser to browser */
   const kb = n => n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n/1024) + ' KB' : (n/1048576).toFixed(1) + ' MB';
@@ -1509,7 +1574,7 @@ window.VeilFox = (function(){
     if(!b){
       const empty = $('.empty', msgs); if(empty) empty.remove();
       b = document.createElement('div'); b.className = 'msg file ' + (m.mine ? 'me' : 'them'); b.dataset.file = m.id;
-      msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+      addToChat(b, m.mine);
     }
     const pct = Math.round((m.progress || 0) * 100) + '%';
     const status = ({sending:'sending ' + pct, sent:'sent, checking', delivered: m.recipients > 1 ? 'delivered to ' + m.delivered + ' of ' + m.recipients : 'delivered', receiving:'receiving ' + pct, received:'received', failed:'failed'})[m.status] || m.status;
