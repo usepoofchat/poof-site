@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Poof bot | Poof</title>
+<meta name="description" content="How to use @usepoofbot, the Poof bot for Telegram: commands, filters and live buy alerts.">
+<link rel="canonical" href="https://usepoof.chat/buybot/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Poof">
+<meta property="og:title" content="Poof bot: commands, filters and live buy alerts">
+<meta property="og:description" content="How to use @usepoofbot in Telegram. Every command, filters for admins and the Poof buy bot.">
+<meta property="og:url" content="https://usepoof.chat/buybot/">
+<meta property="og:image" content="https://usepoof.chat/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@usepoofchat">
+<meta name="twitter:title" content="Poof bot: commands, filters and live buy alerts">
+<meta name="twitter:description" content="How to use @usepoofbot in Telegram. Every command, filters for admins and the Poof buy bot.">
+<meta name="twitter:image" content="https://usepoof.chat/og-image.png">
+<meta name="theme-color" content="#16171f">
+<script>try{var t=localStorage.getItem('poof-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#e8e9e4; --surface:#fbf7ef;
+  --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
+  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85);
+  --rust:#e8661f; --rust-text:#9c3b14; --on-rust:#1d1f2b;
+  --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14);
+  --frost:#9db4ff; --ok:#3c7a4e; --bad:#b4361a;
+  --nav-h:64px;
+  --pad:clamp(16px,4vw,40px);
+  --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.16,.84,.24,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#14151c; --surface:#1e1f29; --ink:#ecebe6; --ink-2:#bdbcb6; --ink-3:#9e9d97;
+  --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.8); --rust-text:#f08a4b; --panel:#262837; --ok:#7fc495; --bad:#f08a6b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#14151c; --surface:#1e1f29; --ink:#ecebe6; --ink-2:#bdbcb6; --ink-3:#9e9d97;
+  --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.8); --rust-text:#f08a4b; --panel:#262837; --ok:#7fc495; --bad:#f08a6b; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--ground)}
+body{margin:0;min-height:100vh;background:var(--ground);color:var(--ink);font:400 16px/1.5 var(--sans);letter-spacing:-.006em;-webkit-font-smoothing:antialiased;overflow-x:clip;
+  background-image:radial-gradient(60vmax 44vmax at 90% -10%,rgba(232,102,31,.13),transparent 70%)}
+html.theme-anim body,html.theme-anim body *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,box-shadow .45s ease !important}
+[hidden]{display:none !important}
+p{margin:0}
+h1,h2,h3{margin:0;font-weight:600}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--rust);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* header: the site's dark glass bar */
+.nav{position:sticky;top:0;z-index:40;height:var(--nav-h);color:#f1efe8;background:rgba(22,23,31,.86);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav .in{height:100%;max-width:1280px;margin:0 auto;padding:0 var(--pad);display:flex;align-items:center;gap:32px}
+/* the site header: links, theme switch, Create / Join, pixel menu on phones (same sizes as the site) */
+.nav-links{display:flex;gap:30px;margin-left:auto}
+.nav-links a{color:#bdbcb6;text-decoration:none;font-size:14.5px}
+.nav-links a:hover,.nav-links a[aria-current="page"]{color:#f1efe8}
+.nav-links a[aria-current="page"]{box-shadow:0 2px 0 var(--rust)}
+.nav-links + .theme-btn{margin-left:-6px}
+.nav .nav-btn{height:33px;padding:0 14px;gap:9px;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.nav .nav-btn .pip,.mnav-cta .btn .pip{width:10px;height:10px;flex:none;background:repeating-conic-gradient(currentColor 0 25%,transparent 0 50%) 0 0/5px 5px}
+.theme-btn + .nav-btn{margin-left:-20px}
+.nav .nav-btn + .nav-join{margin-left:-22px}
+.btn.ghost{background:transparent;color:#f1efe8;box-shadow:inset 0 0 0 1.5px #f1efe8}
+.btn.ghost:hover{background:#f1efe8;color:#1d1f2b}
+.menu-btn{display:none;flex:none;width:31px;height:31px;margin-left:auto;border:0;border-radius:999px;background:transparent;color:#f1efe8;cursor:pointer;place-items:center;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.menu-btn svg{width:14px;height:14px;fill:currentColor}
+.menu-btn .px{fill:var(--rust)}
+.menu-btn .i-close,.menu-btn[aria-expanded="true"] .i-menu{display:none}
+.menu-btn[aria-expanded="true"] .i-close{display:block}
+.mnav{position:absolute;left:0;right:0;top:100%;height:calc(100dvh - var(--nav-h));overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;
+  padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));background:#16171f;color:#f1efe8;border-top:1px solid rgba(255,255,255,.08)}
+.mnav[hidden]{display:none}
+.mnav-links a{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.08);color:#f1efe8;text-decoration:none;font:600 30px/1 var(--sans);letter-spacing:-.04em}
+.mnav-links a i{font:500 12px var(--mono);font-style:normal;color:#9e9d97}
+.mnav-links a[aria-current="page"],.mnav-links a:hover{color:#f08a4b}
+.mnav-cta{display:grid;gap:10px;margin-top:28px}
+.mnav-cta .btn{height:54px;width:100%;justify-content:center;font-size:16px;text-decoration:none}
+.mnav-theme{margin-top:auto;padding-top:24px;display:flex;align-items:center;justify-content:space-between}
+.mt-lbl{font:500 12.5px var(--mono);color:#9e9d97}
+.mt-seg{display:flex;gap:6px}
+.mt-seg button{min-height:40px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:#f1efe8;cursor:pointer;font:550 14px var(--sans);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.mt-seg button[aria-pressed="true"]{background:var(--rust);color:#1d1f2b;box-shadow:none}
+body.menu-open{overflow:hidden}
+@media (max-width:1060px){.nav-links{gap:20px}.nav .in{gap:22px}}
+@media (max-width:900px){.nav-links,.nav-join{display:none}.nav .theme-btn{margin-left:auto}}
+@media (max-width:760px){.nav .theme-btn,.nav .nav-btn{display:none}.menu-btn{display:grid}.nav .in{gap:10px}}
+/* the site footer */
+.site-foot{position:relative;z-index:2;padding:40px 0 calc(40px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.site-foot .foot{max-width:1280px;margin:0 auto;padding:0 var(--pad);display:flex;flex-direction:column;gap:28px}
+.foot-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
+.site-foot .brand{color:var(--ink)}
+.site-foot .brand .logo{height:17px}
+.social{display:flex;flex-wrap:wrap;gap:8px}
+.soc{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 18px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink);text-decoration:none;font:500 13.5px var(--mono);transition:background .25s,color .25s,box-shadow .25s}
+.soc .pip{width:10px;height:10px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/5px 5px;transition:background .25s,transform .4s var(--ease, ease)}
+.soc:hover{background:var(--rust);color:#1d1f2b;box-shadow:none}
+.soc:hover .pip{background:#1d1f2b;transform:rotate(90deg)}
+.foot-bottom{display:flex;flex-wrap:wrap;gap:12px 40px;justify-content:space-between;font:500 12px/1.6 var(--mono);color:var(--ink-3);padding-top:22px;border-top:1px solid var(--line)}
+.brand{display:flex;align-items:center;color:#f1efe8;text-decoration:none}
+.brand .logo{display:block;height:18px;width:auto}
+.pill{font:500 12px var(--mono);color:#b9b8b1;padding:3px 9px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.sp{margin-left:auto}
+.theme-btn{flex:none;width:33px;height:33px;border:0;border-radius:999px;background:transparent;color:#f1efe8;cursor:pointer;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.theme-btn:hover{background:rgba(255,255,255,.08)}
+.theme-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-btn[data-mode="dark"] .i-moon,.theme-btn[data-mode="light"] .i-sun{display:none}
+.btn{display:inline-flex;align-items:center;gap:10px;height:38px;padding:0 16px;border:0;border-radius:999px;background:var(--rust);color:#1d1f2b;font:550 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--ground)}
+
+/* ---------- bot docs ---------- */
+.dots{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(var(--line) 1px,transparent 1.3px);background-size:18px 18px;
+  -webkit-mask-image:radial-gradient(70vmax 50vmax at 90% 0%,#000,transparent 70%);mask-image:radial-gradient(70vmax 50vmax at 90% 0%,#000,transparent 70%)}
+.doc{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(28px,4vw,56px) var(--pad) 96px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(32px,5vw,72px)}
+.side{position:sticky;top:calc(var(--nav-h) + 28px);align-self:start;max-height:calc(100vh - var(--nav-h) - 48px);overflow:auto;padding-right:4px}
+.side h4{margin:22px 0 8px;font:600 11.5px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.side h4:first-child{margin-top:0}
+.side a{display:flex;align-items:center;gap:10px;padding:7px 10px;margin-left:-10px;border-radius:10px;color:var(--ink-2);text-decoration:none;font-size:14.5px;line-height:1.3}
+.side a img{width:20px;height:20px;flex:none}
+.side a .sq{width:8px;height:8px;flex:none;margin:0 6px;background:var(--line-strong);opacity:.35}
+.side a:hover{color:var(--ink);background:var(--line)}
+.side a.on{color:var(--rust-text);background:rgba(232,102,31,.1)}
+.side a.on .sq{background:var(--rust);opacity:1}
+.side .bot{margin-top:24px;padding:14px;border-radius:14px;box-shadow:inset 0 0 0 1px var(--line);font:500 12px/1.5 var(--mono);color:var(--ink-3)}
+.side .bot a{margin:8px 0 0;padding:0;background:none;color:var(--ink);font:600 13px var(--mono)}
+.side .bot a:hover{color:var(--rust-text)}
+
+.main{min-width:0;max-width:800px}
+.crumb{font:500 12.5px var(--mono);color:var(--rust-text);margin:0 0 14px}
+.hero h1{font-size:clamp(40px,5.6vw,72px);line-height:.98;letter-spacing:-.05em}
+.hero h1 span{color:var(--rust)}
+.hero .sub{margin-top:16px;max-width:58ch;font-size:clamp(16px,1.4vw,18.5px);color:var(--ink-2)}
+.hero .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.btn{text-decoration:none}
+.btn.line{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line-strong)}
+.btn.line:hover{background:var(--ink);color:var(--ground);box-shadow:none}
+.btn .pip{width:10px;height:10px;flex:none;background:repeating-conic-gradient(currentColor 0 25%,transparent 0 50%) 0 0/5px 5px}
+
+section{scroll-margin-top:calc(var(--nav-h) + 24px);margin-top:clamp(56px,7vw,88px)}
+.hero + section{margin-top:clamp(40px,5vw,64px)}
+section > h2{display:flex;align-items:center;gap:12px;font-size:clamp(28px,3vw,38px);letter-spacing:-.04em;line-height:1.05}
+section > h2 img{width:34px;height:34px}
+section > h2 a.hash{margin-left:-30px;width:18px;color:var(--ink-3);text-decoration:none;font:500 22px var(--mono);opacity:0;transition:opacity .2s}
+section > h2:hover a.hash{opacity:1}
+h3{margin:34px 0 0;font-size:21px;letter-spacing:-.025em;line-height:1.2}
+.main p{margin-top:14px;color:var(--ink-2);font-size:16.5px;line-height:1.65}
+.main p b,.main li b{color:var(--ink);font-weight:600}
+.main ul.list,.main ol.list{margin:14px 0 0;padding-left:0;list-style:none;color:var(--ink-2);font-size:16px;line-height:1.6}
+.main .list li{position:relative;padding-left:26px;margin-top:8px}
+.main ul.list li::before{content:"";position:absolute;left:4px;top:.62em;width:7px;height:7px;background:var(--rust)}
+.main ol.list{counter-reset:n}
+.main ol.list li{counter-increment:n}
+.main ol.list li::before{content:counter(n);position:absolute;left:0;top:.15em;width:18px;height:18px;border-radius:5px;background:var(--rust);color:#1d1f2b;font:700 11px/18px var(--mono);text-align:center}
+code,.k{font:500 .9em var(--mono);padding:2px 6px;border-radius:6px;background:var(--line);color:var(--ink);white-space:nowrap}
+a.inl{color:var(--rust-text);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.card{position:relative;display:block;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;text-decoration:none;color:var(--ink);transition:border-color .25s,transform .25s var(--ease)}
+.card:hover{border-color:var(--rust);transform:translateY(-2px)}
+.card img{width:36px;height:36px;display:block}
+.card b{display:block;margin-top:14px;font-size:18px;letter-spacing:-.02em}
+.card span{display:block;margin-top:6px;font-size:14px;line-height:1.5;color:var(--ink-2)}
+.card i{position:absolute;top:18px;right:18px;font:500 11px var(--mono);font-style:normal;color:var(--ink-3)}
+
+/* command table */
+.tbl{margin-top:20px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)}
+.row{display:grid;grid-template-columns:minmax(150px,250px) minmax(0,1fr);gap:16px;align-items:start;padding:14px 18px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.head{padding:10px 18px;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);background:rgba(127,127,127,.05)}
+.row .c{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cmd{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border:0;border-radius:8px;background:var(--line);color:var(--ink);font:600 13.5px var(--mono);cursor:pointer;white-space:normal;text-align:left;line-height:1.35}
+.cmd:hover{background:var(--rust);color:#1d1f2b}
+.cmd.alias{background:transparent;box-shadow:inset 0 0 0 1px var(--line);font-weight:500;color:var(--ink-3)}
+.cmd.alias:hover{color:#1d1f2b;box-shadow:none}
+.row .d{font-size:15px;line-height:1.55;color:var(--ink-2)}
+.row .d small{display:block;margin-top:4px;font:500 12px var(--mono);color:var(--ink-3)}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 7px;margin-left:6px;border-radius:999px;font:600 10px var(--mono);letter-spacing:.06em;vertical-align:2px;background:var(--rust);color:#1d1f2b}
+.tag.ghost{background:transparent;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* notes */
+.note{display:flex;gap:14px;margin-top:22px;padding:16px 18px;border-radius:14px;background:rgba(232,102,31,.08);box-shadow:inset 3px 0 0 var(--rust)}
+.note img{width:28px;height:28px;flex:none}
+.note p{margin:0 !important;font-size:15px !important}
+.note.frost{background:rgba(157,180,255,.12);box-shadow:inset 3px 0 0 var(--frost)}
+
+/* Telegram look (always dark, like the app at night) */
+.chat{margin-top:22px;padding:18px clamp(12px,2.4vw,22px) 20px;border-radius:20px;background:#16171f;color:#f3f1ea;
+  background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1.3px);background-size:16px 16px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.chat .top{display:flex;align-items:center;gap:10px;margin:-4px 0 14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.chat .top img{width:32px;height:32px;border-radius:50%}
+.chat .top b{display:block;font-size:14.5px}
+.chat .top span{display:block;font:500 11.5px var(--mono);color:#9e9d97}
+.chat .top .ex{margin-left:auto;font:600 10px var(--mono);letter-spacing:.08em;color:#9e9d97;padding:3px 8px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.m{display:flex;align-items:flex-end;gap:8px;margin-top:10px}
+.m > .av{width:30px;height:30px;border-radius:50%;flex:none}
+.m .col{min-width:0;max-width:min(440px,100%)}
+.b{position:relative;padding:9px 12px 8px;border-radius:14px 14px 14px 5px;background:#262837;font-size:14.5px;line-height:1.5;color:#f3f1ea;overflow:hidden}
+.b .who{display:block;font-weight:600;font-size:13.5px;color:#f08a4b;margin-bottom:2px}
+.b a{color:#9db4ff;text-decoration:none}
+.b .t{float:right;margin:6px 0 -2px 10px;font:500 10.5px var(--mono);color:#9e9d97}
+.b .em{width:18px;height:18px;vertical-align:-4px;margin-right:4px}
+.b .rowe{display:flex;flex-wrap:wrap;gap:1px;margin:6px 0 8px}
+.b .rowe img{width:16px;height:16px}
+.b.media{padding:0}
+.b.media video,.b.media img.banner{display:block;width:100%;aspect-ratio:16/9;background:#1d1f2b;object-fit:cover}
+.b.media .tx{padding:9px 12px 8px}
+.b .sub{color:#b6b5af}
+.b .gap{height:8px}
+.m.me{justify-content:flex-end}
+.m.me .b{border-radius:14px 14px 5px 14px;background:#e8661f;color:#1d1f2b}
+.m.me .b .t{color:#4d2a17}
+.m.me .b code{background:rgba(29,31,43,.14);color:#1d1f2b}
+.kb{display:grid;gap:4px;margin-top:4px}
+.kb div{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+.kb span{display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 8px;border-radius:10px;background:rgba(38,40,55,.92);font:600 13px var(--sans);color:#f3f1ea;white-space:nowrap}
+.kb span img{width:16px;height:16px}
+.kb span::after{content:"↗";font-size:10px;color:#9e9d97;margin-left:2px}
+.b .rowe + .gap{display:none}
+
+/* anatomy */
+.anat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start;margin-top:22px}
+.anat .chat{margin-top:0}
+.pins{list-style:none;margin:0;padding:0;counter-reset:p}
+.pins li{position:relative;padding:0 0 14px 36px;color:var(--ink-2);font-size:15px;line-height:1.55;counter-increment:p}
+.pins li::before{content:counter(p);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:7px;background:var(--rust);color:#1d1f2b;font:700 12px/24px var(--mono);text-align:center}
+.pins li > b:first-child{display:block;color:var(--ink);font-size:15.5px}
+.pins li b{color:var(--ink);font-weight:600}
+.pin{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:6px;border-radius:5px;background:#e8661f;color:#1d1f2b;font:700 10px var(--mono);vertical-align:1px}
+
+/* tiers */
+.tiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.tier{border-radius:16px;overflow:hidden;background:#16171f;color:#f3f1ea;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.tier video,.tier img.banner{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#1d1f2b}
+.tier .in{padding:12px 14px 14px}
+.tier b{display:flex;align-items:center;gap:8px;font-size:17px}
+.tier b img{width:20px;height:20px}
+.tier span{display:block;margin-top:6px;font:500 12px/1.5 var(--mono);color:#b6b5af}
+.tier span em{font-style:normal;color:#f08a4b}
+
+/* steps */
+.steps{list-style:none;margin:22px 0 0;padding:0;counter-reset:s;display:grid;gap:12px}
+.steps li{position:relative;counter-increment:s;padding:18px 20px 18px 64px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:20px;top:18px;font:600 15px var(--mono);color:var(--rust-text)}
+.steps li b{display:block;font-size:16.5px;letter-spacing:-.01em}
+.steps li span{display:block;margin-top:4px;color:var(--ink-2);font-size:15px;line-height:1.55}
+
+/* faq */
+details{border-top:1px solid var(--line)}
+details:last-of-type{border-bottom:1px solid var(--line)}
+summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 2px;cursor:pointer;list-style:none;font-size:17px;font-weight:600;letter-spacing:-.015em}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";width:12px;height:12px;flex:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/6px 6px;transition:transform .35s var(--ease)}
+details[open] summary::after{transform:rotate(90deg)}
+details .a{padding:0 2px 18px}
+details .a p:first-child{margin-top:0}
+.faqs{margin-top:18px}
+
+.toast{position:fixed;left:50%;bottom:24px;z-index:50;transform:translateX(-50%);background:var(--ink);color:var(--ground);font:500 12.5px var(--mono);padding:10px 14px;border-radius:999px;pointer-events:none;opacity:0;transition:opacity .2s}
+.toast.on{opacity:1}
+
+/* phones and tablets: the side menu becomes a bar of chips under the header */
+@media (max-width:1000px){
+  .doc{grid-template-columns:minmax(0,1fr);gap:0;padding-top:0}
+  .side{position:sticky;top:var(--nav-h);z-index:30;max-height:none;margin:0 calc(var(--pad) * -1);padding:10px var(--pad);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+    background:color-mix(in srgb,var(--ground) 88%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .side::-webkit-scrollbar{display:none}
+  .side h4,.side .bot{display:none}
+  .side a{flex:none;margin:0;padding:7px 12px;font-size:13.5px;box-shadow:inset 0 0 0 1px var(--line);border-radius:999px}
+  .side a img{width:16px;height:16px}
+  .side a .sq{display:none}
+  .main{max-width:none;padding-top:clamp(24px,5vw,40px)}
+  section{scroll-margin-top:calc(var(--nav-h) + 72px)}
+  .anat{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .cards{grid-template-columns:1fr}
+  .tiers{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row{grid-template-columns:1fr;gap:8px}
+  .row.head{display:none}
+  section > h2 a.hash{display:none}
+}
+@media (max-width:420px){.tiers{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="dots" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="in">
+    <a class="brand" href="/" aria-label="Poof home page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="/#security">Security</a>
+      <a href="/#rooms">Quant-Rooms</a>
+      <a href="/#protocol">Protocol</a>
+      <a href="/docs/">Docs</a>
+      <a href="/stats/">Stats</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
+    </button>
+    <a class="btn nav-btn" href="/room/#/new"><span class="pip" aria-hidden="true"></span>Create quant-room</a>
+    <a class="btn nav-btn ghost nav-join" href="/#join">Join quant-room</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav">
+      <svg class="i-menu" viewBox="0 0 14 14" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="2" width="4" height="2"/><rect x="5" y="2" width="4" height="2"/><rect x="10" y="2" width="4" height="2"/><rect x="0" y="6" width="4" height="2"/><rect x="5" y="6" width="4" height="2"/><rect x="10" y="6" width="4" height="2"/><rect x="0" y="10" width="4" height="2"/><rect x="5" y="10" width="4" height="2"/><rect x="10" y="10" width="4" height="2"/></svg>
+      <svg class="i-close" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect class="px" x="3" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg>
+    </button>
+  </div>
+  <div class="mnav" id="mnav" hidden>
+    <nav class="mnav-links" aria-label="Menu">
+      <a href="/#security"><span>Security</span><i>01</i></a>
+      <a href="/#rooms"><span>Quant-Rooms</span><i>02</i></a>
+      <a href="/#protocol"><span>Protocol</span><i>03</i></a>
+      <a href="/docs/"><span>Docs</span><i>04</i></a>
+      <a href="/stats/"><span>Stats</span><i>05</i></a>
+    </nav>
+    <div class="mnav-cta">
+      <a class="btn" href="/room/#/new"><span class="pip" aria-hidden="true"></span>Create a quant-room</a>
+      <a class="btn ghost" href="/#join">Join a quant-room</a>
+    </div>
+    <div class="mnav-theme">
+      <span class="mt-lbl" id="mtLbl">Theme</span>
+      <div class="mt-seg" role="group" aria-labelledby="mtLbl">
+        <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="doc">
+  <nav class="side" id="side" aria-label="On this page">
+    <h4>Getting started</h4>
+    <a href="#overview"><img src="media/e-fox-wave.webp" alt="">Overview</a>
+    <a href="#start"><img src="media/e-mark.webp" alt="">Start the bot</a>
+    <h4>Commands</h4>
+    <a href="#commands"><img src="media/e-coin-ink.webp" alt="">Everyone</a>
+    <a href="#filters"><img src="media/e-coin-stone.webp" alt="">Filters <span class="tag ghost">ADMINS</span></a>
+    <h4>Buy bot</h4>
+    <a href="#buybot"><img src="media/e-fox-dollar.webp" alt="">Set up</a>
+    <a href="#alert"><span class="sq"></span>The alert</a>
+    <a href="#tiers"><span class="sq"></span>Tiers</a>
+    <a href="#settings"><span class="sq"></span>Settings</a>
+    <a href="#live"><span class="sq"></span>Live and grouped</a>
+    <h4>Help</h4>
+    <a href="#faq"><img src="media/e-fox-gaze.webp" alt="">Questions</a>
+    <div class="bot">The bot never sends the first DM and never asks for keys, seed phrases or wallet access.<a href="https://t.me/usepoofbot" target="_blank" rel="noopener">@usepoofbot ↗</a></div>
+  </nav>
+
+  <main class="main" id="main">
+    <header class="hero">
+      <p class="crumb">Telegram · @usepoofbot</p>
+      <h1>The Poof bot<span>.</span></h1>
+      <p class="sub">Answers to every common question, custom commands set by admins and live buy alerts in Poof style. This page shows every command and how to use it.</p>
+      <div class="acts">
+        <a class="btn" href="https://t.me/usepoofbot" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Open @usepoofbot</a>
+        <a class="btn line" href="https://t.me/usepoofchat" target="_blank" rel="noopener">Join Poof on Telegram</a>
+      </div>
+    </header>
+
+    <section id="overview">
+      <h2><a class="hash" href="#overview" aria-hidden="true">#</a>Overview</h2>
+      <p>The Poof bot runs in the official Poof groups. It does three things.</p>
+      <div class="cards">
+        <a class="card" href="#commands"><i>01</i><img src="media/e-coin-ink.webp" alt=""><b>Commands</b><span>/links, /docs, /ca, /rules and more. One tap, the official answer.</span></a>
+        <a class="card" href="#filters"><i>02</i><img src="media/e-coin-stone.webp" alt=""><b>Filters</b><span>Admins add their own commands with a text or a photo. The menu updates itself.</span></a>
+        <a class="card" href="#buybot"><i>03</i><img src="media/e-fox-dollar.webp" alt=""><b>Buy bot</b><span>Every buy of a token, live, within seconds. The bigger the buy, the bigger the alert.</span></a>
+      </div>
+    </section>
+
+    <section id="start">
+      <h2><a class="hash" href="#start" aria-hidden="true">#</a>Start the bot</h2>
+      <p>Type <code>/</code> in the chat to see the command menu, or send <code>/help</code>. The bot answers in the group and in a private chat with <a class="inl" href="https://t.me/usepoofbot" target="_blank" rel="noopener">@usepoofbot</a>.</p>
+      <div class="chat" aria-label="Example: /help">
+        <div class="top"><img src="media/avatar-rust.png" alt=""><div><b>Poof - Group</b><span>members</span></div><span class="ex">EXAMPLE</span></div>
+        <div class="m me"><div class="col"><div class="b">/help<span class="t">12:04</span></div></div></div>
+        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span><b>Poof bot - how to use it</b><div class="gap"></div><b>Commands for everyone</b><br>/help - All commands and how to use them<br>/links - All official Poof links<br>/website - Poof website<br>/x - Poof on X<br>/docs - Documentation<br>/github - Source on GitHub<br>/ca - Contract address<br>/rules - Group rules<div class="gap"></div>Admins never DM first.<span class="t">12:04</span></div></div></div>
+      </div>
+      <div class="note"><img src="media/e-fox-gaze.webp" alt=""><p>Admins see two more blocks in <code>/help</code>: filters and the buy bot. Members only see the commands they can use.</p></div>
+    </section>
+
+    <section id="commands">
+      <h2><a class="hash" href="#commands" aria-hidden="true">#</a><img src="media/e-coin-ink.webp" alt="">Commands for everyone</h2>
+      <p>Anyone in the group can use these. Short aliases do the same thing. Tap a command to copy it.</p>
+      <div class="tbl" role="table">
+        <div class="row head" role="row"><span>Command</span><span>What it does</span></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/help">/help</button><button class="cmd alias" data-copy="/commands">/commands</button></div><div class="d">Every command, with a short description. Admins also see the admin commands.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/links">/links</button><button class="cmd alias" data-copy="/socials">/socials</button><button class="cmd alias" data-copy="/link">/link</button></div><div class="d">All official Poof links in one place: website, X, docs, GitHub and Telegram, with buttons.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/website">/website</button><button class="cmd alias" data-copy="/site">/site</button><button class="cmd alias" data-copy="/web">/web</button><button class="cmd alias" data-copy="/app">/app</button></div><div class="d">What Poof is, with a button to usepoof.chat.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/x">/x</button><button class="cmd alias" data-copy="/twitter">/twitter</button></div><div class="d">Poof on X: @usepoofchat.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/docs">/docs</button><button class="cmd alias" data-copy="/documentation">/documentation</button><button class="cmd alias" data-copy="/doc">/doc</button></div><div class="d">The documentation: how quant-rooms work, security, threat model and FAQ.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/github">/github</button><button class="cmd alias" data-copy="/git">/git</button></div><div class="d">The Poof source on GitHub.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/ca">/ca</button><button class="cmd alias" data-copy="/contract">/contract</button></div><div class="d">The official contract address.<small>Only trust the CA from /ca, usepoof.chat and @usepoofchat. Never one sent in a DM.</small></div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/rules">/rules</button></div><div class="d">The group rules.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/start">/start</button></div><div class="d">A short hello from the bot, with the main links.</div></div>
+      </div>
+      <p>In a group with other bots, add the bot name to be sure the Poof bot answers: <code>/links@usepoofbot</code>.</p>
+    </section>
+
+    <section id="filters">
+      <h2><a class="hash" href="#filters" aria-hidden="true">#</a><img src="media/e-coin-stone.webp" alt="">Filters <span class="tag">ADMINS</span></h2>
+      <p>A filter is a command that answers with a saved message. Admins create them from the chat, no setup needed. After that, anyone can use them.</p>
+      <div class="tbl" role="table">
+        <div class="row head" role="row"><span>Command</span><span>What it does</span></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/addfilter ">/addfilter name text</button></div><div class="d">Adds a filter, or updates it if it exists. Then <code>/name</code> answers with the text. Bold, italics and links are kept.</div></div>
+        <div class="row" role="row"><div class="c"><span class="cmd" style="cursor:default">reply + /addfilter name</span></div><div class="d">Reply to a message (text, or a photo with a caption) with <code>/addfilter name</code> to save that message as the filter.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/delfilter ">/delfilter name</button></div><div class="d">Removes a filter. Works for the built-in commands too: <code>/delfilter rules</code> turns /rules off, and <code>/addfilter rules ...</code> brings it back with your text.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/listfilters">/listfilters</button></div><div class="d">Lists custom filters, built-in commands and the ones turned off.</div></div>
+      </div>
+      <div class="chat" aria-label="Example: adding a filter">
+        <div class="top"><img src="media/avatar-rust.png" alt=""><div><b>Poof - Group</b><span>admin and member</span></div><span class="ex">EXAMPLE</span></div>
+        <div class="m me"><div class="col"><div class="b">/addfilter roadmap <b>Roadmap</b><br>The full roadmap is on usepoof.chat/docs<span class="t">12:10</span></div></div></div>
+        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span>Filter /roadmap saved.<span class="t">12:10</span></div></div></div>
+        <div class="m"><img class="av" src="media/e-fox-wave.webp" alt="" style="border-radius:0"><div class="col"><div class="b"><span class="who" style="color:#9db4ff">Member</span>/roadmap<span class="t">12:12</span></div></div></div>
+        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span><b>Roadmap</b><br>The full roadmap is on <a>usepoof.chat/docs</a><span class="t">12:12</span></div></div></div>
+      </div>
+      <ul class="list">
+        <li>Names use letters, numbers and _ (up to 32). <code>/Roadmap</code> and <code>/roadmap</code> are the same filter.</li>
+        <li>New filters appear in the <code>/</code> menu and in <code>/help</code> on their own.</li>
+        <li>Some names are reserved and can't be filters: <code>help</code>, <code>start</code>, <code>buybot</code> and the filter commands themselves.</li>
+      </ul>
+      <div class="note"><img src="media/e-mark.webp" alt=""><p>Poof filters use <code>/addfilter</code>, <code>/delfilter</code> and <code>/listfilters</code>. Don't use <code>/filter</code>: other bots answer it too and the group gets double replies.</p></div>
+    </section>
+
+    <section id="buybot">
+      <h2><a class="hash" href="#buybot" aria-hidden="true">#</a><img src="media/e-fox-dollar.webp" alt="">Buy bot: set up</h2>
+      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Robinhood Chain</b> with <b>Uniswap v2 and v3</b> pools. All <code>/buybot</code> commands are for admins.</p>
+      <ol class="steps">
+        <li><b>Point it at the token</b><span>Send <code>/buybot set 0x...</code> with the token contract address. The bot finds the token's Uniswap pools on its own (up to 3 pools with at least $500 liquidity).</span></li>
+        <li><b>Check the status</b><span>The bot answers with the token, the pools it watches and the current settings. Send <code>/buybot</code> any time to see them again.</span></li>
+        <li><b>Post a test</b><span><code>/buybot test</code> posts three sample alerts (Spark, Poof, Big poof) marked as test, so you see the look before real buys come in.</span></li>
+        <li><b>Tune it</b><span>Set the smallest buy shown, the tiers and how long small alerts stay. See <a class="inl" href="#settings">Settings</a>.</span></li>
+      </ol>
+      <div class="chat" aria-label="Example: /buybot set">
+        <div class="top"><img src="media/avatar-rust.png" alt=""><div><b>Poof - Group</b><span>admin</span></div><span class="ex">EXAMPLE</span></div>
+        <div class="m me"><div class="col"><div class="b">/buybot set 0x…<span class="t">13:00</span></div></div></div>
+        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span>Buy bot is tracking this token now.<div class="gap"></div><b>Poof buy bot</b> · on<div class="gap"></div>Token: <b>$POOF</b> on Robinhood Chain<br><span class="sub">0x… (the contract you sent)</span><br>Pools: uniswap v3 (ETH)<br>Min buy: $10 · Alerts poof after: 10 min<br>Tiers: auto (0.005% / 0.025% / 0.1% of MCap, at least $100 / $500 / $1,500)<br>Custom emoji: on<span class="t">13:00</span></div></div></div>
+      </div>
+      <div class="note frost"><img src="media/e-fox-gaze.webp" alt=""><p>Brand new token not found yet? Pools show up once DexScreener lists them. You can also give the pool address: <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</p></div>
+    </section>
+
+    <section id="alert">
+      <h2><a class="hash" href="#alert" aria-hidden="true">#</a>The alert</h2>
+      <p>Every alert has the same parts, so the group reads it in a second.</p>
+      <div class="anat">
+        <div class="chat" aria-label="Example buy alert">
+          <div class="top"><img src="media/avatar-rust.png" alt=""><div><b>Poof - Group</b><span>buy alert</span></div><span class="ex">EXAMPLE</span></div>
+          <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col">
+            <div class="b media"><video data-src="media/poof.mp4" poster="media/poof.jpg" muted loop playsinline preload="none"></video>
+              <div class="tx"><span class="pin">1</span><img class="em" src="media/e-mark.webp" alt=""><b>$POOF buy</b> · Poof
+                <div class="rowe" id="demoRow"><span class="pin">2</span></div>
+                <span class="pin">3</span><img class="em" src="media/e-fox-dollar.webp" alt=""><b>0.284 ETH</b> ($712)<br>
+                <span class="pin">4</span><img class="em" src="media/e-coin-ink.webp" alt=""><b>1,284,551 POOF</b> · <a>Tx</a><br>
+                <span class="pin">5</span><img class="em" src="media/e-fox-wave.webp" alt=""><a>0x8f10…f996</a> · New holder<br>
+                <span class="pin">6</span><img class="em" src="media/e-coin-stone.webp" alt="">MCap $1.42M<div class="gap"></div>
+                <span class="pin">7</span><img class="em" src="media/e-poof.webp" alt=""><i>poofs in 10 min</i><span class="t">13:21</span></div></div>
+            <div class="kb"><div><span><img src="media/e-coin-stone.webp" alt="">Chart</span><span><img src="media/e-fox-dollar.webp" alt="">Buy</span><span><img src="media/e-mark.webp" alt="">usepoof.chat</span></div></div>
+          </div></div>
+        </div>
+        <ol class="pins">
+          <li><b>Tier</b>The animation and the name show the size of the buy: Spark, Puff, Poof or Big poof.</li>
+          <li><b>Emoji row</b>Grows with the buy. A Big poof starts at 30 emoji, the row stops at 60. Each tier has its own emoji.</li>
+          <li><b>Paid</b>What the buyer paid, in ETH and in dollars.</li>
+          <li><b>Received</b>Tokens bought, with a link to the transaction on the explorer.</li>
+          <li><b>Buyer</b>The wallet, and <b>New holder</b> or <b>Position +x%</b>: how much this buy added to the bag they already had.</li>
+          <li><b>MCap</b>Market cap right after the buy.</li>
+          <li><b>Poof timer</b>Small alerts delete themselves after 10 min (you can change it). Big poofs stay.</li>
+        </ol>
+      </div>
+      <p>Buttons under each alert: <b>Chart</b> opens DexScreener, <b>Buy</b> opens Uniswap with the token ready, <b>usepoof.chat</b> opens the website.</p>
+    </section>
+
+    <section id="tiers">
+      <h2><a class="hash" href="#tiers" aria-hidden="true">#</a>Tiers</h2>
+      <p>Four sizes, each with its own animation and emoji. By default the limits follow the market cap, so a Big poof stays special as the token grows.</p>
+      <div class="tiers">
+        <div class="tier"><video data-src="media/spark.mp4" poster="media/spark.jpg" muted loop playsinline preload="none"></video><div class="in"><b><img src="media/e-mark.webp" alt="">Spark</b><span>Below Puff<br><em>launch: under $100</em></span></div></div>
+        <div class="tier"><video data-src="media/puff.mp4" poster="media/puff.jpg" muted loop playsinline preload="none"></video><div class="in"><b><img src="media/e-coin-ink.webp" alt="">Puff</b><span>From 0.005% of MCap<br><em>at least $100</em></span></div></div>
+        <div class="tier"><video data-src="media/poof.mp4" poster="media/poof.jpg" muted loop playsinline preload="none"></video><div class="in"><b><img src="media/e-poof.webp" alt="">Poof</b><span>From 0.025% of MCap<br><em>at least $500</em></span></div></div>
+        <div class="tier"><video data-src="media/bigpoof.mp4" poster="media/bigpoof.jpg" muted loop playsinline preload="none"></video><div class="in"><b><img src="media/e-fox-dollar.webp" alt="">Big poof</b><span>From 0.1% of MCap<br><em>at least $1,500</em></span></div></div>
+      </div>
+      <h3>How auto tiers work</h3>
+      <p>Each limit is a share of the market cap, but never lower than its floor. At <b>$1M</b> MCap the floors apply: Puff from $100, Poof from $500, Big poof from $1,500. At <b>$20M</b> MCap: Puff from $1,000, Poof from $5,000, Big poof from $20,000.</p>
+      <h3>Fixed tiers</h3>
+      <p>Prefer your own numbers? <code>/buybot tiers 100 500 1500</code> sets where Puff, Poof and Big poof start, in dollars. <code>/buybot tiers auto</code> goes back to automatic.</p>
+    </section>
+
+    <section id="settings">
+      <h2><a class="hash" href="#settings" aria-hidden="true">#</a>Settings</h2>
+      <p>Every setting is one command in the group. The bot answers with the new status each time.</p>
+      <div class="tbl" role="table">
+        <div class="row head" role="row"><span>Command</span><span>What it does</span></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot">/buybot</button></div><div class="d">Status: token, pools, settings and the command list.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot set ">/buybot set &lt;contract&gt; [pair]</button></div><div class="d">Track a token in this group. Running it again switches to another token and keeps your settings.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot on">/buybot on</button><button class="cmd" data-copy="/buybot off">/buybot off</button></div><div class="d">Pause or resume the alerts.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot min 20">/buybot min 20</button></div><div class="d">The smallest buy shown, in dollars.<small>default $10</small></div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot ttl 10">/buybot ttl 10</button></div><div class="d">Minutes before small alerts poof. <code>0</code> keeps every alert. Big poofs always stay.<small>default 10 min</small></div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot tiers auto">/buybot tiers auto</button><button class="cmd" data-copy="/buybot tiers 100 500 1500">/buybot tiers 100 500 1500</button></div><div class="d">Automatic tiers, or where Puff, Poof and Big poof start, in dollars.<small>default auto</small></div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot emoji off">/buybot emoji on | off</button></div><div class="d">Poof animated emoji, or plain emoji.<small>default on</small></div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot test">/buybot test</button></div><div class="d">Posts three sample alerts marked as test.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot remove">/buybot remove</button></div><div class="d">Stops tracking and removes the buy bot from this group.</div></div>
+      </div>
+    </section>
+
+    <section id="live">
+      <h2><a class="hash" href="#live" aria-hidden="true">#</a>Live and grouped</h2>
+      <p>The bot checks the chain about every 3 seconds, so an alert lands a few seconds after the buy.</p>
+      <p>Telegram lets a bot send about 20 messages per minute in a group. When several buys land in the same few seconds, the biggest one gets the full alert and the others are listed under it, each with its amount and a link to its transaction. No buy is skipped and the chat stays readable, even in a busy minute.</p>
+      <div class="chat" aria-label="Example: grouped buys">
+        <div class="top"><img src="media/avatar-rust.png" alt=""><div><b>Poof - Group</b><span>buy alert</span></div><span class="ex">EXAMPLE</span></div>
+        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col">
+          <div class="b media"><video data-src="media/puff.mp4" poster="media/puff.jpg" muted loop playsinline preload="none"></video>
+            <div class="tx"><img class="em" src="media/e-mark.webp" alt=""><b>$POOF buy</b> · Puff
+              <div class="rowe" data-n="5" data-e="coin-ink"></div>
+              <img class="em" src="media/e-fox-dollar.webp" alt=""><b>0.107 ETH</b> ($268)<br>
+              <img class="em" src="media/e-coin-ink.webp" alt=""><b>482,903 POOF</b> · <a>Tx</a><br>
+              <img class="em" src="media/e-fox-wave.webp" alt=""><a>0x2cae…ce3b</a> · Position +18%<br>
+              <img class="em" src="media/e-coin-stone.webp" alt="">MCap $1.43M<div class="gap"></div>
+              <b>+3 more buys</b> · $151<br>
+              <img class="em" src="media/e-mark.webp" alt="">0.030 ETH ($74) · <a>Tx</a><br>
+              <img class="em" src="media/e-mark.webp" alt="">0.021 ETH ($52) · <a>Tx</a><br>
+              <img class="em" src="media/e-mark.webp" alt="">0.010 ETH ($25) · <a>Tx</a><div class="gap"></div>
+              <img class="em" src="media/e-poof.webp" alt=""><i>poofs in 10 min</i><span class="t">13:24</span></div></div>
+          <div class="kb"><div><span><img src="media/e-coin-stone.webp" alt="">Chart</span><span><img src="media/e-fox-dollar.webp" alt="">Buy</span><span><img src="media/e-mark.webp" alt="">usepoof.chat</span></div></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2><a class="hash" href="#faq" aria-hidden="true">#</a><img src="media/e-fox-gaze.webp" alt="">Questions</h2>
+      <div class="faqs">
+        <details><summary>No alerts are showing up</summary><div class="a">
+          <p>Send <code>/buybot</code> and check:</p>
+          <ul class="list"><li>It says <b>on</b>. If not, <code>/buybot on</code>.</li><li><b>Min buy</b> isn't higher than the buys coming in.</li><li>The pool is Uniswap <b>v2 or v3</b> on Robinhood Chain. v4 pools aren't supported yet.</li><li>The pool has at least $500 liquidity and is listed on DexScreener. For a very new pool, use <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</li></ul>
+        </div></details>
+        <details><summary>Does it show sells?</summary><div class="a"><p>No. Only buys: a swap where someone pays ETH (or the pool's other token) and receives the tracked token.</p></div></details>
+        <details><summary>Why are some buys listed under another alert?</summary><div class="a"><p>They landed in the same few seconds. Telegram limits how many messages a bot can send per minute, so the biggest buy gets the full alert and the rest are listed under it. See <a class="inl" href="#live">Live and grouped</a>.</p></div></details>
+        <details><summary>Where does the price come from?</summary><div class="a"><p>The dollar value is what the buyer paid, at the current ETH price. Market cap and token price come from DexScreener. If no price is available, the bot waits and posts the buy as soon as it has one.</p></div></details>
+        <details><summary>The emoji look plain on my phone</summary><div class="a"><p>Poof animated emoji show in the Telegram apps. If an admin turns them off with <code>/buybot emoji off</code>, the alert uses plain emoji instead.</p></div></details>
+        <details><summary>Our group became a supergroup. Do we set it up again?</summary><div class="a"><p>No. The bot follows the group to its new id with every setting.</p></div></details>
+        <details><summary>Which chains are supported?</summary><div class="a"><p>Robinhood Chain today, with Uniswap v2 and v3 pools. More chains can come later.</p></div></details>
+        <details><summary>Will the bot ever DM me?</summary><div class="a"><p>No. The bot never sends the first message, never asks for a seed phrase, a private key or wallet access, and never asks you to connect a wallet. Anyone who does is a scammer. Admins never DM first either.</p></div></details>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="site-foot">
+  <div class="foot">
+    <div class="foot-top">
+      <a class="brand" href="/" aria-label="Poof home page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
+      <nav class="social" aria-label="Poof elsewhere">
+        <a class="soc" href="https://x.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>X</a>
+        <a class="soc" href="https://t.me/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Telegram</a>
+        <a class="soc" href="https://github.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>GitHub</a>
+        <a class="soc" href="/docs/"><span class="pip" aria-hidden="true"></span>Docs</a>
+        <a class="soc" href="mailto:contact@usepoof.chat"><span class="pip" aria-hidden="true"></span>Contact</a>
+      </nav>
+    </div>
+    <div class="foot-bottom">
+      <span>Private by default. Temporary by design.</span>
+      <span>E2EE / Post-quantum protected / Zero-knowledge architecture</span>
+      <span>No account required.</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  const $ = (s,c=document)=>c.querySelector(s), $$ = (s,c=document)=>Array.from(c.querySelectorAll(s));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* theme (same key as the site) */
+  const darkMQ = matchMedia('(prefers-color-scheme: dark)'), themeBtn = $('#themeBtn');
+  const modeDark = () => { const t = document.documentElement.dataset.theme; return t === 'dark' || (t !== 'light' && darkMQ.matches); };
+  const syncTheme = () => { const d = modeDark(); themeBtn.dataset.mode = d ? 'dark' : 'light'; themeBtn.setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode'); };
+  themeBtn.addEventListener('click', ()=>{
+    const next = modeDark() ? 'light' : 'dark';
+    if(!reduce){ document.documentElement.classList.add('theme-anim'); setTimeout(()=>document.documentElement.classList.remove('theme-anim'), 500); }
+    document.documentElement.dataset.theme = next; try{ localStorage.setItem('poof-theme', next); }catch(e){}
+    syncTheme();
+  });
+  darkMQ.addEventListener && darkMQ.addEventListener('change', syncTheme); syncTheme();
+
+  /* phone menu (same as the site header) */
+  const menuBtn = $('#menuBtn'), mnav = $('#mnav'), mtBtns = $$('[data-theme-set]');
+  const syncMt = () => mtBtns.forEach(b => b.setAttribute('aria-pressed', String((b.dataset.themeSet === 'dark') === modeDark())));
+  function setMenu(open){ mnav.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu'); document.body.classList.toggle('menu-open', open); }
+  menuBtn.addEventListener('click', () => setMenu(mnav.hidden));
+  mnav.addEventListener('click', e => { if(e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', e => { if(e.key === 'Escape' && !mnav.hidden){ setMenu(false); menuBtn.focus(); } });
+  mtBtns.forEach(b => b.addEventListener('click', () => { document.documentElement.dataset.theme = b.dataset.themeSet; try{ localStorage.setItem('poof-theme', b.dataset.themeSet); }catch(e){} syncTheme(); syncMt(); }));
+  themeBtn.addEventListener('click', syncMt); syncMt();
+
+  /* emoji rows: 14 for the $712 Poof example (1 emoji per $50 when Big poof starts at $1,500) */
+  const em = n => '<img src="media/e-' + n + '.webp" alt="">';
+  const demo = $('#demoRow'); if(demo) demo.insertAdjacentHTML('beforeend', em('poof').repeat(14));
+  $$('.rowe[data-n]').forEach(r => r.innerHTML = em(r.dataset.e).repeat(+r.dataset.n));
+
+  /* copy a command */
+  const toast = $('#toast'); let tt;
+  $$('[data-copy]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.copy;
+    const done = () => { toast.textContent = 'Copied ' + v.trim(); toast.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => toast.classList.remove('on'), 1400); };
+    if(navigator.clipboard) navigator.clipboard.writeText(v).then(done, done); else done();
+  }));
+
+  /* banners play only while on screen */
+  const vids = $$('video[data-src]');
+  if(!reduce && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      const v = e.target;
+      if(e.isIntersecting){ if(!v.src) v.src = v.dataset.src; v.play().catch(()=>{}); } else if(v.src) v.pause();
+    }), {rootMargin: '120px'});
+    vids.forEach(v => io.observe(v));
+  }
+
+  /* side menu follows the scroll */
+  const links = $$('.side a[href^="#"]'), secs = links.map(a => $(a.getAttribute('href'))).filter(Boolean);
+  const mark = id => links.forEach(a => {
+    const on = a.getAttribute('href') === '#' + id; a.classList.toggle('on', on);
+    if(on && matchMedia('(max-width:1000px)').matches){ const s = $('#side'); s.scrollTo({left: a.offsetLeft - 16, behavior: reduce ? 'auto' : 'smooth'}); }
+  });
+  let cur = '';
+  const spy = () => {
+    const y = innerHeight * 0.3; let id = secs[0].id;
+    for(const s of secs){ if(s.getBoundingClientRect().top - y <= 0) id = s.id; }
+    if(innerHeight + scrollY >= document.documentElement.scrollHeight - 4) id = secs[secs.length - 1].id;
+    if(id !== cur){ cur = id; mark(id); }
+  };
+  addEventListener('scroll', spy, {passive: true}); spy();
+})();
+</script>
+</body>
+</html>
