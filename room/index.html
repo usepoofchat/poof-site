@@ -1369,7 +1369,7 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=b94effec0d44'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=8a3ab8e083b8'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0};
   const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
 
@@ -1731,17 +1731,27 @@ window.VeilFox = (function(){
           throw new Error('connect the wallet that paid (' + shortHex(a.payer) + ') to finish.');
         }
         if(!a.txHash){
+          const eth = token.symbol === 'ETH';
+          // ETH: the dollar price at today's ETH price, held 15 minutes (refreshed if it's about to run out).
+          if(eth && (!a.quote || a.quote.expiresAt - Date.now() < 3 * 60 * 1000)){
+            a.quote = await E.fetchEthQuote({fetch: fetch.bind(window), origin: API, chain: a.chain, variant: v});
+            store.set(PAY_KEY, a);
+          }
+          const due = eth ? BigInt(a.quote.wei) : BigInt(price);
+          const show = units => eth ? E.formatEth(units) : E.formatUsd(Number(units)) + ' ' + token.symbol;
           // Check first, so the wallet isn't asked for a transfer that can only fail.
-          const bal = await tokenBalance(w, token.address);
-          if(bal !== null && bal < BigInt(price)){
-            throw new Error('this wallet has ' + E.formatUsd(Number(bal)) + ' ' + token.symbol + ' on ' + chain.label + '; the quant-room costs ' + E.formatUsd(price) + '.');
+          const gas = await w.request({method:'eth_getBalance', params:[w.address, 'latest']}).then(BigInt).catch(()=>null);
+          if(eth){
+            if(gas !== null && gas <= due) throw new Error('this wallet has ' + E.formatEth(gas) + ' on ' + chain.label + '; the quant-room costs ' + E.formatEth(due) + ' plus the network fee.');
+          }else{
+            const bal = await tokenBalance(w, token.address);
+            if(bal !== null && bal < due) throw new Error('this wallet has ' + show(bal) + ' on ' + chain.label + '; the quant-room costs ' + show(due) + '.');
+            if(gas !== null && gas === 0n) throw new Error('this wallet has no ETH on ' + chain.label + ' for the network fee. Add a little, then try again.');
           }
-          const gas = await w.request({method:'eth_getBalance', params:[w.address, 'latest']}).catch(()=>null);
-          if(gas !== null && BigInt(gas) === 0n){
-            throw new Error('this wallet has no ETH on ' + chain.label + ' for the network fee. Add a little, then try again.');
-          }
-          payLog('› paying ' + E.formatUsd(price) + ' in ' + token.symbol + ' on ' + chain.label + ' …');
-          a.txHash = await w.request({method:'eth_sendTransaction', params:[{from: w.address, to: token.address, data: E.transferData(cfg.treasury, price), value:'0x0'}]});
+          payLog('› paying ' + (eth ? E.formatEth(due) + ' (' + E.formatUsd(price) + ' at $' + (Number(a.quote.ethUsd) / 1e8).toLocaleString('en-US', {maximumFractionDigits: 0}) + '/ETH)' : show(due)) + ' on ' + chain.label + ' …');
+          a.txHash = await w.request({method:'eth_sendTransaction', params:[eth
+            ? {from: w.address, to: cfg.treasury, value: '0x' + due.toString(16)}
+            : {from: w.address, to: token.address, data: E.transferData(cfg.treasury, price), value:'0x0'}]});
           a.payer = w.address; store.set(PAY_KEY, a);
           payLog('› sent: ' + shortHex(a.txHash));
         }
@@ -1753,7 +1763,7 @@ window.VeilFox = (function(){
         payLog('› waiting for ' + chain.label + ' to confirm …');
         const started = Date.now();
         for(;;){
-          const r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature});
+          const r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature, ...(a.quote ? {quote: a.quote.quote} : {})});
           if(id !== payRun) return;
           if(r.status === 'ok'){ pass = r.pass; break; }
           if(Date.now() - started > 20 * 60 * 1000) throw new Error('the payment hasn’t confirmed yet. Come back and press Pay and unlock to check again.');

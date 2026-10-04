@@ -5506,11 +5506,20 @@ var CHAINS = [
 	"base",
 	"robinhood"
 ];
+/** USD stablecoins (6 decimals) and ETH, the chains' own coin (18 decimals). */
 var TOKENS = [
 	"USDC",
-	"USDT",
-	"USDG"
+	"USDG",
+	"ETH"
 ];
+/** "0.000217 ETH": wei shown with up to 6 decimals, rounded up. */
+function formatEth(wei) {
+	const step = 10n ** 12n;
+	const units = (wei + step - 1n) / step;
+	const whole = units / 1000000n;
+	const frac = (units % 1000000n).toString().padStart(6, "0").replace(/0+$/, "");
+	return `${whole}${frac ? `.${frac}` : ""} ETH`;
+}
 var B64URL = /^[A-Za-z0-9_-]+$/;
 var hexHash = string().regex(/^0x[0-9a-fA-F]{64}$/);
 var hexAddress = string().regex(/^0x[0-9a-fA-F]{40}$/);
@@ -5539,7 +5548,23 @@ object({
 	blindedMsg: b64url(400),
 	/** personal_sign of `redeemMessage(...)` by the address the payment came from. */
 	payer: hexAddress,
-	signature: hexSignature
+	signature: hexSignature,
+	/** ETH only: the quote the payment was made against (from /api/pay/quote). */
+	quote: string().min(1).max(1e3).optional()
+});
+/** GET /api/pay/quote?chain=…&variant=…: what to send in ETH right now, signed by Poof. */
+var quoteResponseSchema = object({
+	chain: _enum(CHAINS),
+	variant: string(),
+	usdMicros: number().int().positive(),
+	/** USD per ETH, 8 decimals (Chainlink), as a decimal string. */
+	ethUsd: string().regex(/^\d+$/),
+	/** The amount to send, in wei, as a decimal string. */
+	wei: string().regex(/^\d+$/),
+	/** Unix ms: the payment must be mined before this. */
+	expiresAt: number().int(),
+	/** Opaque, signed by Poof: send it back with the redemption. */
+	quote: string().min(1).max(1e3)
 });
 var redeemResponseSchema = discriminatedUnion("status", [object({
 	status: literal("pending"),
@@ -5565,7 +5590,8 @@ var payConfigSchema = object({
 		explorer: string(),
 		tokens: array(object({
 			symbol: _enum(TOKENS),
-			address: hexAddress,
+			/** null for ETH (the chain's own coin). */
+			address: hexAddress.nullable(),
 			decimals: number().int()
 		}))
 	})),
@@ -10918,6 +10944,22 @@ function transferData(to, micros) {
 	const pad = (hex) => hex.padStart(64, "0");
 	return `0xa9059cbb${pad(to.slice(2).toLowerCase())}${pad(micros.toString(16))}`;
 }
+/**
+* ETH only: what to send right now for `variant` on `chain`, at the market price. The payment must
+* be mined before `expiresAt`; send `quote` back with the redemption.
+*/
+async function fetchEthQuote(opts) {
+	let res;
+	try {
+		res = await opts.fetch(`${opts.origin}/api/pay/quote?chain=${opts.chain}&variant=${variantId(opts.variant)}`);
+	} catch {
+		throw new PoofError("connection_failed", "Could not reach the server.");
+	}
+	if (!res.ok) throw serverError(res.status, await res.json().catch(() => null));
+	const parsed = quoteResponseSchema.safeParse(await res.json().catch(() => null));
+	if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
+	return parsed.data;
+}
 /** The text the paying wallet signs: it ties this transaction to this blinded pass. */
 async function paymentMessage(chain, txHash, pending) {
 	return redeemMessage({
@@ -10942,7 +10984,8 @@ async function redeemPayment(opts) {
 				keyId: opts.pending.keyId,
 				blindedMsg: opts.pending.blindedMsg,
 				payer: opts.payer,
-				signature: opts.signature
+				signature: opts.signature,
+				...opts.quote ? { quote: opts.quote } : {}
 			})
 		});
 	} catch {
@@ -14742,4 +14785,4 @@ function detectBrowserSupport(env = globalThis) {
 	};
 }
 //#endregion
-export { DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, equalBytes, fetchPayConfig, finishPass, formatUsd, fromBase64, fromBase64Url, fromUtf8, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, toBase64, toBase64Url, transferData, u64be, utf8, variantId };
+export { DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, equalBytes, fetchEthQuote, fetchPayConfig, finishPass, formatEth, formatUsd, fromBase64, fromBase64Url, fromUtf8, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, toBase64, toBase64Url, transferData, u64be, utf8, variantId };
