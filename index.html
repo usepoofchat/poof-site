@@ -493,13 +493,49 @@ body.menu-open{overflow:hidden}
 .ai-toggle{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
 .ai-toggle input{position:absolute;opacity:0;width:1px;height:1px}
 .ai-toggle .sw{position:relative;flex:none;width:42px;height:24px;margin-top:1px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--panel-line);transition:background .25s}
-.ai-toggle .sw::after{content:"";position:absolute;left:4px;top:4px;width:16px;height:16px;background:var(--panel-ink-2);transition:left .25s var(--ease),background .25s}
+.ai-toggle .sw::after{content:"";position:absolute;left:4px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--panel-ink-2);transition:left .25s var(--ease),background .25s}
 .ai-toggle input:checked + .sw{background:var(--rust);box-shadow:none}
 .ai-toggle input:checked + .sw::after{left:22px;background:#1d1f2b}
 .ai-toggle input:focus-visible + .sw{outline:2px solid var(--rust);outline-offset:3px}
 .ai-toggle b{display:block;font-weight:600;font-size:15px;line-height:1.3}
-.ai-toggle small{display:block;margin-top:3px;font:500 11.5px/1.5 var(--mono);color:var(--panel-ink-2)}
+.ai-toggle small{display:block;margin-top:2px;font:500 9.5px/1.4 var(--mono);color:var(--panel-ink-2);opacity:.7}   /* tiny on purpose: just there */
 @media (max-width:760px){.oneroom{padding-bottom:56px}.rooms{padding-top:56px;padding-bottom:56px}.rooms-grid{margin-top:36px}.protocol{padding-top:56px}}
+/* laptops (short screens): compact room cards, so both fit one screen under the header */
+@media (min-width:901px) and (max-height:900px){
+  .rooms .classic,.rooms .super{padding:24px 30px}
+  .rooms .room h3{font-size:30px;margin:0 0 6px}
+  .rooms .classic .over,.rooms .super .over{margin-bottom:8px}
+  .rooms .room .desc{font-size:15px;line-height:1.45;margin:0}
+  .rooms .clock{font-size:76px;margin:10px 0 8px}
+  .rooms .specs{margin:10px 0;gap:4px 18px;font-size:15px}
+  .rooms .incl{margin:0 0 12px;line-height:1.8}
+  .rooms .classic .price{margin:0 0 12px}
+  .rooms .config{gap:12px;margin:14px 0;padding:14px 0}
+  .rooms .seg span{min-height:36px;padding:0 15px;font-size:14px}
+  .rooms .stepper button{width:36px;height:36px;font-size:18px}
+  .rooms .stepper output{font-size:16px}
+  .rooms .price-box .price{font-size:26px}
+  .rooms .feat{margin:0 0 10px;gap:2px 20px;font-size:14px}
+  .rooms .burn{font-size:13.5px;margin:0 0 12px}
+  .rooms .btn{--h:46px}
+  .rooms .why{margin-top:12px;padding-top:2px}
+  .rooms .why summary{min-height:34px}
+}
+@media (min-width:901px) and (max-height:700px){   /* 1366x768-class laptops */
+  .rooms .classic,.rooms .super{padding:20px 28px}
+  .rooms .room h3{font-size:28px}
+  .rooms .room .desc{font-size:14px}
+  .rooms .clock{font-size:64px;margin:8px 0 6px}
+  .rooms .config{gap:8px;margin:12px 0;padding:12px 0}
+  .rooms .seg span{min-height:34px}
+  .rooms .stepper button{width:34px;height:34px}
+  .rooms .price-box .price{font-size:24px}
+  .rooms .feat{font-size:13.5px;margin-bottom:8px}
+  .rooms .burn{margin-bottom:10px}
+  .rooms .btn{--h:42px}
+  .rooms .why{margin-top:8px}
+  .rooms .why summary{min-height:30px}
+}
 /* phones: compact Super Room card, the whole card fits between the header and the bottom bar */
 @media (max-width:760px){
   .super{padding:20px}
@@ -878,7 +914,7 @@ footer .brand{font-size:18px}
           <li>Zero-knowledge architecture</li>
         </ul>
         <p class="price">Free</p>
-        <button class="btn" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create Quant-Room</button>
+        <button class="btn" data-create="classic" data-direct data-magnetic><span class="pip" aria-hidden="true"></span>Create Quant-Room</button>
       </article>
 
       <article class="room super" data-reveal>
@@ -922,7 +958,7 @@ footer .brand{font-size:18px}
           <li>Optional uncensored AI model</li>
         </ul>
         <p class="burn">Burn Poof tokens to unlock. All built on the same privacy architecture.</p>
-        <button class="btn" data-create="super" data-magnetic><span class="pip" aria-hidden="true"></span>Create Super Quant-Room</button>
+        <button class="btn" data-create="super" data-direct data-magnetic><span class="pip" aria-hidden="true"></span>Create Super Quant-Room</button>
         <details class="why">
           <summary>Why tokens?</summary>
           <p>Poof doesn't need your personal information to give you more. Super Quant-Rooms use a simple token mechanism instead.</p>
@@ -2269,7 +2305,9 @@ window.VeilFox = (function(){
   }
   // Create a room opens the room page; the Super Room card passes the lifetime and people already picked
   $$('[data-create]').forEach(b=>b.addEventListener('click', ()=>{
-    location.href = '/room/#/new' + (b.dataset.create === 'super' ? '?plan=super&life=' + lifetime() + '&people=' + people + (ai ? '&ai=1' : '') : '');
+    // the room cards start right away (classic: straight into the room, super: straight to payment); other buttons open the choose step
+    const go = b.hasAttribute('data-direct') ? '&go=1' : '';
+    location.href = '/room/#/new' + (b.dataset.create === 'super' ? '?plan=super&life=' + lifetime() + '&people=' + people + (ai ? '&ai=1' : '') + go : (go ? '?plan=classic' + go : ''));
   }));
   $$('[data-join]').forEach(b=>b.addEventListener('click', ()=>{ opener = b; openJoin(); }));
   $('#joinBtn').addEventListener('click', tryJoin);
