@@ -351,6 +351,7 @@ body.menu-open{overflow:hidden}
 /* desktop: fox drawn 1.5x larger, around its middle so it stays clear of the header,
    nudged right (into the empty space by its tail) so it clears the threat columns */
 @media (min-width:901px){.fut-fox{transform:translateX(12%) scale(1.5);transform-origin:100% 55%}}
+@media (min-width:901px) and (max-width:1599px){.fut-fox{transform:translateX(12%) scale(1.25)}}   /* laptops: the whole fox fits, ears to feet */
 .fut-top{max-width:58%}
 .future h2{max-width:11ch;font-size:clamp(40px,5.4vw,92px)}
 .threat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,2.4vw,40px);counter-reset:t;margin-top:40px}
