@@ -1,8 +1,8 @@
 # Caching rules for usepoof.chat
-# HTML is always revalidated, so visitors get the latest version right after a deploy.
+# HTML and the quant-room engine are always revalidated, so visitors get the latest version right after a deploy.
 # Images, icons, brand videos, the brand kit zip and robots.txt may be cached for a day.
 <IfModule mod_headers.c>
-  <FilesMatch "\.html$">
+  <FilesMatch "\.(html|js|sha256)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   <FilesMatch "\.(png|jpg|jpeg|webp|svg|ico|mp4|zip)$">

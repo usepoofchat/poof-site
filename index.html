@@ -1084,7 +1084,7 @@ footer .brand{font-size:18px}
     </button>
     <div class="fox-slot" id="foxDlg" data-pose="work" data-frame="full" data-modal aria-hidden="true"></div>
     <div class="dlg-body">
-      <p class="demo-note">Preview. Quant-rooms go live soon - this one is a demo.</p>
+      <p class="demo-note" hidden>Preview. Quant-rooms go live soon - this one is a demo.</p>
       <div class="state" data-state="loading">
         <h2 id="dlgTitle" tabindex="-1">Sealing your quant-room…</h2>
         <pre class="genlog" id="genLog" aria-live="polite"></pre>
@@ -2262,15 +2262,30 @@ window.VeilFox = (function(){
     show('loading');
     $('#dlgTitle').textContent = 'Finding your quant-room…';
     Fox.setPose(dlgFox, 'work');
-    genLog.textContent = '';
-    for(const l of ['› looking up the phrase', '› deriving the quant-room key', '› identity required … none', '› joining', '› in']){
-      await sleep(400); if(id !== run) return; genLog.textContent += l + '\n';
+    genLog.textContent = '› looking up the phrase\n';
+    // The phrase turns into a key in this browser (PBKDF2); Poof only ever sees a one-way hash of it.
+    // The engine is built from the public repository usepoofchat/poof-app.
+    const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
+    try{
+      const E = await import('/engine/poof-engine.js');
+      genLog.textContent += '› deriving the quant-room key\n';
+      const path = await E.joinByPhrase({fetch: fetch.bind(window), origin: API, appOrigin: location.origin, code: words.join(' ')});
+      if(id !== run) return;
+      genLog.textContent += '› identity required … none\n› joining\n';
+      location.href = '/room/#/j/' + path.split('#')[1];
+    }catch(err){
+      if(id !== run) return;
+      const code = err && err.code;
+      joinMsg.textContent = ({
+        invalid_code: 'Those aren’t the four words of a quant-room phrase. Check the spelling.',
+        not_found_or_expired: 'That phrase has expired or was already used. Ask for a new one.',
+        decrypt_failed: 'That phrase doesn’t open a quant-room. Ask for a new one.',
+        rate_limited: 'Too many tries from here. Wait a minute, then try again.',
+      })[code] || 'Couldn’t reach Poof. Check your connection and try again.';
+      joinMsg.className = 'copy-msg';
+      show('join');
+      Fox.setPose(dlgFox, 'idle'); Fox.flash(dlgFox, 'sad', 1400);
     }
-    await sleep(250); if(id !== run) return;
-    enterRoom(words.join(' '), 180 + Math.floor(Math.random()*360), 'Joined as guest');
-    const hi = bubble(mini, 'them', 'You made it. Say hi.');
-    const empty = $('.empty', mini); if(empty) empty.remove();
-    Dither.set(hi, 0); Dither.animate(hi, 0, 16, 400);
   }
   function enterRoom(ph, secs, typeLabel){
     $('#roomPhrase').textContent = ph;

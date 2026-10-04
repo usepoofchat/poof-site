@@ -336,7 +336,7 @@ html.fox-live .fox-slot img{visibility:hidden}
     <div class="new-head">
       <div class="fox-slot new-fox" id="foxAscii" data-layer="back" data-mode="ascii" data-px="12" data-alpha=".55" data-frame="full" data-pose="idle" data-look data-yaw="-0.5" aria-hidden="true"></div>
       <div>
-        <p class="demo-note">Preview. Quant-rooms go live soon; this one runs only in your browser.</p>
+        <p class="demo-note" id="superNote">Preview. Quant-rooms go live soon; this one runs only in your browser.</p>
         <h1 id="newTitle" tabindex="-1">Create a <span class="r">quant-room.</span></h1>
         <p class="lead" id="newLead">Pick one. No account, ever.</p>
       </div>
@@ -1086,6 +1086,7 @@ window.VeilFox = (function(){
     pVal.textContent = st.people; pMinus.disabled = st.people <= minPeople(); pPlus.disabled = st.people >= 10;
     $('#aiOn').checked = st.ai;
     $$('input[name="life"]').forEach(i=>i.checked = +i.value === st.life);
+    $('#superNote').hidden = st.plan === 'classic';   // free quant-rooms are live; Super is still a preview
     $('#sPrice').textContent = money(superPrice());
     $('#sPriceFor').textContent = (st.people === 1 ? 'you' : st.people + ' people') + ' · ' + lifeTxt(st.life) + (st.ai ? ' · AI' : '');
     if(st.plan === 'classic'){
@@ -1144,6 +1145,7 @@ window.VeilFox = (function(){
   /* ---------- 3. seal ---------- */
   let sealRun = 0;
   async function seal(){
+    if(st.plan === 'classic') return sealLive();
     const id = ++sealRun;
     go('#/seal', true);
     const log = $('#sealLog'); log.textContent = '';
@@ -1193,6 +1195,7 @@ window.VeilFox = (function(){
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
     msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    $('#msgIn').disabled = false; $('#composer button').disabled = false;
     aiSetup();
     clearInterval(room.timer); room.timer = setInterval(()=>{ room.left--; tick(); }, 1000);
     go('#/r/' + room.id, true);
@@ -1212,10 +1215,11 @@ window.VeilFox = (function(){
     $('#goneText').textContent = 'This quant-room no longer exists. Nothing was kept: not the messages, not the link, not the phrase.';
     go('#/gone', true);
   }
-  $('#endBtn').addEventListener('click', endRoom);
+  $('#endBtn').addEventListener('click', ()=>{ if(live.session) poofLive(); else endRoom(); });
   $('#composer').addEventListener('submit', e=>{
     e.preventDefault();
     const v = $('#msgIn').value.trim(); if(!v) return;
+    if(live.session){ sendLive(v); return; }
     const empty = $('.empty', msgs); if(empty) empty.remove();
     const b = document.createElement('div'); b.className = 'msg me'; b.textContent = v; msgs.appendChild(b);
     msgs.scrollTop = msgs.scrollHeight; $('#msgIn').value = '';
@@ -1228,6 +1232,12 @@ window.VeilFox = (function(){
   $('#upBtn').addEventListener('click', ()=>{ st.upgrading = true; st.plan = 'super'; go('#/upgrade'); });
   function applyUpgrade(){
     st.upgrading = false;
+    if(live.session){   // Super Quant-Rooms are still a preview: a live free quant-room keeps its own timer
+      st.plan = 'classic'; notice.hidden = true;
+      sys('Preview: upgrades go live soon. This quant-room still closes when its timer ends.');
+      go('#/r/' + room.id, true);
+      return;
+    }
     const hadAi = room.ai;
     room.type = 'super'; room.people = Math.max(2, st.people); room.total = st.life; room.left = st.life; room.ai = st.ai;
     notice.hidden = true;
@@ -1280,6 +1290,7 @@ window.VeilFox = (function(){
   function stopPhrase(){ clearInterval(phraseTimer); phraseTimer = null; }
   $('#phraseBtn').addEventListener('click', ()=>{
     $('#phraseBtn').hidden = true; $('#phraseLive').hidden = false;
+    if(live.session){ $('#phraseMsg').textContent = ''; $('#words').textContent = '…'; newLivePhrase(); return; }
     newPhrase(); stopPhrase();
     phraseTimer = setInterval(()=>{
       room.phraseLeft--;
@@ -1290,6 +1301,182 @@ window.VeilFox = (function(){
   $('#copyPhrase').addEventListener('click', ()=>copy(room.phrase,
     ()=>{ $('#phraseMsg').textContent = 'Phrase copied. It works for ' + fmt(room.phraseLeft).replace(/^0/, '') + ' more.'; $('#phraseMsg').className = 'copy-msg ok'; },
     ()=>{ $('#phraseMsg').textContent = "Couldn't copy automatically. Read the four words out instead."; $('#phraseMsg').className = 'copy-msg'; }));
+
+  /* ---------- live quant-rooms (free): the Poof engine, talking to api.usepoof.chat ---------- */
+  // The engine (/engine/poof-engine.js) is built from the public repository usepoofchat/poof-app.
+  // Keys are made in this browser and never leave it; the API only relays connection details.
+  const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
+  let enginePromise = null;
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js'));
+  const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0};
+  const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
+
+  function liveLog(l){ $('#sealLog').textContent += l + '\n'; }
+  function unsupported(E){
+    const sup = E.detectBrowserSupport();
+    if(sup.ok) return false;
+    finishLive({title:'This browser can’t open a quant-room.', text:'It is missing something a quant-room needs (' + sup.missing.join(', ') + '). Try a current Chrome, Firefox or Safari.'});
+    return true;
+  }
+  async function sealLive(){
+    const id = ++sealRun;
+    go('#/seal', true);
+    $('#sealTitle').textContent = 'Sealing your quant-room…';
+    $('#sealLog').textContent = '';
+    try{
+      const E = await loadEngine(); if(id !== sealRun) return;
+      if(unsupported(E)) return;
+      liveLog('› opening a quant-room');
+      const created = await E.createRoom({fetch: fetch.bind(window), origin: API}); if(id !== sealRun) return;
+      for(const l of ['› generating quant-room keys in this browser', '› identity required … none', '› sealing the quant-room', '› ready']){
+        await sleep(260); if(id !== sealRun) return; liveLog(l);
+      }
+      startLive(E, created.roomId, created.key, created.ownerSecret);
+    }catch(err){
+      if(id !== sealRun) return;
+      finishLive(err && err.code === 'rate_limited'
+        ? {title:'Too many quant-rooms from here.', text:'Wait a minute, then create another one.'}
+        : {title:'Couldn’t reach Poof.', text:'Check your connection and try again. Nothing was created.'});
+    }
+  }
+  async function joinLive(fragment){
+    const id = ++sealRun;
+    show('seal');
+    $('#sealTitle').textContent = 'Opening the quant-room…';
+    $('#sealLog').textContent = '';
+    try{
+      const E = await loadEngine(); if(id !== sealRun) return;
+      if(unsupported(E)) return;
+      let inv;
+      try{ inv = E.parseInviteFragment(fragment); }
+      catch(e){ finishLive({title:'This link doesn’t open a quant-room.', text:'Check that you copied the whole link, or ask for a new one.'}); return; }
+      liveLog('› reading the key from the link, in this browser');
+      startLive(E, inv.roomId, inv.key, null);
+    }catch(err){
+      if(id !== sealRun) return;
+      finishLive({title:'Couldn’t reach Poof.', text:'Check your connection and try again.'});
+    }
+  }
+  function startLive(E, roomId, key, ownerSecret){
+    stopLive();
+    const s = new E.RoomSession({
+      roomId, roomKey: key, origin: API, appOrigin: location.origin,
+      ...(ownerSecret ? {ownerSecret} : {}),
+      fetch: fetch.bind(window), createSocket: E.browserSocketFactory, createPeerConnection: E.browserRtcFactory,
+    });
+    live.session = s; live.owner = !!ownerSecret; live.shown = new Set();
+    room.type = 'classic'; room.people = 2; room.ai = false; room.total = 600; room.left = 600; room.warned = false;
+    room.id = roomId; room.link = s.getState().inviteUrl;
+    $('#rid').textContent = roomId;
+    $('#roomType').textContent = typeLabel();
+    $('.room-grid').classList.toggle('solo', !live.owner);   // a guest has nobody left to invite in a room for two
+    $('#linkText').textContent = room.link.replace(/^https?:\/\//, '');
+    $('#linkBox').classList.add('masked'); $('#revealBtn').hidden = false; $('#linkText').setAttribute('aria-hidden', 'true');
+    $('#qrPop').hidden = true; $('#qrBtn').setAttribute('aria-expanded', 'false'); $('#qrBox').innerHTML = '';
+    $('#linkMsg').textContent = '';
+    stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
+    notice.hidden = true;
+    msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
+    $('#liveTxt').textContent = LIVE_TXT.loading;
+    live.unsub = s.subscribe(render);
+    clearInterval(room.timer); room.timer = setInterval(liveTick, 1000);
+    go('#/r/' + roomId, true);   // the key leaves the address bar: it stays in this tab's memory only
+    render(s.getState());
+    s.start().catch(()=>{});
+  }
+  function render(state){
+    if(!live.session) return;
+    if(state.status === 'sealed') $('#liveTxt').textContent = 'sealed' + (state.connectionType === 'relay' ? ' · via relay' : ' · direct');
+    else if(LIVE_TXT[state.status]) $('#liveTxt').textContent = LIVE_TXT[state.status];
+    const open = state.status === 'sealed';
+    $('#msgIn').disabled = !open; $('#composer button').disabled = !open;
+    if(state.expiresAt) room.left = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+    for(const m of state.messages){
+      if(m.kind !== 'text' || live.shown.has(m.id)) continue;
+      live.shown.add(m.id);
+      const empty = $('.empty', msgs); if(empty) empty.remove();
+      const b = document.createElement('div'); b.className = 'msg ' + (m.mine ? 'me' : 'them'); b.textContent = m.text;
+      msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+      if(!m.mine) Fox.flash($('#foxChat'), 'excited', 700);
+    }
+    if(state.status === 'terminated' || state.status === 'expired' || state.status === 'error') finishLive(endCopy(state));
+  }
+  function liveTick(){
+    const s = live.session && live.session.getState();
+    if(s && s.expiresAt) room.left = Math.max(0, Math.ceil((s.expiresAt - Date.now()) / 1000));
+    timerEl.textContent = fmt(room.left);
+    timerEl.classList.toggle('low', room.left <= WARN_SECS);
+    if(room.left <= WARN_SECS && room.left > 0 && !room.warned){ room.warned = true; notice.hidden = false; Fox.flash($('#foxChat'), 'sad', 1800); }
+    if(live.phraseExp) phraseLiveTick();
+  }
+  const NOTHING = 'Nothing was kept: not the messages, not the link, not the phrase.';
+  function endCopy(state){
+    if(state.status === 'expired') return {title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING};
+    if(state.status === 'error') return ({
+      room_not_found: {title:'This quant-room isn’t here.', text:'It has run out of time or was poofed. ' + NOTHING},
+      room_full: {title:'This quant-room is full.', text:'A Quant-Room is for two, and two people are already in it.'},
+      invalid_link: {title:'This link doesn’t open a quant-room.', text:'Check that you copied the whole link, or ask for a new one.'},
+      pq_failed: {title:'This quant-room couldn’t be sealed.', text:'The key check between the two browsers failed, so nothing was sent. Ask for a new link.'},
+      rate_limited: {title:'Too many tries from here.', text:'Wait a minute, then try again.'},
+    })[state.error && state.error.code] || {title:'Couldn’t reach Poof.', text:'Check your connection and try again.'};
+    return ({
+      peer_left: {title:'Poof.', text:'The other person left, so the quant-room closed. ' + NOTHING},
+      destroyed_by_peer: {title:'Poof.', text:'The other person poofed the quant-room. ' + NOTHING},
+      connection_lost: {title:'Poof.', text:'The connection dropped, so the quant-room closed. ' + NOTHING},
+    })[state.endReason] || {title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING};
+  }
+  function stopLive(){
+    if(live.unsub){ live.unsub(); live.unsub = null; }
+    clearTimeout(live.phraseTimer); live.phraseTimer = null; live.phraseExp = 0;
+    live.session = null;
+  }
+  function finishLive(copy){
+    const s = live.session;
+    stopLive();
+    if(s){ const st0 = s.getState().status; if(st0 !== 'terminated' && st0 !== 'expired' && st0 !== 'error') s.leave().catch(()=>{}); }
+    clearInterval(room.timer); room.timer = null; stopPhrase();
+    room.link = ''; room.phrase = ''; room.id = '';
+    $('.room-grid').classList.remove('solo');
+    go('#/gone', true);
+    $('#goneTitle').textContent = copy.title;
+    $('#goneText').textContent = copy.text;
+  }
+  async function poofLive(){
+    const s = live.session; if(!s) return;
+    try{ await (live.owner ? s.destroy() : s.leave()); }catch(e){}
+    if(live.session === s) finishLive({title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING});
+  }
+  async function sendLive(text){
+    try{ await live.session.sendMessage(text); $('#msgIn').value = ''; }
+    catch(e){ sys('Not sent: the other person isn’t connected.'); }
+  }
+  /* the 4-word phrase: a new one when the old one runs out, for as long as the quant-room lives */
+  async function newLivePhrase(){
+    const s = live.session; if(!s) return;
+    try{
+      const ph = await s.createPhrase(); if(live.session !== s) return;
+      room.phrase = ph.code.split('-').join(' ');
+      live.phraseExp = ph.expiresAt;
+      $('#words').innerHTML = '';
+      ph.code.split('-').forEach((w,i)=>{ const sp = document.createElement('span'); const n = document.createElement('i'); n.textContent = '0' + (i+1); sp.append(n, w); $('#words').appendChild(sp); });
+      phraseLiveTick();
+    }catch(e){
+      live.phraseExp = 0;
+      $('#phraseMsg').textContent = e && e.code === 'rate_limited' ? 'Too many phrases from here. Try again in a minute.' : 'Couldn’t make a phrase. Share the link instead.';
+      $('#phraseMsg').className = 'copy-msg';
+    }
+  }
+  function phraseLiveTick(){
+    const left = Math.max(0, Math.round((live.phraseExp - Date.now()) / 1000));
+    $('#phraseTtl').textContent = fmt(left).replace(/^0/, '');
+    $('#phraseBar').style.transform = 'scaleX(' + Math.min(1, left / PHRASE_SECS) + ')';
+    room.phraseLeft = left;
+    if(left <= 0 && live.session && room.left > 0){
+      live.phraseExp = 0;
+      newLivePhrase().then(()=>{ if(live.phraseExp){ $('#phraseMsg').textContent = 'The old phrase expired. Use this one.'; $('#phraseMsg').className = 'copy-msg'; } });
+    }
+  }
+  addEventListener('pagehide', ()=>{ if(live.session) live.session.leave().catch(()=>{}); });
 
   /* ---------- routing (#/new, #/pay, #/upgrade, #/seal, #/r/id, #/gone, #/j/link) ---------- */
   function go(hash, replace){ if(location.hash === hash) route(); else if(replace) { history.replaceState(null, '', hash); route(); } else location.hash = hash; }
@@ -1320,11 +1507,7 @@ window.VeilFox = (function(){
     else if(h === '#/pay' && st.plan === 'super'){ preparePay(); show('pay'); }
     else if(h === '#/seal'){ show('seal'); }
     else if(h.startsWith('#/r/') && room.timer && h === '#/r/' + room.id){ $('.plan.classic').hidden = false; show('room'); }
-    else if(h.startsWith('#/j/')){
-      $('#goneTitle').textContent = 'This quant-room isn’t here.';
-      $('#goneText').textContent = 'Quant-rooms go live soon. This link comes from a preview, and preview quant-rooms exist only in the browser that opened them.';
-      show('gone');
-    }
+    else if(h.startsWith('#/j/')){ joinLive(h.slice(4)); }
     else if(h === '#/gone'){ $('#goneTitle').textContent = 'Poof.'; show('gone'); }
     else if(h.startsWith('#/r/')){
       // a reload or an old link: the room lived only in the tab that opened it

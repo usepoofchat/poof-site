@@ -26,7 +26,9 @@ const PREVIEWS = [
   ...fs.readdirSync("docs", {withFileTypes: true}).filter(e => e.isDirectory()).map(e => `docs/${e.name}/index.html`).filter(f => fs.existsSync(f)),
   "join/index.html",
 ];
-const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", "room/index.html", "stats/index.html", "buybot/index.html", ...listDir("buybot/media", () => true), ...BRAND, ...PREVIEWS];
+// The client engine for live quant-rooms, built from usepoofchat/poof-app (`pnpm build:engine`), with its checksum.
+const ENGINE = ["engine/poof-engine.js", "engine/poof-engine.js.sha256"];
+const FILES = ["index.html", "favicon.svg", "og-image.png", "robots.txt", "apple-touch-icon.png", ".htaccess", "docs/index.html", "room/index.html", ...ENGINE, "stats/index.html", "buybot/index.html", ...listDir("buybot/media", () => true), ...BRAND, ...PREVIEWS];
 const dry = process.argv.includes("--dry");
 // Another target: node deploy.mjs --env=.env.staging  (default .env)
 const ENV_FILE = (process.argv.find(a => a.startsWith("--env=")) || "--env=.env").slice(6);
