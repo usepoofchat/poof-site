@@ -5,9 +5,14 @@
   "scripts": {
     "deploy": "node deploy.mjs",
     "deploy:dry": "node deploy.mjs --dry",
-    "brand-zip": "node scripts/brand-zip.mjs"
+    "brand-zip": "node scripts/brand-zip.mjs",
+    "build:walletconnect": "esbuild walletconnect/index.ts --bundle --format=esm --minify --target=es2022 --legal-comments=none --define:global=globalThis --define:process.env.NODE_ENV='\"production\"' --outfile=wallet/poof-walletconnect.js"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5"
+  },
+  "devDependencies": {
+    "@walletconnect/universal-provider": "2.25.0",
+    "esbuild": "^0.25.0"
   }
 }

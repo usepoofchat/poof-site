@@ -268,6 +268,16 @@ html.fox-live .fox-slot img{visibility:hidden}
 .ai-toggle input:checked + .sw::after{left:22px;background:#1d1f2b}
 .ai-toggle input:focus-visible + .sw{outline:2px solid var(--rust);outline-offset:3px}
 .ai-toggle b{display:block;font-weight:600;font-size:15.5px;line-height:1.3}
+.ai-toggle:has(input:disabled){cursor:default;opacity:.75}
+.soon{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font:500 10.5px/1.6 var(--mono);color:var(--rust-text);box-shadow:inset 0 0 0 1px currentColor;vertical-align:2px}
+.pay-opts{margin:0 0 20px}
+.pay-opts .seg{flex-wrap:wrap}
+.pay-wallets{display:grid;gap:8px;margin:14px 0 0}
+.pay-wallets .btn{width:100%;justify-content:flex-start;gap:10px}
+.pay-wallets img{width:20px;height:20px;border-radius:5px}
+.msg.file{display:flex;flex-direction:column;gap:2px}
+.msg.file a{color:inherit;font-weight:600}
+.msg.file small{font:500 11.5px/1.4 var(--mono);opacity:.75}
 .ai-toggle small{display:block;margin-top:2px;font:500 9.5px/1.4 var(--mono);color:var(--panel-ink-2);opacity:.7}
 .msg.ai{align-self:flex-start;background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rust);border-bottom-left-radius:4px}
 .msg.ai::before{content:"AI";display:block;font:600 10.5px var(--mono);letter-spacing:.08em;color:var(--rust-text);margin-bottom:3px}
@@ -379,8 +389,8 @@ html.fox-live .fox-slot img{visibility:hidden}
             </div>
           </div>
           <div class="cfg-row ai-row">
-            <label class="ai-toggle"><input type="checkbox" id="aiOn"><span class="sw" aria-hidden="true"></span>
-              <span><b>Include an uncensored AI model</b><small>Runs on Poof's own servers. No logs, no memory after the poof. +$2 for 1 hour, +$5 for 24 hours. With the AI, you can also talk to it alone.</small></span></label>
+            <label class="ai-toggle"><input type="checkbox" id="aiOn" disabled><span class="sw" aria-hidden="true"></span>
+              <span><b>Include an uncensored AI model <span class="soon">Coming soon</span></b><small>Runs on Poof's own servers. No logs, no memory after the poof. +$2 for 1 hour, +$5 for 24 hours. With the AI, you can also talk to it alone.</small></span></label>
           </div>
           <div class="cfg-row">
             <span class="cfg-lbl">Price</span>
@@ -415,9 +425,16 @@ html.fox-live .fox-slot img{visibility:hidden}
         <dt id="payAiL" hidden>AI model</dt><dd id="payAi" hidden>uncensored, +$2</dd>
         <dt class="total">Total</dt><dd class="total" id="payTotal">$0.588</dd>
       </dl>
+      <div class="pay-opts" id="payOpts">
+        <p class="lbl"><span>Network</span></p>
+        <fieldset class="seg" id="payChain"><legend>Network</legend></fieldset>
+        <p class="lbl" style="margin-top:14px"><span>Pay with</span></p>
+        <fieldset class="seg" id="payToken"><legend>Stablecoin</legend></fieldset>
+      </div>
       <button class="btn btn-lg" id="payBtn" type="button" style="width:100%"><span class="pip" aria-hidden="true"></span>Pay and unlock</button>
+      <div class="pay-wallets" id="payWallets" hidden></div>
+      <div class="qr-pop" id="wcPop" hidden><div class="qr-box" id="wcQr" role="img" aria-label="WalletConnect QR code"></div><p>Scan with your phone wallet. <a href="#" id="wcLink">Open in a wallet on this device</a></p></div>
       <pre class="genlog" id="payLog" aria-live="polite"></pre>
-      <p class="demo-note" style="margin:6px 0 0">Preview: nothing is charged and nothing is burned.</p>
     </div>
   </section>
 
@@ -458,6 +475,10 @@ html.fox-live .fox-slot img{visibility:hidden}
         </div>
         <div class="msgs" id="msgs" aria-live="polite"><p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p></div>
         <form class="composer" id="composer">
+          <button class="icon-btn" id="fileBtn" type="button" aria-label="Send a file" title="Send a file" hidden>
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M15 8.5l-6.2 6.2a3.6 3.6 0 0 1-5.1-5.1L10 3.3a2.4 2.4 0 0 1 3.4 3.4l-6.3 6.3a1.2 1.2 0 0 1-1.7-1.7l5.8-5.8"/></svg>
+          </button>
+          <input type="file" id="fileIn" hidden>
           <input id="msgIn" aria-label="Message" placeholder="Write a message" autocomplete="off">
           <button class="btn btn-sm" type="submit">Send</button>
         </form>
@@ -1080,6 +1101,7 @@ window.VeilFox = (function(){
   const superPrice = () => { const p = PRICE[st.life]; return p.base + Math.max(0, st.people - 2)*p.extra + (st.ai ? AI_PRICE[st.life] : 0); };
   const pplTxt = n => n === 1 ? 'just you' : 'up to ' + n + ' people';
   function syncChoose(){
+    st.ai = false;   // the AI model isn't live yet (its toggle is disabled, "Coming soon")
     plans.forEach(p=>{ const on = p.dataset.plan === st.plan; p.setAttribute('aria-checked', String(on)); p.tabIndex = on ? 0 : -1; $('.sel', p).textContent = on ? 'Selected' : 'Select'; });
     $('#superClock').textContent = st.life === 3600 ? '1:00:00' : '24:00:00';
     if(st.people < minPeople()) st.people = minPeople();
@@ -1131,16 +1153,11 @@ window.VeilFox = (function(){
     $('#payTotal').textContent = money(superPrice());
     $('#payTitle').textContent = st.upgrading ? 'Upgrade your quant-room.' : 'Unlock your Super Quant-Room.';
     $('#payLog').textContent = ''; $('#payBtn').disabled = false;
+    $('#payWallets').hidden = true; $('#wcPop').hidden = true;
+    payOptions();
   }
   $('#payBack').addEventListener('click', ()=>history.back());
-  $('#payBtn').addEventListener('click', async ()=>{
-    const id = ++payRun; $('#payBtn').disabled = true; const log = $('#payLog'); log.textContent = '';
-    for(const l of ['› connecting your wallet … preview', '› paying ' + money(superPrice()) + ' in stablecoins … simulated', '› the full amount goes to a POOF buyback and burn', '› receipt is not linked to the quant-room', '› unlocked']){
-      await sleep(520); if(id !== payRun) return; log.textContent += l + '\n';
-    }
-    await sleep(350); if(id !== payRun) return;
-    if(st.upgrading) applyUpgrade(); else seal();
-  });
+  $('#payBtn').addEventListener('click', ()=>{ payRun++; payReal(); });
 
   /* ---------- 3. seal ---------- */
   let sealRun = 0;
@@ -1195,7 +1212,7 @@ window.VeilFox = (function(){
     stopPhrase(); $('#phraseLive').hidden = true; $('#phraseBtn').hidden = false;
     notice.hidden = true;
     msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
-    $('#msgIn').disabled = false; $('#composer button').disabled = false;
+    $('#msgIn').disabled = false; $('#composer button[type="submit"]').disabled = false;
     aiSetup();
     clearInterval(room.timer); room.timer = setInterval(()=>{ room.left--; tick(); }, 1000);
     go('#/r/' + room.id, true);
@@ -1232,12 +1249,7 @@ window.VeilFox = (function(){
   $('#upBtn').addEventListener('click', ()=>{ st.upgrading = true; st.plan = 'super'; go('#/upgrade'); });
   function applyUpgrade(){
     st.upgrading = false;
-    if(live.session){   // Super Quant-Rooms are still a preview: a live free quant-room keeps its own timer
-      st.plan = 'classic'; notice.hidden = true;
-      sys('Preview: upgrades go live soon. This quant-room still closes when its timer ends.');
-      go('#/r/' + room.id, true);
-      return;
-    }
+    if(live.session){ go('#/r/' + room.id, true); return; }
     const hadAi = room.ai;
     room.type = 'super'; room.people = Math.max(2, st.people); room.total = st.life; room.left = st.life; room.ai = st.ai;
     notice.hidden = true;
@@ -1307,7 +1319,7 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=96c997598a6c'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=518e7842477d'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0};
   const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
 
@@ -1369,7 +1381,7 @@ window.VeilFox = (function(){
     room.id = roomId; room.link = s.getState().inviteUrl;
     $('#rid').textContent = roomId;
     $('#roomType').textContent = typeLabel();
-    $('.room-grid').classList.toggle('solo', !live.owner);   // a guest has nobody left to invite in a room for two
+    $('.room-grid').classList.toggle('solo', !live.owner);   // a guest has nobody left to invite in a room for two (Super rooms: see render)
     $('#linkText').textContent = room.link.replace(/^https?:\/\//, '');
     $('#linkBox').classList.add('masked'); $('#revealBtn').hidden = false; $('#linkText').setAttribute('aria-hidden', 'true');
     $('#qrPop').hidden = true; $('#qrBtn').setAttribute('aria-expanded', 'false'); $('#qrBox').innerHTML = '';
@@ -1386,12 +1398,23 @@ window.VeilFox = (function(){
   }
   function render(state){
     if(!live.session) return;
-    if(state.status === 'sealed') $('#liveTxt').textContent = 'sealed' + (state.connectionType === 'relay' ? ' · via relay' : ' · direct');
+    const group = state.maxPeers > 2;
+    if(state.plan === 'super'){
+      room.type = 'super'; room.people = state.maxPeers; room.total = state.tier === '24h' ? 86400 : 3600;
+      $('#roomType').textContent = typeLabel();
+    }
+    $('.room-grid').classList.toggle('solo', !live.owner && !group);
+    const here = 1 + state.members.filter(m=>m.state === 'sealed').length;
+    if(group && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = here === 1 ? 'waiting for people to join' : here + ' of ' + state.maxPeers + ' here';
+    else if(state.status === 'sealed') $('#liveTxt').textContent = 'sealed' + (state.connectionType === 'relay' ? ' · via relay' : ' · direct');
     else if(LIVE_TXT[state.status]) $('#liveTxt').textContent = LIVE_TXT[state.status];
     const open = state.status === 'sealed';
-    $('#msgIn').disabled = !open; $('#composer button').disabled = !open;
+    $('#msgIn').disabled = !open; $('#composer button[type="submit"]').disabled = !open;
+    $('#fileBtn').hidden = !(state.limits && state.limits.fileTransfer); $('#fileBtn').disabled = !open;
+    for(const m of state.messages) if(m.kind === 'file') renderFile(m);
     if(state.expiresAt) room.left = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
     for(const m of state.messages){
+      if(m.kind === 'system' && !live.shown.has(m.id)){ live.shown.add(m.id); sys(m.event === 'joined' ? 'Someone joined.' : 'Someone left.'); continue; }
       if(m.kind !== 'text' || live.shown.has(m.id)) continue;
       live.shown.add(m.id);
       const empty = $('.empty', msgs); if(empty) empty.remove();
@@ -1406,7 +1429,8 @@ window.VeilFox = (function(){
     if(s && s.expiresAt) room.left = Math.max(0, Math.ceil((s.expiresAt - Date.now()) / 1000));
     timerEl.textContent = fmt(room.left);
     timerEl.classList.toggle('low', room.left <= WARN_SECS);
-    if(room.left <= WARN_SECS && room.left > 0 && !room.warned){ room.warned = true; notice.hidden = false; Fox.flash($('#foxChat'), 'sad', 1800); }
+    // The upgrade nudge is for free quant-rooms only.
+    if(s && s.plan === 'free' && room.left <= WARN_SECS && room.left > 0 && !room.warned){ room.warned = true; notice.hidden = false; Fox.flash($('#foxChat'), 'sad', 1800); }
     if(live.phraseExp) phraseLiveTick();
   }
   const NOTHING = 'Nothing was kept: not the messages, not the link, not the phrase.';
@@ -1477,6 +1501,229 @@ window.VeilFox = (function(){
     }
   }
   addEventListener('pagehide', ()=>{ if(live.session) live.session.leave().catch(()=>{}); });
+
+  /* files (Super Quant-Rooms): end-to-end encrypted, browser to browser */
+  const kb = n => n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n/1024) + ' KB' : (n/1048576).toFixed(1) + ' MB';
+  function renderFile(m){
+    let b = msgs.querySelector('[data-file="' + m.id + '"]');
+    if(!b){
+      const empty = $('.empty', msgs); if(empty) empty.remove();
+      b = document.createElement('div'); b.className = 'msg file ' + (m.mine ? 'me' : 'them'); b.dataset.file = m.id;
+      msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+    }
+    const pct = Math.round((m.progress || 0) * 100) + '%';
+    const status = ({sending:'sending ' + pct, sent:'sent, checking', delivered: m.recipients > 1 ? 'delivered to ' + m.delivered + ' of ' + m.recipients : 'delivered', receiving:'receiving ' + pct, received:'received', failed:'failed'})[m.status] || m.status;
+    b.textContent = '';
+    if(m.url && !m.mine){ const a = document.createElement('a'); a.href = m.url; a.download = m.name; a.textContent = m.name; b.appendChild(a); }
+    else { const n = document.createElement('span'); n.textContent = m.name; b.appendChild(n); }
+    const small = document.createElement('small'); small.textContent = kb(m.size) + ' · ' + status; b.appendChild(small);
+  }
+  $('#fileBtn').addEventListener('click', ()=>$('#fileIn').click());
+  $('#fileIn').addEventListener('change', ()=>{
+    const f = $('#fileIn').files[0]; $('#fileIn').value = '';
+    if(f && live.session) live.session.sendFile(f).catch(e=>sys('Not sent: ' + (e && e.message ? e.message : 'the file could not be sent.')));
+  });
+
+  /* ---------- paying for a Super Quant-Room: stablecoins → a one-time blind pass ---------- */
+  // Reown / WalletConnect project id (public). Phone wallets connect through WalletConnect's relay.
+  const WC_PROJECT_ID = 'c743fcb3e2c4a2afaa842252425e4fd6';
+  const RPC = {ethereum:'https://ethereum-rpc.publicnode.com', base:'https://mainnet.base.org', robinhood:'https://rpc.mainnet.chain.robinhood.com'};
+  const PAY_KEY = 'poof-pay', PASSES_KEY = 'poof-passes';   // this browser only: a payment in progress, unused passes
+  const store = {
+    get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+    set(k, v){ try{ if(v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  };
+  const pay = {chain:'base', token:'USDC', cfg:null, wallet:null};
+  const injected = new Map();
+  addEventListener('eip6963:announceProvider', e=>{ const d = e.detail; if(d && d.info && d.provider) injected.set(d.info.uuid, d); });
+  dispatchEvent(new Event('eip6963:requestProvider'));
+  const variantNow = () => ({lifetime: st.life, people: st.people, ai: false});
+  const realSleep = ms => new Promise(r=>setTimeout(r, ms));
+  const utf8Hex = t => '0x' + Array.from(new TextEncoder().encode(t), b=>b.toString(16).padStart(2, '0')).join('');
+  const shortHex = h => h.slice(0, 10) + '…' + h.slice(-6);
+  function payLog(l){ $('#payLog').textContent += l + '\n'; }
+
+  async function payConfig(){
+    if(pay.cfg) return pay.cfg;
+    const E = await loadEngine();
+    return pay.cfg = await E.fetchPayConfig({fetch: fetch.bind(window), origin: API});
+  }
+  async function payOptions(){
+    let cfg;
+    try{ cfg = await payConfig(); }catch(e){ $('#payOpts').hidden = true; payLog('› Super Quant-Rooms can’t be bought right now. Try again later.'); $('#payBtn').disabled = true; return; }
+    $('#payOpts').hidden = false;
+    const chains = $('#payChain'), tokens = $('#payToken');
+    chains.querySelectorAll('label').forEach(l=>l.remove()); tokens.querySelectorAll('label').forEach(l=>l.remove());
+    for(const c of cfg.chains){
+      const l = document.createElement('label'); l.innerHTML = '<input type="radio" name="payChain"><span></span>';
+      l.querySelector('input').value = c.name; l.querySelector('input').checked = c.name === pay.chain; l.querySelector('span').textContent = c.label;
+      l.querySelector('input').addEventListener('change', ()=>{ pay.chain = c.name; if(!c.tokens.some(t=>t.symbol === pay.token)) pay.token = c.tokens[0].symbol; payOptions(); });
+      chains.appendChild(l);
+    }
+    const chain = cfg.chains.find(c=>c.name === pay.chain) || cfg.chains[0];
+    for(const t of chain.tokens){
+      const l = document.createElement('label'); l.innerHTML = '<input type="radio" name="payToken"><span></span>';
+      l.querySelector('input').value = t.symbol; l.querySelector('input').checked = t.symbol === pay.token; l.querySelector('span').textContent = t.symbol;
+      l.querySelector('input').addEventListener('change', ()=>{ pay.token = t.symbol; });
+      tokens.appendChild(l);
+    }
+    const a = store.get(PAY_KEY);
+    if(a && a.txHash) payLog('› a payment from this browser is waiting: ' + shortHex(a.txHash) + '. Pay and unlock picks it up.');
+  }
+
+  /* wallets: the browser's own (EIP-6963), or a phone wallet through WalletConnect */
+  function chooseWallet(){
+    return new Promise((resolve, reject)=>{
+      const box = $('#payWallets'); box.innerHTML = ''; box.hidden = false;
+      const add = (label, icon, pick)=>{
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm btn-ghost';
+        if(icon){ const i = document.createElement('img'); i.src = icon; i.alt = ''; b.appendChild(i); }
+        b.appendChild(document.createTextNode(label));
+        b.addEventListener('click', ()=>{ box.hidden = true; pick(); });
+        box.appendChild(b);
+      };
+      const list = [...injected.values()];
+      if(!list.length && window.ethereum) list.push({info:{name:'Browser wallet', icon:''}, provider: window.ethereum});
+      for(const d of list) add(d.info.name, /^data:image\//.test(d.info.icon || '') ? d.info.icon : '', ()=>resolve({kind:'injected', provider:d.provider}));
+      add('WalletConnect · phone wallet', '', ()=>resolve({kind:'walletconnect'}));
+      add('Cancel', '', ()=>reject(Object.assign(new Error('cancelled'), {code:4001})));
+    });
+  }
+  async function switchChain(p, chain){
+    const hex = '0x' + chain.chainId.toString(16);
+    try{ await p.request({method:'wallet_switchEthereumChain', params:[{chainId:hex}]}); }
+    catch(e){
+      if(!(e && (e.code === 4902 || /unrecognized|not added|unknown chain/i.test(e.message || '')))) throw e;
+      await p.request({method:'wallet_addEthereumChain', params:[{chainId:hex, chainName:chain.label, nativeCurrency:{name:'Ether', symbol:'ETH', decimals:18}, rpcUrls:[RPC[chain.name]], blockExplorerUrls:[chain.explorer]}]});
+    }
+  }
+  async function connectWallet(cfg, chain){
+    const choice = await chooseWallet();
+    if(choice.kind === 'injected'){
+      payLog('› connecting your wallet …');
+      const p = choice.provider;
+      const [address] = await p.request({method:'eth_requestAccounts'});
+      payLog('› switching to ' + chain.label + ' …');
+      await switchChain(p, chain);
+      return {address, request: args=>p.request(args), disconnect: async()=>{}};
+    }
+    payLog('› connecting a phone wallet …');
+    const WC = await import('/wallet/poof-walletconnect.js?v=1ea79b534366');
+    const c = await WC.connectWalletConnect({
+      projectId: WC_PROJECT_ID,
+      chains: cfg.chains.map(x=>({chainId:x.chainId, rpcUrl:RPC[x.name]})),
+      onUri: showWcUri,
+    });
+    $('#wcPop').hidden = true;
+    return {address:c.address, request: args=>c.request(args, chain.chainId), disconnect: ()=>c.disconnect()};
+  }
+  async function showWcUri(uri){
+    $('#wcPop').hidden = false; $('#wcLink').href = uri;
+    try{
+      const qr = (await loadQr())(0, 'M'); qr.addData(uri); qr.make();
+      const n = qr.getModuleCount(); let d = '';
+      for(let y=0; y<n; y++) for(let x=0; x<n; x++) if(qr.isDark(y, x)) d += 'M' + x + ' ' + y + 'h1v1h-1z';
+      $('#wcQr').innerHTML = '<svg viewBox="0 0 ' + n + ' ' + n + '" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1d1f2b" d="' + d + '"/></svg>';
+    }catch(e){ $('#wcQr').textContent = 'QR unavailable'; }
+  }
+
+  /* unused passes stay in this browser until they're spent */
+  const passesFor = vid => (store.get(PASSES_KEY) || []).filter(p=>p.variant && vid === p.variant.lifetime + '-' + p.variant.people + (p.variant.ai ? '-ai' : ''));
+  function keepPass(pass){ store.set(PASSES_KEY, [...(store.get(PASSES_KEY) || []), pass]); }
+  function dropPass(pass){ store.set(PASSES_KEY, (store.get(PASSES_KEY) || []).filter(p=>p.msg !== pass.msg)); }
+
+  function payErrorText(err){
+    if(err && (err.code === 4001 || err.code === 'ACTION_REJECTED' || /reject|denied|cancel/i.test(err.message || ''))) return 'cancelled in the wallet. Nothing was charged.';
+    return (err && err.message) ? err.message : 'something went wrong.';
+  }
+
+  async function payReal(){
+    const id = payRun; $('#payBtn').disabled = true; $('#payLog').textContent = '';
+    try{
+      const E = await loadEngine(), cfg = await payConfig();
+      const v = variantNow(), vid = E.variantId(v), price = E.priceMicros(v);
+      // An unused pass for exactly this quant-room (a payment that already went through)? Use it.
+      let pass = passesFor(vid)[0];
+      if(pass) payLog('› using the pass you already paid for');
+      else{
+        let a = store.get(PAY_KEY);
+        if(!a || a.vid !== vid) a = {vid, chain: pay.chain, token: pay.token, pending: await E.startPass(cfg.keys, v)};
+        store.set(PAY_KEY, a);
+        const chain = cfg.chains.find(c=>c.name === a.chain), token = chain.tokens.find(t=>t.symbol === a.token);
+        const w = await connectWallet(cfg, chain); if(id !== payRun) return;
+        if(a.txHash && a.payer && w.address.toLowerCase() !== a.payer.toLowerCase()){
+          throw new Error('connect the wallet that paid (' + shortHex(a.payer) + ') to finish.');
+        }
+        if(!a.txHash){
+          payLog('› paying ' + E.formatUsd(price) + ' in ' + token.symbol + ' on ' + chain.label + ' …');
+          a.txHash = await w.request({method:'eth_sendTransaction', params:[{from: w.address, to: token.address, data: E.transferData(cfg.treasury, price), value:'0x0'}]});
+          a.payer = w.address; store.set(PAY_KEY, a);
+          payLog('› sent: ' + shortHex(a.txHash));
+        }
+        if(!a.signature){
+          payLog('› sign once in your wallet: it shows the payment is yours (no gas)');
+          a.signature = await w.request({method:'personal_sign', params:[utf8Hex(await E.paymentMessage(a.chain, a.txHash, a.pending)), w.address]});
+          store.set(PAY_KEY, a);
+        }
+        payLog('› waiting for ' + chain.label + ' to confirm …');
+        const started = Date.now();
+        for(;;){
+          const r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature});
+          if(id !== payRun) return;
+          if(r.status === 'ok'){ pass = r.pass; break; }
+          if(Date.now() - started > 20 * 60 * 1000) throw new Error('the payment hasn’t confirmed yet. Come back and press Pay and unlock to check again.');
+          await realSleep(4000);
+        }
+        keepPass(pass); store.set(PAY_KEY, null);
+        w.disconnect().catch(()=>{});
+        payLog('› the payment isn’t linked to the quant-room: the pass was signed blind');
+      }
+      payLog('› unlocked');
+      await realSleep(300); if(id !== payRun) return;
+      if(st.upgrading) await upgradeLive(pass); else await sealSuper(pass);
+    }catch(err){
+      if(id !== payRun) return;
+      $('#wcPop').hidden = true; $('#payWallets').hidden = true;
+      payLog('› ' + payErrorText(err)); $('#payBtn').disabled = false;
+    }
+  }
+
+  async function sealSuper(pass){
+    const id = ++sealRun;
+    go('#/seal', true);
+    $('#sealTitle').textContent = 'Sealing your quant-room…'; $('#sealLog').textContent = '';
+    try{
+      const E = await loadEngine(); if(id !== sealRun) return;
+      if(unsupported(E)) return;
+      liveLog('› opening a Super Quant-Room');
+      const created = await E.createRoom({fetch: fetch.bind(window), origin: API, pass});
+      dropPass(pass);
+      for(const l of ['› generating quant-room keys in this browser', '› identity required … none', '› sealing the quant-room', '› ready']){
+        await sleep(260); if(id !== sealRun) return; liveLog(l);
+      }
+      startLive(E, created.roomId, created.key, created.ownerSecret);
+    }catch(err){
+      if(id !== sealRun) return;
+      if(err && err.code === 'pass_invalid') dropPass(pass);
+      finishLive({title:'Couldn’t open the quant-room.', text:(err && err.message ? err.message + ' ' : '') + (err && err.code === 'pass_invalid' ? '' : 'Your pass is kept in this browser: create the same quant-room again to use it.')});
+    }
+  }
+  async function upgradeLive(pass){
+    st.upgrading = false;
+    const s = live.session;
+    if(!s){ finishLive({title:'Poof.', text:'This quant-room ended before the upgrade. Your pass is kept in this browser: create a Super Quant-Room to use it.'}); return; }
+    go('#/r/' + room.id, true);
+    try{
+      await s.upgrade(pass);
+      dropPass(pass);
+      notice.hidden = true; room.warned = true;
+      sys('Upgraded to a Super Quant-Room. ' + lifeTxt(pass.variant.lifetime) + ' from now, then poof.');
+      Fox.flash($('#foxChat'), 'raise', 1800);
+    }catch(err){
+      if(err && err.code === 'pass_invalid') dropPass(pass);
+      sys('The upgrade didn’t go through: ' + (err && err.message ? err.message : 'try again.') + (err && err.code === 'pass_invalid' ? '' : ' Your pass is kept.'));
+    }
+  }
 
   /* ---------- routing (#/new, #/pay, #/upgrade, #/seal, #/r/id, #/gone, #/j/link) ---------- */
   function go(hash, replace){ if(location.hash === hash) route(); else if(replace) { history.replaceState(null, '', hash); route(); } else location.hash = hash; }
