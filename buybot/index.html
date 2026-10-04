@@ -438,7 +438,7 @@ details .a p:first-child{margin-top:0}
 
     <section id="buybot">
       <h2><a class="hash" href="#buybot" aria-hidden="true">#</a><img src="media/e-fox-dollar.webp" alt="">Buy bot: set up</h2>
-      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Robinhood Chain</b> with <b>Uniswap v2, v3 and v4</b> pools. All <code>/buybot</code> commands are for admins.</p>
+      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Robinhood Chain</b> with <b>Uniswap v2, v3 and v4</b> pools, and with <b>pons</b> launches from their bonding curve to Uniswap v4. All <code>/buybot</code> commands are for admins.</p>
       <ol class="steps">
         <li><b>Point it at the token</b><span>Send <code>/buybot set 0x...</code> with the token contract address. The bot finds the token's Uniswap pools on its own (up to 3 pools with at least $500 liquidity).</span></li>
         <li><b>Check the status</b><span>The bot answers with the token, the pools it watches and the current settings. Send <code>/buybot</code> any time to see them again.</span></li>
@@ -552,7 +552,8 @@ details .a p:first-child{margin-top:0}
         <details><summary>Where does the price come from?</summary><div class="a"><p>The dollar value is what the buyer paid, at the current ETH price. Market cap and token price come from DexScreener. If no price is available, the bot waits and posts the buy as soon as it has one.</p></div></details>
         <details><summary>The emoji look plain on my phone</summary><div class="a"><p>Poof animated emoji show in the Telegram apps. If an admin turns them off with <code>/buybot emoji off</code>, the alert uses plain emoji instead.</p></div></details>
         <details><summary>Our group became a supergroup. Do we set it up again?</summary><div class="a"><p>No. The bot follows the group to its new id with every setting.</p></div></details>
-        <details><summary>Which chains are supported?</summary><div class="a"><p>Robinhood Chain today, with Uniswap v2, v3 and v4 pools. More chains can come later.</p></div></details>
+        <details><summary>Which chains are supported?</summary><div class="a"><p>Robinhood Chain today, with Uniswap v2, v3 and v4 pools and pons launches. More chains can come later.</p></div></details>
+        <details><summary>Does it work with pons launches?</summary><div class="a"><p>Yes. Send <code>/buybot set</code> with the token address while it is still on its bonding curve. Every curve buy gets an alert, the MCap line says bonding curve, and Chart and Buy open the token on ponsfamily.com. When the curve fills and the token graduates, the bot posts a graduation alert and keeps going on the new Uniswap v4 pool by itself.</p></div></details>
         <details><summary>Will the bot ever DM me?</summary><div class="a"><p>No. The bot never sends the first message, never asks for a seed phrase, a private key or wallet access, and never asks you to connect a wallet. Anyone who does is a scammer. Admins never DM first either.</p></div></details>
       </div>
     </section>
