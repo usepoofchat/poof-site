@@ -1412,8 +1412,16 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=657fb0d32035'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=194cf5f92289'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0, E:null, names:new Map(), shownAs:new Map(), sealedAt:new Map()};
+  // The quant-room this tab is in, so a reload brings you straight back into it. sessionStorage: this
+  // tab only, gone when the tab closes, and wiped as soon as the quant-room ends.
+  const LIVE_KEY = 'poof-live';
+  const liveStore = {
+    get(){ try{ return JSON.parse(sessionStorage.getItem(LIVE_KEY)); }catch(e){ return null; } },
+    set(v){ try{ sessionStorage.setItem(LIVE_KEY, JSON.stringify(v)); }catch(e){} },
+    clear(){ try{ sessionStorage.removeItem(LIVE_KEY); }catch(e){} },
+  };
   const LIVE_TXT = {loading:'opening the quant-room…', waiting:'waiting for someone to join', connecting:'someone is joining…', connected:'connected · sealing…'};
 
   function liveLog(l){ $('#sealLog').textContent += l + '\n'; }
@@ -1476,16 +1484,38 @@ window.VeilFox = (function(){
     sweep(){ try{ for(let i = localStorage.length - 1; i >= 0; i--){ const k = localStorage.key(i); if(k && k.startsWith(OWNER_KEY) && !this.read(k.slice(OWNER_KEY.length))) localStorage.removeItem(k); } }catch(e){} },
   };
   ownerStore.sweep();
-  function startLive(E, roomId, key, ownerSecret){
+  /* a reload: back into the quant-room this tab was in, as the same person (same id, same creator secret) */
+  async function resumeLive(saved){
+    const id = ++sealRun;
+    show('seal');
+    $('#sealTitle').textContent = 'Opening the quant-room…';
+    $('#sealLog').textContent = '';
+    try{
+      const E = await loadEngine(); if(id !== sealRun) return;
+      if(unsupported(E)) return;
+      let key;
+      try{ key = E.decodeRoomKey(saved.key); }
+      catch(e){ finishLive({title:'Poof.', text:'This quant-room no longer exists. ' + NOTHING}); return; }
+      liveLog('› back to your quant-room');
+      startLive(E, saved.roomId, key, null, saved.peerId, true);   // the creator's secret comes back from ownerStore
+    }catch(err){
+      if(id !== sealRun) return;
+      finishLive({title:'Couldn’t reach Poof.', text:'Check your connection and try again.'});
+    }
+  }
+  function startLive(E, roomId, key, ownerSecret, peerId, resumed){
     stopLive();
     if(ownerSecret) ownerStore.set(roomId, ownerSecret); else ownerSecret = ownerStore.get(roomId);
+    peerId = peerId || E.toBase64Url(E.randomBytes(16));
+    liveStore.set({roomId, key: E.encodeRoomKey(key), peerId});
     const s = new E.RoomSession({
-      roomId, roomKey: key, origin: API, appOrigin: location.origin,
+      roomId, roomKey: key, origin: API, appOrigin: location.origin, peerId,
       ...(ownerSecret ? {ownerSecret} : {}),
       fetch: fetch.bind(window), createSocket: E.browserSocketFactory, createPeerConnection: E.browserRtcFactory,
     });
     live.session = s; live.owner = !!ownerSecret; live.shown = new Set(); live.joined = false; live.aiEls = new Map(); live.aiOn = false;
     live.E = E; live.names = new Map(); live.shownAs = new Map(); live.sealedAt = new Map();
+    live.resumed = !!resumed; live.away = false;
     room.type = 'classic'; room.people = 2; room.ai = false; room.total = 600; room.left = 600; room.warned = false;
     room.id = roomId; room.link = s.getState().inviteUrl;
     $('#rid').textContent = roomId;
@@ -1501,7 +1531,7 @@ window.VeilFox = (function(){
     $('#liveTxt').textContent = LIVE_TXT.loading;
     live.unsub = s.subscribe(render);
     clearInterval(room.timer); room.timer = setInterval(liveTick, 1000);
-    go('#/r/' + roomId, true);   // the key leaves the address bar: it stays in this tab's memory only
+    go('#/r/' + roomId, true);   // the key leaves the address bar: it stays in this tab only (memory, and sessionStorage for a reload)
     render(s.getState());
     s.start().catch(()=>{});
   }
@@ -1518,7 +1548,8 @@ window.VeilFox = (function(){
     $('#meOwner').hidden = !state.isOwner;
     trackNames(state);
     const here = 1 + state.members.filter(m=>m.state === 'sealed').length;
-    if(alone && state.ai && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = 'you and the AI model';
+    if(state.peerAway) $('#liveTxt').textContent = 'the other person is reconnecting…';
+    else if(alone && state.ai && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = 'you and the AI model';
     else if(group && (state.status === 'sealed' || state.status === 'waiting')) $('#liveTxt').textContent = here === 1 ? 'waiting for people to join' : here + ' of ' + state.maxPeers + ' here';
     else if(state.status === 'sealed') $('#liveTxt').textContent = 'sealed' + (state.connectionType === 'relay' ? ' · via relay' : ' · direct');
     else if(LIVE_TXT[state.status]) $('#liveTxt').textContent = LIVE_TXT[state.status];
@@ -1536,10 +1567,16 @@ window.VeilFox = (function(){
     // a room for two has no join lines of its own: say who's here the first time it's sealed (group rooms get the engine's lines)
     if(open && !group && !live.joined){
       live.joined = true;
-      sys(live.owner && state.members[0] ? nameOf(state, state.members[0].peerId) + ' joined this quant-room.' : 'You joined this quant-room.');
-      if(live.owner) Fox.flash($('#foxChat'), 'excited', 900);
+      if(live.resumed){ live.resumed = false; sys('You’re back in the quant-room. Messages from before the reload weren’t kept here.'); }
+      else {
+        sys(live.owner && state.members[0] ? nameOf(state, state.members[0].peerId) + ' joined this quant-room.' : 'You joined this quant-room.');
+        if(live.owner) Fox.flash($('#foxChat'), 'excited', 900);
+      }
     }
-    if(!group && state.status === 'waiting') live.joined = false;   // the guest was removed: the next one gets their own line
+    if(!group && state.status === 'waiting' && !state.peerAway) live.joined = false;   // the guest was removed: the next one gets their own line
+    // a room for two: the other person reloaded (or lost the connection); the engine waits a little for them
+    if(state.peerAway && !live.away){ live.away = true; sys('The other person dropped out. Waiting a moment for them to come back…'); }
+    if(!state.peerAway && live.away){ live.away = false; if(open) sys('They’re back. The quant-room is sealed again.'); }
     for(const m of state.messages){
       if(m.kind === 'system' && !live.shown.has(m.id)){
         live.shown.add(m.id);
@@ -1615,6 +1652,7 @@ window.VeilFox = (function(){
   function finishLive(copy){
     const s = live.session;
     stopLive();
+    liveStore.clear();
     if(s){
       const st1 = s.getState(), st0 = st1.status;
       if(st0 !== 'terminated' && st0 !== 'expired' && st0 !== 'error') s.leave().catch(()=>{});
@@ -1663,7 +1701,14 @@ window.VeilFox = (function(){
       newLivePhrase().then(()=>{ if(live.phraseExp){ $('#phraseMsg').textContent = 'The old phrase expired. Use this one.'; $('#phraseMsg').className = 'copy-msg'; } });
     }
   }
-  addEventListener('pagehide', ()=>{ if(live.session) live.session.leave().catch(()=>{}); });
+  // Leaving the page may be a reload, so nobody is told you left: the other person waits a little for
+  // you to come back (resumeLive). A closed tab just doesn't come back, and the quant-room ends for them.
+  addEventListener('pagehide', ()=>{
+    const s = live.session; if(!s) return;
+    stopLive(); clearInterval(room.timer); room.timer = null;
+    s.suspend();
+  });
+  addEventListener('pageshow', e=>{ if(e.persisted && !live.session) route(); });   // back from the back/forward cache
 
   /* ---------- names, the owner's tools (remove, pin) and chat commands ---------- */
   // Only the owner invites, upgrades and poofs; everyone else can leave. The demo room keeps the old buttons.
@@ -2101,6 +2146,7 @@ window.VeilFox = (function(){
     else if(h.startsWith('#/r/') && room.timer && h === '#/r/' + room.id){ $('.plan.classic').hidden = false; show('room'); }
     else if(h.startsWith('#/j/')){ joinLive(h.slice(4)); }
     else if(h === '#/gone'){ $('#goneTitle').textContent = 'Poof.'; show('gone'); }
+    else if(h.startsWith('#/r/') && (liveStore.get() || {}).roomId === h.slice(4)){ resumeLive(liveStore.get()); }
     else if(h.startsWith('#/r/')){
       // a reload or an old link: the room lived only in the tab that opened it
       const mine = ownerStore.get(h.slice(4));

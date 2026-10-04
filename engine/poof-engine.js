@@ -17774,6 +17774,7 @@ async function joinByPhrase(opts) {
 //#region packages/core/src/session.ts
 var DEFAULT_PQ_TIMEOUT_MS = 1e4;
 var DEFAULT_LINK_LOSS_GRACE_MS = 1500;
+var DEFAULT_REJOIN_GRACE_MS = 3e4;
 var DEFAULT_JOIN_TIMEOUT_MS = 15e3;
 var DEFAULT_MEMBERS_GRACE_MS = 1e4;
 /** After the deadline passes, wait this long for the server's room.expired before asking it. */
@@ -17929,6 +17930,9 @@ var RoomSession = class {
 	expiryTimer = null;
 	phraseTimer = null;
 	mismatchTimer = null;
+	/** 2-person rooms: the person who dropped without leaving, while we wait for them to come back. */
+	awayPeer = null;
+	rejoinTimer = null;
 	clockOffsetMs = 0;
 	started = false;
 	/** Files I'm sending → the links they go to (for cancel). */
@@ -17962,6 +17966,7 @@ var RoomSession = class {
 			isOwner: deps.ownerSecret !== void 0,
 			role: null,
 			peerPresent: false,
+			peerAway: false,
 			connectionType: null,
 			maxPeers: 2,
 			members: [],
@@ -18243,6 +18248,14 @@ var RoomSession = class {
 			this.scheduleExpiryCheck();
 		}
 	}
+	/**
+	* The page is going away but may come straight back (a reload): close everything WITHOUT telling
+	* anyone we left. In a room for two the other person waits `rejoinGraceMs` for this browser to
+	* return with the same peerId (and the same key and owner secret, which the page keeps).
+	*/
+	suspend() {
+		this.terminate("suspended");
+	}
 	/** Leave this room (the others are told). Call on unmount. */
 	async leave() {
 		if (TERMINAL.has(this.state.status)) {
@@ -18350,7 +18363,7 @@ var RoomSession = class {
 				return;
 			case "peer.left":
 				if (msg.reason === "banned") this.onBanned(msg.peerId);
-				else this.onPeerLeft(msg.peerId);
+				else this.onPeerLeft(msg.peerId, msg.reason);
 				return;
 			case "owner":
 				this.setOwner(msg.peerId);
@@ -18406,9 +18419,10 @@ var RoomSession = class {
 	}
 	onPaired(peerId, role, iceServers) {
 		if (peerId === this.peerId || this.bannedPeers.has(peerId)) return;
+		if (!this.isGroup && this.awayPeer !== null && peerId !== this.awayPeer) return;
 		if (this.isGroup && !this.links.has(peerId) && this.links.size >= this.state.maxPeers - 1) return;
 		const existing = this.isGroup ? this.links.get(peerId) : [...this.links.values()][0];
-		if (existing && (existing.state === "upgrading" || existing.state === "connected")) return;
+		if (existing && (existing.state === "upgrading" || existing.state === "connected") && !this.lossTimers.has(existing.peerId)) return;
 		if (this.isGroup) this.dropLink(peerId);
 		else for (const id of [...this.links.keys()]) this.dropLink(id);
 		this.log("peer.joined", "info", this.withPeer(peerId, { role }));
@@ -18476,7 +18490,14 @@ var RoomSession = class {
 			kind: "pin",
 			pin: this.pinWire
 		});
-		if (!this.isGroup) return;
+		if (!this.isGroup) {
+			if (this.awayPeer !== null) {
+				this.clearRejoinTimer();
+				this.awayPeer = null;
+				this.setState({ peerAway: false });
+			}
+			return;
+		}
 		this.addMessage({
 			kind: "system",
 			id: crypto.randomUUID(),
@@ -18486,10 +18507,14 @@ var RoomSession = class {
 		});
 		this.announceMembers();
 	}
-	onPeerLeft(peerId) {
+	onPeerLeft(peerId, reason) {
 		if (!this.isGroup) {
 			this.log("peer.left", "warn");
 			const { status } = this.state;
+			if (reason === "closed" && status === "sealed") {
+				this.awaitReturn(peerId);
+				return;
+			}
 			if (status === "connecting") {
 				for (const id of [...this.links.keys()]) this.dropLink(id);
 				this.setState({
@@ -18518,6 +18543,28 @@ var RoomSession = class {
 		this.dropLink(peerId);
 		this.refresh({ peerPresent: this.links.size > 0 });
 		this.announceMembers();
+	}
+	/**
+	* 2-person rooms: the other person dropped without leaving (a page reload, a closed tab). Keep the
+	* conversation and wait for the same person to come back; the room ends as peer_left if they don't.
+	*/
+	awaitReturn(peerId) {
+		for (const id of [...this.links.keys()]) this.dropLink(id);
+		this.awayPeer = peerId;
+		this.clearRejoinTimer();
+		this.rejoinTimer = setTimeout(() => {
+			this.rejoinTimer = null;
+			this.terminate("peer_left");
+		}, this.deps.rejoinGraceMs ?? DEFAULT_REJOIN_GRACE_MS);
+		this.refresh({
+			peerPresent: false,
+			peerAway: true,
+			role: null
+		});
+	}
+	clearRejoinTimer() {
+		if (this.rejoinTimer) clearTimeout(this.rejoinTimer);
+		this.rejoinTimer = null;
 	}
 	/**
 	* The creator removed this member (the server says so, and has already disconnected them). In a
@@ -18566,22 +18613,29 @@ var RoomSession = class {
 	onLinkFailed(link, failure) {
 		if (TERMINAL.has(this.state.status) || this.links.get(link.peerId) !== link) return;
 		const peer = link.peerId;
-		if (!this.isGroup) switch (failure.kind) {
-			case "link":
-				this.log("conn.failed", "error");
-				if (this.state.status === "sealed") this.afterGrace(peer, () => this.terminate("connection_lost"));
-				else this.fail("connection_failed", "Could not establish a connection. A firewall may be blocking it.");
+		if (!this.isGroup) {
+			if (this.awayPeer !== null) {
+				this.dropLink(peer);
+				this.refresh();
 				return;
-			case "pq":
-				this.fail("pq_failed", failure.timeout ? "The secure handshake timed out." : "The secure handshake failed.");
-				return;
-			case "frame":
-				this.log("conn.failed", "error", { reason: failure.code });
-				this.terminate("connection_lost");
-				return;
-			case "other":
-				this.fail("connection_failed", "Something went wrong with the connection.");
-				return;
+			}
+			switch (failure.kind) {
+				case "link":
+					this.log("conn.failed", "error");
+					if (this.state.status === "sealed") this.afterGrace(peer, () => this.terminate("connection_lost"));
+					else this.fail("connection_failed", "Could not establish a connection. A firewall may be blocking it.");
+					return;
+				case "pq":
+					this.fail("pq_failed", failure.timeout ? "The secure handshake timed out." : "The secure handshake failed.");
+					return;
+				case "frame":
+					this.log("conn.failed", "error", { reason: failure.code });
+					this.terminate("connection_lost");
+					return;
+				case "other":
+					this.fail("connection_failed", "Something went wrong with the connection.");
+					return;
+			}
 		}
 		this.log("conn.failed", "error", this.withPeer(peer, failure.kind === "frame" ? { reason: failure.code } : {}));
 		const markFailed = () => {
@@ -18632,7 +18686,7 @@ var RoomSession = class {
 		if (TERMINAL.has(this.state.status) || this.links.get(link.peerId) !== link) return;
 		switch (ctl.kind) {
 			case "bye":
-				if (this.isGroup) this.onPeerLeft(link.peerId);
+				if (this.isGroup) this.onPeerLeft(link.peerId, "leave");
 				else this.terminate("peer_left");
 				return;
 			case "hello":
@@ -18966,6 +19020,8 @@ var RoomSession = class {
 	/** Close everything and scrub secrets. */
 	shutdown() {
 		this.clearJoinTimer();
+		this.clearRejoinTimer();
+		this.awayPeer = null;
 		if (this.expiryTimer) clearTimeout(this.expiryTimer);
 		this.expiryTimer = null;
 		if (this.phraseTimer) clearTimeout(this.phraseTimer);
@@ -18995,6 +19051,7 @@ var RoomSession = class {
 			status: "terminated",
 			endReason: reason,
 			peerPresent: false,
+			peerAway: false,
 			members: [],
 			membersMismatch: false,
 			messages: [],
@@ -19015,6 +19072,7 @@ var RoomSession = class {
 		this.setState({
 			status: "expired",
 			peerPresent: false,
+			peerAway: false,
 			members: [],
 			phrase: null,
 			typing: [],
@@ -19033,6 +19091,7 @@ var RoomSession = class {
 			status: "error",
 			error,
 			peerPresent: false,
+			peerAway: false,
 			members: [],
 			messages: [],
 			phrase: null,
