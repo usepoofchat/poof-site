@@ -159,7 +159,7 @@ footer .brand .logo{height:17px}
 .nav-links a{color:var(--ink-2);text-decoration:none;font-size:14.5px}
 .nav-links a:hover{color:var(--ink)}
 .nav-links + .btn{margin-left:0}
-.nav-join + .btn{margin-left:-22px}
+.nav .btn + .nav-join{margin-left:-22px}
 .theme-btn{flex:none;width:42px;height:42px;border:0;border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center;
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22);transition:background .25s,box-shadow .25s}
 .theme-btn:hover{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
@@ -167,7 +167,7 @@ footer .brand .logo{height:17px}
 html.theme-anim body,html.theme-anim body *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,box-shadow .45s ease !important}
 .theme-btn[data-mode="dark"] .i-moon,.theme-btn[data-mode="light"] .i-sun{display:none}
 .nav-links + .theme-btn{margin-left:-6px}
-.theme-btn + .nav-join{margin-left:-20px}
+.theme-btn + .btn{margin-left:-20px}
 /* header buttons: about 22% smaller than .btn-sm, so they sit with the nav text */
 .nav .btn{--h:33px;padding:0 14px;gap:9px;font-size:13.5px}
 .nav .btn .pip{width:10px;height:10px;background-size:5px 5px}
@@ -207,9 +207,10 @@ body.menu-open{overflow:hidden}
 .hero-copy{grid-column:2;padding-block:14vh 12vh;will-change:transform}
 .lede{font-size:clamp(19px,1.6vw,23px);color:var(--ink-2);margin:28px 0 38px;letter-spacing:-.015em}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
-.flow{font:400 13.5px/1.7 var(--mono);color:var(--ink-2);margin:0;max-width:30ch;flex-basis:100%}
-.flow .vanish{display:inline-block;color:var(--rust-text)}
-.hero-chat{display:none}                          /* phone-only hero piece */
+/* the fox's chat bubble: cycles Create a quant-room / Share the link / Talk privately / Then poof (desktop + phones) */
+.hero-chat{position:absolute;left:66%;top:17%;max-width:26vw;pointer-events:none}
+.hc-msg{margin:0;padding:13px 19px;border-radius:18px;border-bottom-left-radius:4px;background:var(--ink);color:var(--ground);font:550 clamp(16px,1.25vw,19px)/1.3 var(--sans);letter-spacing:-.01em;white-space:nowrap}
+.hc-msg.poof{background:var(--rust);color:#1d1f2b}
 .assure{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-wrap:wrap;gap:12px 28px;font:500 12px/1 var(--mono);color:var(--ink-3)}
 .assure li{display:flex;align-items:center;gap:9px}
 .assure li::before{content:"";width:8px;height:8px;flex:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
@@ -227,13 +228,11 @@ body.menu-open{overflow:hidden}
   .lede{font-size:16px}
   .assure{margin-top:26px;gap:8px}
   .assure li{padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);background:color-mix(in srgb,var(--surface) 45%,transparent)}
-  /* phone hero: accent on "who you are.", the flow lines become the fox's chat bubble */
+  /* phone hero: accent on "who you are.", the chat bubble sits by the fox head */
   .hero{padding-top:16px}
   #h1 .wd:nth-last-child(-n+3){color:var(--rust-text)}
-  .hero .flow{display:none}
-  .hero-chat{display:block;position:absolute;top:5%;right:-5vw;max-width:56%;pointer-events:none}
-  .hc-msg{margin:0;padding:10px 14px;border-radius:14px;border-bottom-left-radius:4px;background:var(--ink);color:var(--ground);font:550 14.5px/1.3 var(--sans);letter-spacing:-.01em}
-  .hc-msg.poof{background:var(--rust);color:#1d1f2b}
+  .hero-chat{left:auto;top:5%;right:-5vw;max-width:56%}
+  .hc-msg{padding:10px 14px;border-radius:14px;border-bottom-left-radius:4px;font-size:14.5px;white-space:normal}
   .field{filter:opacity(.78)}                    /* ASCII background ~22% softer on every section */
   .identity{padding-top:40px}                   /* the fox now fills the gap above this section */
   .scrollcue{display:none}
@@ -635,8 +634,8 @@ footer .brand{font-size:18px}
       <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
       <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
     </button>
-    <button class="btn btn-sm btn-ghost nav-join" data-join>Join quant-room</button>
     <button class="btn btn-sm" data-create="classic"><span class="pip" aria-hidden="true"></span>Create quant-room</button>
+    <button class="btn btn-sm btn-ghost nav-join" data-join>Join quant-room</button>
     <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav">
       <svg class="i-menu" viewBox="0 0 14 14" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="2" width="4" height="2"/><rect x="5" y="2" width="4" height="2"/><rect x="10" y="2" width="4" height="2"/><rect x="0" y="6" width="4" height="2"/><rect x="5" y="6" width="4" height="2"/><rect x="10" y="6" width="4" height="2"/><rect x="0" y="10" width="4" height="2"/><rect x="5" y="10" width="4" height="2"/><rect x="10" y="10" width="4" height="2"/></svg>
       <svg class="i-close" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect class="px" x="3" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg>
@@ -673,12 +672,11 @@ footer .brand{font-size:18px}
   <div class="fox-slot frag f-shard" data-scene="frag" data-shape="shard" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
-      <h1 id="h1" data-split>A private chatroom that doesn't need to know who you are.</h1>
+      <h1 id="h1" data-split>A private, quantum-safe chatroom that doesn't need to know who you are.</h1>
       <p class="lede" data-reveal>No email. No phone number. No account.</p>
       <div class="actions" data-reveal>
         <button class="btn btn-lg" data-create="classic" data-magnetic><span class="pip" aria-hidden="true"></span>Create a quant-room</button>
         <button class="btn btn-lg btn-ghost" data-join data-magnetic>Join a quant-room</button>
-        <p class="flow">Create a quant-room. Share the link. Talk privately. <span class="vanish" id="vanish">Then poof. It’s gone.</span></p>
       </div>
       <ul class="assure" data-reveal>
         <li>E2E encrypted</li>
@@ -1932,15 +1930,7 @@ window.VeilFox = (function(){
     new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) st.classList.add('on'); }), {threshold:0.6}).observe(st);
   } else $('#struck').classList.add('on');
 
-  /* ---------- hero line: "Then let it disappear." ---------- */
-  const vanish = $('#vanish');
-  if(!reduce) (async function(){
-    await sleep(2800);
-    while(true){ await Dither.animate(vanish, 16, 0, 900); await sleep(1100); await Dither.animate(vanish, 0, 16, 700); await sleep(3400); }
-  })();
-
-  /* ---------- phone hero: the fox's chat bubble ---------- */
-  const phoneHero = matchMedia('(max-width:900px)');
+  /* ---------- hero: the fox's chat bubble (desktop + phones) ---------- */
   const hcMsg = $('#hcMsg');
   const HERO_LINES = ['Create a quant-room.', 'Share the link.', 'Talk privately.', 'Then poof.'];
   let heroSeen = false;
@@ -1949,7 +1939,7 @@ window.VeilFox = (function(){
     Dither.set(hcMsg, 0);
     await sleep(2200);
     while(true){
-      if(!phoneHero.matches || !heroSeen){ await sleep(600); continue; }
+      if(!heroSeen){ await sleep(600); continue; }
       for(let i=0;i<HERO_LINES.length;i++){
         hcMsg.textContent = HERO_LINES[i];
         hcMsg.classList.toggle('poof', i === HERO_LINES.length-1);
