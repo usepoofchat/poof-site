@@ -473,7 +473,7 @@ details .a p:first-child{margin-top:0}
         </div>
         <ol class="pins">
           <li><b>Tier</b>The animation and the name show the size of the buy: Spark, Puff, Poof or Big poof.</li>
-          <li><b>Emoji row</b>Grows with the buy. A Big poof starts at 30 emoji, the row stops at 60. Each tier has its own emoji.</li>
+          <li><b>Emoji row</b>Grows with the buy, with plenty of emoji even for small buys. A Big poof starts at about 40 emoji, the row stops at 60. Each tier has its own emoji.</li>
           <li><b>Paid</b>What the buyer paid, in ETH and in dollars.</li>
           <li><b>Received</b>Tokens bought, with a link to the transaction on the explorer.</li>
           <li><b>Buyer</b>The wallet, and <b>New holder</b> or <b>Position +x%</b>: how much this buy added to the bag they already had.</li>
@@ -525,7 +525,7 @@ details .a p:first-child{margin-top:0}
         <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col">
           <div class="b media"><video data-src="media/puff.mp4" poster="media/puff.jpg" muted loop playsinline preload="none"></video>
             <div class="tx"><img class="em" src="media/e-mark.webp" alt=""><b>$POOF buy</b> · Puff
-              <div class="rowe" data-n="5" data-e="coin-ink"></div>
+              <div class="rowe" data-n="18" data-e="coin-ink"></div>
               <img class="em" src="media/e-fox-dollar.webp" alt=""><b>0.107 ETH</b> ($268)<br>
               <img class="em" src="media/e-coin-ink.webp" alt=""><b>482,903 POOF</b> · <a>Tx</a><br>
               <img class="em" src="media/e-fox-wave.webp" alt=""><a>0x2cae…ce3b</a> · Position +18%<br>
@@ -609,9 +609,9 @@ details .a p:first-child{margin-top:0}
   mtBtns.forEach(b => b.addEventListener('click', () => { document.documentElement.dataset.theme = b.dataset.themeSet; try{ localStorage.setItem('poof-theme', b.dataset.themeSet); }catch(e){} syncTheme(); syncMt(); }));
   themeBtn.addEventListener('click', syncMt); syncMt();
 
-  /* emoji rows: 14 for the $712 Poof example (1 emoji per $50 when Big poof starts at $1,500) */
+  /* emoji rows: 29 for the $712 Poof example (60 x the square root of the buy over $3,000, twice the Big poof start) */
   const em = n => '<img src="media/e-' + n + '.webp" alt="">';
-  const demo = $('#demoRow'); if(demo) demo.insertAdjacentHTML('beforeend', em('poof').repeat(14));
+  const demo = $('#demoRow'); if(demo) demo.insertAdjacentHTML('beforeend', em('poof').repeat(29));
   $$('.rowe[data-n]').forEach(r => r.innerHTML = em(r.dataset.e).repeat(+r.dataset.n));
 
   /* copy a command */
