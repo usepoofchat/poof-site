@@ -40,7 +40,18 @@
   --ease:cubic-bezier(.16,.84,.24,1);
   color-scheme:dark;
 }
-.t-light{display:none}   /* the page is always on the dark ground, so the dark fox pictures are used */
+.t-light{display:none}   /* ink + frost ground: the dark fox pictures */
+/* inside a quant-room the theme switch is back: light ground there */
+:root.in-room[data-theme="light"]{
+  --ground:#e8e9e4; --surface:#fbf7ef; --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
+  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85); --rust-text:#9c3b14;
+  --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14); --frost:#3c55a8; color-scheme:light}
+@media (prefers-color-scheme:light){:root.in-room:not([data-theme="dark"]){
+  --ground:#e8e9e4; --surface:#fbf7ef; --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
+  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85); --rust-text:#9c3b14;
+  --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14); --frost:#3c55a8; color-scheme:light}}
+:root.in-room.room-light .t-light{display:block} :root.in-room.room-light .t-dark{display:none}
+:root.in-room.room-light body{background-image:radial-gradient(60vmax 50vmax at 82% 12%,rgba(60,85,168,.12),transparent 70%)}
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--ground)}
 body,.app{overflow-x:clip}
@@ -311,7 +322,7 @@ html.fox-live .fox-slot img{visibility:hidden}
     <a class="brand" href="/" aria-label="Poof home page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
     <span class="sp"></span>
     <a class="home" href="/">usepoof.chat</a>
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode" hidden>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to light mode" hidden>
       <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
       <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
     </button>
@@ -820,7 +831,7 @@ window.VeilFox = (function(){
     const tone = s.toneEl ? s.toneEl.dataset.tone : 'light';
     if(tone === 'dark') return true;
     if(tone === 'rust') return false;
-    return modeDark();
+    return !document.documentElement.classList.contains('room-light');   // the page is dark except inside a light quant-room
   }
 
   const hp = new THREE.Vector3();
@@ -1001,7 +1012,8 @@ window.VeilFox = (function(){
   /* theme switch (same storage key as the site and the docs) */
   const darkMQ = matchMedia('(prefers-color-scheme: dark)'), themeBtn = $('#themeBtn');
   const modeDark = () => { const t = document.documentElement.dataset.theme; return t === 'dark' || (t !== 'light' && darkMQ.matches); };
-  const syncTheme = () => { const d = modeDark(); themeBtn.dataset.mode = d ? 'dark' : 'light'; themeBtn.setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode'); };
+  const syncTheme = () => { const d = modeDark(); themeBtn.dataset.mode = d ? 'dark' : 'light'; themeBtn.setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode');
+    document.documentElement.classList.toggle('room-light', !d && document.documentElement.classList.contains('in-room')); };
   themeBtn.addEventListener('click', ()=>{
     const next = modeDark() ? 'light' : 'dark';
     if(!reduce){ document.documentElement.classList.add('theme-anim'); setTimeout(()=>document.documentElement.classList.remove('theme-anim'), 500); }
@@ -1023,6 +1035,7 @@ window.VeilFox = (function(){
     }
     function draw(t){
       ink = getComputedStyle(document.documentElement).getPropertyValue('--ink-3').trim() || ink;
+      const frost = getComputedStyle(document.documentElement).getPropertyValue('--frost').trim() || '#9db4ff';
       g.clearRect(0, 0, W, H);
       const cx = W*(0.8 + 0.06*Math.sin(t*0.00011)), cy = H*(0.2 + 0.08*Math.cos(t*0.00013)), span = Math.max(W, H);
       for(let y=0; y<rows; y++) for(let x=0; x<cols; x++){
@@ -1035,7 +1048,7 @@ window.VeilFox = (function(){
         const i = Math.min(CH.length - 1, Math.floor(v*CH.length*0.8)); if(i <= 0) continue;
         const hot = near > 0.3 || (glow > 0.72 && wave > 0.72);
         g.globalAlpha = hot ? 0.16 + near*0.42 : 0.045 + v*0.07;
-        g.fillStyle = hot ? '#e8661f' : '#9db4ff';
+        g.fillStyle = hot ? '#e8661f' : frost;
         g.fillText(CH[i], X, Y);
       }
       g.globalAlpha = 1;
@@ -1050,6 +1063,7 @@ window.VeilFox = (function(){
   const views = $$('.view');
   function show(name){
     views.forEach(v=>v.hidden = v.dataset.view !== name);
+    document.documentElement.classList.toggle('in-room', name === 'room'); themeBtn.hidden = name !== 'room'; syncTheme();   // the theme switch lives inside a quant-room
     window.scrollTo(0, 0);
     const h = $('[data-view="' + name + '"] h1'); if(h) h.focus({preventScroll:true});
     document.title = ({new:'Create a quant-room', pay:'Unlock a Super Quant-Room', seal:'Sealing your quant-room', room:'Your quant-room', gone:'Quant-room gone'})[name] + ' | Poof';
