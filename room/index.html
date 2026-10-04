@@ -29,36 +29,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ground:#e8e9e4; --surface:#fbf7ef;
-  --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
-  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85);
-  --rust:#e8661f; --rust-text:#9c3b14; --on-rust:#1d1f2b;
-  --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14);
+  /* one look in both themes: the ink + frost ground of the site's "Your privacy should survive the future." */
+  --ground:#0c0e16; --surface:#141a2a; --ink:#ecebe6; --ink-2:#bcc2d6; --ink-3:#8e96b0;
+  --line:rgba(157,180,255,.16); --line-strong:rgba(236,235,230,.8); --rust-text:#f08a4b;
+  --panel:#1b2136; --panel-ink:#f3f1ea; --panel-ink-2:#aab3cf; --panel-line:rgba(157,180,255,.2); --frost:#9db4ff;
+  --rust:#e8661f; --on-rust:#1d1f2b;
   --nav-h:68px;
   --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
   --ease:cubic-bezier(.16,.84,.24,1);
-  color-scheme:light;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#14151c; --surface:#1e1f29; --ink:#ecebe6; --ink-2:#bdbcb6; --ink-3:#9e9d97;
-  --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.8); --rust-text:#f08a4b; --panel:#262837; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --ground:#14151c; --surface:#1e1f29; --ink:#ecebe6; --ink-2:#bdbcb6; --ink-3:#9e9d97;
-  --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.8); --rust-text:#f08a4b; --panel:#262837; color-scheme:dark}
-.t-dark{display:none}
-:root[data-theme="dark"] .t-light{display:none} :root[data-theme="dark"] .t-dark{display:block}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .t-light{display:none}:root:not([data-theme="light"]) .t-dark{display:block}}
+.t-light{display:none}   /* the page is always on the dark ground, so the dark fox pictures are used */
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--ground)}
 body,.app{overflow-x:clip}
 body{margin:0;min-height:100vh;background:var(--ground);color:var(--ink);font:400 17px/1.55 var(--sans);letter-spacing:-.006em;-webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(60vmax 50vmax at 85% 0%,rgba(232,102,31,.12),transparent 70%)}
+  background-image:radial-gradient(60vmax 50vmax at 82% 12%,rgba(130,160,255,.2),transparent 70%)}
 html.theme-anim body,html.theme-anim body *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,box-shadow .45s ease !important}
 p{margin:0 0 1em}
 h1,h2,h3{margin:0;font-weight:600}
 button{font:inherit}
 :focus-visible{outline:2px solid var(--rust);outline-offset:3px}
+[tabindex="-1"]:focus{outline:none}
+.theme-btn[hidden]{display:none}
 [hidden]{display:none !important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -93,11 +87,11 @@ button{font:inherit}
 .link:hover{color:var(--ink)}
 
 /* layout */
-.app{max-width:1180px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(16px,4vw,40px) 80px}
+.app{max-width:1180px;margin:0 auto;padding:clamp(24px,3.4vw,44px) clamp(16px,4vw,40px) 80px}
 .view[hidden]{display:none}
 .demo-note{display:inline-flex;align-items:center;gap:10px;font:500 12px/1.4 var(--mono);color:var(--ink-3);margin:0 0 18px}
 .demo-note::before{content:"";width:8px;height:8px;flex:none;background:var(--rust)}
-.view h1{font-size:clamp(40px,5.6vw,76px);line-height:.98;letter-spacing:-.05em;margin:0 0 14px}
+.view h1{font-size:clamp(38px,4.6vw,64px);line-height:.98;letter-spacing:-.05em;margin:0 0 14px}
 .lead{font-size:clamp(17px,1.5vw,20px);color:var(--ink-2);max-width:52ch}
 .mono{font-family:var(--mono)}
 .small{font-size:14px;color:var(--ink-3)}
@@ -143,7 +137,9 @@ button{font:inherit}
 .price-for{font:500 12px var(--mono);color:var(--panel-ink-2)}
 .feat{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px;font-size:15px;color:var(--panel-ink-2)}
 .feat li::before{content:"+ ";font-family:var(--mono);color:var(--rust)}
-.go{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px;margin-top:clamp(20px,3vw,32px);padding:18px 0 0;border-top:1px solid var(--line)}
+.go{position:sticky;bottom:16px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;margin-top:clamp(18px,2.4vw,28px);
+  padding:10px 10px 10px 26px;border-radius:999px;background:rgba(12,14,22,.84);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:inset 0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.35)}   /* always in view: no scrolling down to create */
 .go .sum{font:500 13.5px/1.5 var(--mono);color:var(--ink-2)}
 .go .sum b{color:var(--ink);font-weight:600}
 
@@ -229,8 +225,8 @@ button{font:inherit}
 html.fox-live .fox-slot img{visibility:hidden}
 
 /* choose: headline with the big ASCII fox behind it */
-.new-head{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);align-items:end;gap:20px;min-height:clamp(260px,34vw,420px)}
-.new-fox{position:absolute;right:-6vw;top:-50px;width:min(58vw,720px);height:calc(100% + 90px)}
+.new-head{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);align-items:end;gap:20px;min-height:clamp(170px,17vw,240px)}
+.new-fox{position:absolute;right:-6vw;top:-40px;width:min(52vw,640px);height:calc(100% + 70px)}
 .kick{font:500 12.5px/1.5 var(--mono);color:var(--ink-3);margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px 14px}
 .kick b{color:var(--rust-text);font-weight:500}
 .view h1 .r{color:var(--rust)}
@@ -244,7 +240,7 @@ html.fox-live .fox-slot img{visibility:hidden}
 .sel::before{content:"";width:9px;height:9px;box-shadow:inset 0 0 0 1.5px currentColor}
 .plan[aria-checked="true"] .sel{background:var(--rust);color:#1d1f2b;box-shadow:none;opacity:1}
 .plan[aria-checked="true"] .sel::before{box-shadow:none;background:repeating-conic-gradient(#1d1f2b 0 25%,transparent 0 50%) 0 0/4.5px 4.5px}
-.big-clock{font:600 clamp(54px,6vw,84px)/1 var(--mono);letter-spacing:-.06em;margin:14px 0 4px;font-variant-numeric:tabular-nums}
+.big-clock{font:600 clamp(40px,4.2vw,60px)/1 var(--mono);letter-spacing:-.06em;margin:10px 0 2px;font-variant-numeric:tabular-nums}
 .plan.super .big-clock{color:var(--panel-ink)}
 
 /* uncensored AI option (Super Quant-Rooms) */
@@ -281,8 +277,8 @@ html.fox-live .fox-slot img{visibility:hidden}
   .room-grid .share{order:-1;margin-top:0}
   .new-head{grid-template-columns:1fr;min-height:0}
   .new-fox{right:-24vw;top:-10px;width:74vw;height:calc(100% + 90px)}
-  .go{position:sticky;bottom:0;z-index:5;margin:24px calc(-1 * clamp(16px,4vw,40px)) 0;padding:12px clamp(16px,4vw,40px) calc(12px + env(safe-area-inset-bottom,0px));
-    background:rgba(22,23,31,.86);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);border-top:1px solid rgba(255,255,255,.08)}
+  .go{bottom:0;border-radius:0;margin:24px calc(-1 * clamp(16px,4vw,40px)) 0;padding:12px clamp(16px,4vw,40px) calc(12px + env(safe-area-inset-bottom,0px));
+    box-shadow:none;border-top:1px solid var(--line)}
   .go .sum{color:#b9b8b1;width:100%}
   .go .sum b{color:#f1efe8}
 }
@@ -309,7 +305,7 @@ html.fox-live .fox-slot img{visibility:hidden}
     <a class="brand" href="/" aria-label="Poof home page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
     <span class="sp"></span>
     <a class="home" href="/">usepoof.chat</a>
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode">
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode" hidden>
       <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
       <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>
     </button>
@@ -324,9 +320,8 @@ html.fox-live .fox-slot img{visibility:hidden}
       <div class="fox-slot new-fox" id="foxAscii" data-layer="back" data-mode="ascii" data-px="12" data-alpha=".55" data-frame="full" data-pose="idle" data-look data-yaw="-0.5" aria-hidden="true"></div>
       <div>
         <p class="demo-note">Preview. Quant-rooms go live soon; this one runs only in your browser.</p>
-        <p class="kick"><span>› new quant-room</span><span>identity required … <b>none</b></span></p>
         <h1 id="newTitle" tabindex="-1">Create a <span class="r">quant-room.</span></h1>
-        <p class="lead" id="newLead">Choose how long it lives and how many people can join. No account, ever.</p>
+        <p class="lead" id="newLead">Pick one. No account, ever.</p>
       </div>
     </div>
     <div class="plans" role="radiogroup" aria-labelledby="newTitle">
@@ -1031,7 +1026,7 @@ window.VeilFox = (function(){
         const i = Math.min(CH.length - 1, Math.floor(v*CH.length*0.8)); if(i <= 0) continue;
         const hot = near > 0.3 || (glow > 0.72 && wave > 0.72);
         g.globalAlpha = hot ? 0.16 + near*0.42 : 0.045 + v*0.07;
-        g.fillStyle = hot ? '#e8661f' : ink;
+        g.fillStyle = hot ? '#e8661f' : '#9db4ff';
         g.fillText(CH[i], X, Y);
       }
       g.globalAlpha = 1;
@@ -1289,7 +1284,7 @@ window.VeilFox = (function(){
       if(q.toString()) history.replaceState(null, '', '#/new');
       if(direct){ if(st.plan === 'classic') seal(); else go('#/pay', true); return; }   // started from a site card: skip the choose step
       $('#newTitle').innerHTML = 'Create a <span class="r">quant-room.</span>';
-      $('#newLead').textContent = 'Choose how long it lives and how many people can join. No account, ever.';
+      $('#newLead').textContent = 'Pick one. No account, ever.';
       $('.plan.classic').hidden = false; $('.plans').classList.remove('solo');
       syncChoose(); show('new');
     }
