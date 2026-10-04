@@ -324,6 +324,21 @@ html.fox-live .fox-slot img{visibility:hidden}
 .msg.file{display:flex;flex-direction:column;gap:2px}
 .msg.file a{color:inherit;font-weight:600}
 .msg.file small{font:500 11.5px/1.4 var(--mono);opacity:.75}
+.msg.file .finfo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.msg.file.pic{padding:5px 5px 8px}
+.msg.file.pic .finfo{padding:0 7px}
+.msg.file .thumb{display:block;margin:0 0 6px;padding:0;border:0;border-radius:10px;background:none;cursor:zoom-in;overflow:hidden}
+.msg.file .thumb img{display:block;max-width:min(260px,100%);max-height:260px;border-radius:10px}
+.msg.file .thumb:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+/* image preview: full screen, with a download */
+.lightbox{width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));border:0;background:rgba(8,9,14,.94);color:#f3f1ea}
+.lightbox[open]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.lightbox::backdrop{background:transparent}
+.lightbox img{min-height:0;max-width:100%;max-height:calc(100% - 72px);object-fit:contain;border-radius:8px}
+.lb-bar{display:flex;align-items:center;gap:10px;width:min(100%,640px)}
+.lb-name{flex:1;min-width:0;font:500 12.5px/1.4 var(--mono);opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lightbox .icon-btn{color:#f3f1ea;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)}
+.lightbox .icon-btn:hover{box-shadow:inset 0 0 0 1.5px #f3f1ea}
 .ai-toggle small{display:block;margin-top:2px;font:500 9.5px/1.4 var(--mono);color:var(--panel-ink-2);opacity:.7}
 .msg.ai{align-self:flex-start;background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rust);border-bottom-left-radius:4px}
 .msg.ai{white-space:pre-wrap}
@@ -592,6 +607,16 @@ html.fox-live .fox-slot img{visibility:hidden}
   </section>
 
 </main>
+<dialog class="lightbox" id="lightbox" aria-label="Image preview">
+  <img id="lbImg" alt="">
+  <div class="lb-bar">
+    <span class="lb-name" id="lbName"></span>
+    <a class="btn btn-sm" id="lbSave" download>Download</a>
+    <button class="icon-btn" id="lbClose" type="button" aria-label="Close" title="Close">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l10 10M14 4L4 14"/></svg>
+    </button>
+  </div>
+</dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -1283,6 +1308,7 @@ window.VeilFox = (function(){
   /* chat scrolling: stay on the latest message while you're at the bottom; if you scrolled up, keep your place
      and show a button with the count of new messages */
   const chatView = {stick: true, unseen: 0, typingEl: null, typingIdle: 0};
+  const myPics = new Map();   // fileId → blob: URL of an image I sent, for its preview; revoked when the chat is wiped
   const nearBottom = () => msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 48;
   function toBottom(smooth){ msgs.scrollTo({top: msgs.scrollHeight, behavior: smooth && !reduce ? 'smooth' : 'auto'}); }
   function syncToBottom(){
@@ -1303,6 +1329,7 @@ window.VeilFox = (function(){
     chatView.stick = true; chatView.unseen = 0; chatView.lastFrom = null; clearTimeout(chatView.typingIdle);
     $('#pinBar').hidden = true; $('#cmds').hidden = true;
     if(chatView.typingEl) chatView.typingEl.remove();
+    dropPics();
     msgs.innerHTML = '<p class="empty">No messages yet. Nothing has been said, so nothing can be kept.</p>';
     syncToBottom();
   }
@@ -1659,7 +1686,7 @@ window.VeilFox = (function(){
       // the room itself is gone: nothing left to be the owner of
       if(st0 === 'expired' || (st0 === 'terminated' && /^destroyed/.test(st1.endReason || '')) || (st1.error && st1.error.code === 'room_not_found')) ownerStore.drop(st1.roomId);
     }
-    clearInterval(room.timer); room.timer = null; stopPhrase();
+    clearInterval(room.timer); room.timer = null; stopPhrase(); dropPics();
     room.link = ''; room.phrase = ''; room.id = '';
     $('.room-grid').classList.remove('solo'); ownerUi(true, false);
     go('#/gone', true);
@@ -1871,17 +1898,52 @@ window.VeilFox = (function(){
       b = document.createElement('div'); b.className = 'msg file ' + (m.mine ? 'me' : 'them'); b.dataset.file = m.id;
       addToChat(b, m.mine);
     }
+    // the engine keeps only png/jpeg/gif/webp as image types (anything else is octet-stream), so an <img> is safe
+    const url = m.mine ? myPics.get(m.id) : m.url;
+    if(url && /^image\//.test(m.mime) && !$('.thumb', b)){
+      b.classList.add('pic');
+      const t = document.createElement('button'); t.type = 'button'; t.className = 'thumb'; t.setAttribute('aria-label', 'View ' + m.name);
+      const img = new Image(); img.alt = m.name; img.decoding = 'async';
+      img.addEventListener('load', ()=>{ if(chatView.stick) toBottom(false); syncToBottom(); }, {once:true});
+      img.src = url;
+      t.appendChild(img); t.addEventListener('click', ()=>openPic(url, m.name));
+      b.prepend(t);
+    }
+    let info = $('.finfo', b);
+    if(!info){ info = document.createElement('span'); info.className = 'finfo'; b.appendChild(info); }
     const pct = Math.round((m.progress || 0) * 100) + '%';
     const status = ({sending:'sending ' + pct, sent:'sent, checking', delivered: m.recipients > 1 ? 'delivered to ' + m.delivered + ' of ' + m.recipients : 'delivered', receiving:'receiving ' + pct, received:'received', failed:'failed'})[m.status] || m.status;
-    b.textContent = '';
-    if(m.url && !m.mine){ const a = document.createElement('a'); a.href = m.url; a.download = m.name; a.textContent = m.name; b.appendChild(a); }
-    else { const n = document.createElement('span'); n.textContent = m.name; b.appendChild(n); }
-    const small = document.createElement('small'); small.textContent = kb(m.size) + ' · ' + status; b.appendChild(small);
+    info.textContent = '';
+    if(m.url && !m.mine){ const a = document.createElement('a'); a.href = m.url; a.download = m.name; a.textContent = m.name; info.appendChild(a); }
+    else { const n = document.createElement('span'); n.textContent = m.name; info.appendChild(n); }
+    const small = document.createElement('small'); small.textContent = kb(m.size) + ' · ' + status; info.appendChild(small);
+  }
+  const lightbox = $('#lightbox');
+  function openPic(url, name){
+    $('#lbImg').src = url; $('#lbImg').alt = name;
+    $('#lbName').textContent = name; $('#lbSave').href = url; $('#lbSave').download = name;
+    if(!lightbox.open) lightbox.showModal();
+    $('#lbClose').focus();
+  }
+  function closePic(){ if(lightbox.open) lightbox.close(); }
+  lightbox.addEventListener('close', ()=>{ $('#lbImg').removeAttribute('src'); $('#lbSave').removeAttribute('href'); });
+  lightbox.addEventListener('click', e=>{ if(e.target === lightbox) closePic(); });   // the dark area around the image
+  $('#lbClose').addEventListener('click', closePic);
+  function dropPics(){
+    closePic();
+    for(const url of myPics.values()) URL.revokeObjectURL(url);
+    myPics.clear();
   }
   $('#fileBtn').addEventListener('click', ()=>$('#fileIn').click());
   $('#fileIn').addEventListener('change', ()=>{
     const f = $('#fileIn').files[0]; $('#fileIn').value = '';
-    if(f && live.session) live.session.sendFile(f).catch(e=>sys('Not sent: ' + (e && e.message ? e.message : 'the file could not be sent.')));
+    const s = live.session; if(!f || !s) return;
+    s.sendFile(f).then(id=>{
+      // my own image: preview it from the file I picked (the engine only gives URLs for files I receive)
+      const m = s.getState().messages.find(x=>x.id === id);
+      if(live.session !== s || !m || !/^image\//.test(m.mime)) return;
+      myPics.set(id, URL.createObjectURL(f)); renderFile(m, s.getState());
+    }).catch(e=>sys('Not sent: ' + (e && e.message ? e.message : 'the file could not be sent.')));
   });
 
   /* ---------- paying for a Super Quant-Room: stablecoins → a one-time blind pass ---------- */
