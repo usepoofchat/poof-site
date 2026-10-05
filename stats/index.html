@@ -254,7 +254,15 @@ body.menu-open{overflow:hidden}
 .share{margin-top:18px}
 
 /* activity */
-.act{list-style:none;margin:0;padding:0;max-height:520px;overflow:auto}
+.act{list-style:none;margin:0;padding:0 14px 0 0;max-height:520px;overflow-y:auto;overscroll-behavior:contain}
+/* a thin, quiet scrollbar: no arrows, rounded thumb, kept clear of the times */
+.act::-webkit-scrollbar{width:4px}
+.act::-webkit-scrollbar-track{background:transparent;margin:10px 0}
+.act::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+.act::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+.act::-webkit-scrollbar-button{display:none;height:0}
+@supports not selector(::-webkit-scrollbar){.act{scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}}
+@media (max-width:760px){.act{padding-right:8px}}
 .act li{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 2px;border-top:1px solid var(--line)}
 .act li:first-child{border-top:0}
 .act li.new{animation:poof .7s steps(6,end)}
