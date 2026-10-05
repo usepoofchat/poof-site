@@ -12,3 +12,15 @@
     Header set Cache-Control "public, max-age=86400"
   </FilesMatch>
 </IfModule>
+
+# Security headers for every page (no effect on how the site works):
+# HTTPS only, no embedding in other sites, no referrer to external links, no MIME guessing,
+# and no camera, microphone or location (Poof uses none of them).
+<IfModule mod_headers.c>
+  Header set Strict-Transport-Security "max-age=31536000"
+  Header set X-Frame-Options "DENY"
+  Header set Content-Security-Policy "frame-ancestors 'none'"
+  Header set Referrer-Policy "no-referrer"
+  Header set X-Content-Type-Options "nosniff"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+</IfModule>
