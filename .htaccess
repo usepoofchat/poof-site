@@ -16,18 +16,14 @@
 # Security headers for every page (no effect on how the site works):
 # HTTPS only, no embedding in other sites, no referrer to external links, no MIME guessing,
 # and no camera, microphone or location (Poof uses none of them).
+# Content Security Policy: scripts, styles, fonts and connections only from Poof and the named
+# services below (fonts, cdnjs, chain RPCs, WalletConnect). Anything else is blocked by the browser.
+# Tested in report-only mode across the whole site first. A new external service needs a line here.
 <IfModule mod_headers.c>
   Header set Strict-Transport-Security "max-age=31536000"
   Header set X-Frame-Options "DENY"
-  Header set Content-Security-Policy "frame-ancestors 'none'"
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.usepoof.chat wss://api.usepoof.chat https://ethereum-rpc.publicnode.com https://eth.drpc.org https://cloudflare-eth.com https://mainnet.base.org https://base-rpc.publicnode.com https://base.drpc.org https://rpc.mainnet.chain.robinhood.com wss://relay.walletconnect.org https://rpc.walletconnect.org https://pulse.walletconnect.org https://verify.walletconnect.org https://verify.walletconnect.com; frame-src https://verify.walletconnect.org https://verify.walletconnect.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
   Header set Referrer-Policy "no-referrer"
   Header set X-Content-Type-Options "nosniff"
   Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
-</IfModule>
-
-# Content Security Policy, REPORT-ONLY: nothing is blocked yet. Browsers only print what this
-# policy would block, as "[Report Only]" lines in the DevTools console. No reports are sent anywhere.
-# When a full test of the site shows no such lines, it becomes an enforced policy.
-<IfModule mod_headers.c>
-  Header set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.usepoof.chat wss://api.usepoof.chat https://ethereum-rpc.publicnode.com https://eth.drpc.org https://cloudflare-eth.com https://mainnet.base.org https://base-rpc.publicnode.com https://base.drpc.org https://rpc.mainnet.chain.robinhood.com wss://relay.walletconnect.org https://rpc.walletconnect.org https://pulse.walletconnect.org https://verify.walletconnect.org https://verify.walletconnect.com; frame-src https://verify.walletconnect.org https://verify.walletconnect.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'"
 </IfModule>
