@@ -438,19 +438,30 @@ details .a p:first-child{margin-top:0}
 
     <section id="buybot">
       <h2><a class="hash" href="#buybot" aria-hidden="true">#</a><img src="media/e-fox-dollar.webp" alt="">Buy bot: set up</h2>
-      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Robinhood Chain</b> with <b>Uniswap v2, v3 and v4</b> pools, and with <b>pons</b> launches from their bonding curve to Uniswap v4. All <code>/buybot</code> commands are for admins.</p>
+      <p>The buy bot posts every buy of a token into the group, live. It works on <b>Solana</b>, with <b>Meteora</b> pools paired with SOL: the bonding curve, then DAMM v2 after graduation. All <code>/buybot</code> commands are for admins.</p>
       <ol class="steps">
-        <li><b>Point it at the token</b><span>Send <code>/buybot set 0x...</code> with the token contract address. The bot finds the token's Uniswap pools on its own (up to 3 pools with at least $500 liquidity).</span></li>
-        <li><b>Check the status</b><span>The bot answers with the token, the pools it watches and the current settings. Send <code>/buybot</code> any time to see them again.</span></li>
+        <li><b>Point it at the token</b><span>Send <code>/buybot set &lt;mint&gt;</code> with the token's mint address. The bot finds the token's Meteora pool paired with SOL on its own: the bonding curve (Meteora Dynamic Bonding Curve) or Meteora DAMM v2. The pool address is optional.</span></li>
+        <li><b>Check the status</b><span>The bot answers with the token, the pool it watches and the current settings. Send <code>/buybot</code> any time to see them again.</span></li>
         <li><b>Post a test</b><span><code>/buybot test</code> posts three sample alerts (Spark, Poof, Big poof) marked as test, so you see the look before real buys come in.</span></li>
         <li><b>Tune it</b><span>Set the smallest buy shown, the tiers and how long small alerts stay. See <a class="inl" href="#settings">Settings</a>.</span></li>
       </ol>
       <div class="chat" aria-label="Example: /buybot set">
         <div class="top"><img src="media/avatar-rust.png" alt=""><div><b>Poof - Group</b><span>admin</span></div><span class="ex">EXAMPLE</span></div>
-        <div class="m me"><div class="col"><div class="b">/buybot set 0x…<span class="t">13:00</span></div></div></div>
-        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span>Buy bot is tracking this token now.<div class="gap"></div><b>Poof buy bot</b> · on<div class="gap"></div>Token: <b>$POOF</b> on Robinhood Chain<br><span class="sub">0x… (the contract you sent)</span><br>Pools: uniswap v3 (ETH)<br>Min buy: $10 · Alerts poof after: 10 min<br>Tiers: auto (0.005% / 0.025% / 0.1% of MCap, at least $100 / $500 / $1,500)<br>Custom emoji: on<span class="t">13:00</span></div></div></div>
+        <div class="m me"><div class="col"><div class="b">/buybot set 9xQe…<span class="t">13:00</span></div></div></div>
+        <div class="m"><img class="av" src="media/avatar-rust.png" alt=""><div class="col"><div class="b"><span class="who">Poof</span>Buy bot is tracking this token now.<div class="gap"></div><b>Poof buy bot</b> · on<div class="gap"></div>Token: <b>$POOF</b> on Solana<br><span class="sub">9xQe… (the mint you sent)</span><br>Pool: Meteora bonding curve (SOL)<br>Min buy: $20 · Alerts poof after: 10 min<br>Tiers: auto (0.005% / 0.025% / 0.1% of MCap, at least $100 / $500 / $1,500)<br>Custom emoji: on<span class="t">13:00</span></div></div></div>
       </div>
-      <div class="note frost"><img src="media/e-fox-gaze.webp" alt=""><p>Brand new token not found yet? Pools show up once DexScreener lists them. You can also give the pool address (for a v4 pool, its pool id): <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</p></div>
+      <div class="note frost"><img src="media/e-fox-gaze.webp" alt=""><p>The bot finds the pool on its own. You can also give the pool address: <code>/buybot set &lt;mint&gt; &lt;pool&gt;</code>.</p></div>
+      <h3>Set it before launch</h3>
+      <p>You can send <code>/buybot set &lt;mint&gt;</code> before the token exists. The bot waits for the launch and keeps the address hidden in its replies (set and status) until then. Alerts start on their own with the first trade on Meteora, including the buys in the launch transaction.</p>
+      <h3>Supported networks and pools</h3>
+      <ul class="list">
+        <li><b>Chain:</b> Solana.</li>
+        <li><b>Pools:</b> the Meteora bonding curve, then Meteora DAMM v2 after graduation. Only pairs with SOL.</li>
+        <li><b>Graduation:</b> when the curve migrates to DAMM v2, the bot posts a graduated alert and keeps going on the new pool by itself. Admins don't need to do anything. Alerts from the curve carry the label bonding curve.</li>
+        <li><b>Paid in:</b> SOL. Only buys are tracked, not sells.</li>
+        <li><b>Price and MCap:</b> read straight from the pool, on chain, times the current SOL price. They don't depend on DexScreener.</li>
+        <li><b>Links:</b> transactions and wallets open on Solscan, <b>Chart</b> opens DexScreener, <b>Buy</b> opens Jupiter.</li>
+      </ul>
     </section>
 
     <section id="alert">
@@ -463,9 +474,9 @@ details .a p:first-child{margin-top:0}
             <div class="b media"><video data-src="media/poof.mp4" poster="media/poof.jpg" muted loop playsinline preload="none"></video>
               <div class="tx"><span class="pin">1</span><img class="em" src="media/e-mark.webp" alt=""><b>$POOF buy</b> · Poof
                 <div class="rowe" id="demoRow"><span class="pin">2</span></div>
-                <span class="pin">3</span><img class="em" src="media/e-fox-dollar.webp" alt=""><b>0.284 ETH</b> ($712)<br>
+                <span class="pin">3</span><img class="em" src="media/e-fox-dollar.webp" alt=""><b>3.42 SOL</b> ($712)<br>
                 <span class="pin">4</span><img class="em" src="media/e-coin-ink.webp" alt=""><b>1,284,551 POOF</b> · <a>Tx</a><br>
-                <span class="pin">5</span><img class="em" src="media/e-fox-wave.webp" alt=""><a>0x8f10…f996</a> · New holder<br>
+                <span class="pin">5</span><img class="em" src="media/e-fox-wave.webp" alt=""><a>7xKp…3fQa</a> · New holder<br>
                 <span class="pin">6</span><img class="em" src="media/e-coin-stone.webp" alt="">MCap $1.42M<div class="gap"></div>
                 <span class="pin">7</span><img class="em" src="media/e-poof.webp" alt=""><i>poofs in 10 min</i><span class="t">13:21</span></div></div>
             <div class="kb"><div><span><img src="media/e-coin-stone.webp" alt="">Chart</span><span><img src="media/e-fox-dollar.webp" alt="">Buy</span><span><img src="media/e-mark.webp" alt="">usepoof.chat</span></div></div>
@@ -474,14 +485,14 @@ details .a p:first-child{margin-top:0}
         <ol class="pins">
           <li><b>Tier</b>The animation and the name show the size of the buy: Spark, Puff, Poof or Big poof.</li>
           <li><b>Emoji row</b>Grows with the buy, with plenty of emoji even for small buys. A Big poof starts at about 40 emoji, the row stops at 60. Each tier has its own emoji.</li>
-          <li><b>Paid</b>What the buyer paid, in ETH and in dollars.</li>
-          <li><b>Received</b>Tokens bought, with a link to the transaction on the explorer.</li>
+          <li><b>Paid</b>What the buyer paid, in SOL and in dollars.</li>
+          <li><b>Received</b>Tokens bought, with a link to the transaction on Solscan.</li>
           <li><b>Buyer</b>The wallet, and <b>New holder</b> or <b>Position +x%</b>: how much this buy added to the bag they already had.</li>
           <li><b>MCap</b>Market cap right after the buy.</li>
           <li><b>Poof timer</b>Small alerts delete themselves after 10 min (you can change it). Big poofs stay.</li>
         </ol>
       </div>
-      <p>Buttons under each alert: <b>Chart</b> opens DexScreener, <b>Buy</b> opens Uniswap with the token ready, <b>usepoof.chat</b> opens the website.</p>
+      <p>Buttons under each alert: <b>Chart</b> opens DexScreener, <b>Buy</b> opens Jupiter with the token ready, <b>usepoof.chat</b> opens the website.</p>
     </section>
 
     <section id="tiers">
@@ -495,6 +506,7 @@ details .a p:first-child{margin-top:0}
       </div>
       <h3>How auto tiers work</h3>
       <p>Each limit is a share of the market cap, but never lower than its floor. At <b>$1M</b> MCap the floors apply: Puff from $100, Poof from $500, Big poof from $1,500. At <b>$20M</b> MCap: Puff from $1,000, Poof from $5,000, Big poof from $20,000.</p>
+      <p>At launch, alerts start at $20. Spark is under $100, Puff from $100, Poof from $500, Big poof from $1,500.</p>
       <h3>Fixed tiers</h3>
       <p>Prefer your own numbers? <code>/buybot tiers 100 500 1500</code> sets where Puff, Poof and Big poof start, in dollars. <code>/buybot tiers auto</code> goes back to automatic.</p>
     </section>
@@ -504,10 +516,10 @@ details .a p:first-child{margin-top:0}
       <p>Every setting is one command in the group. The bot answers with the new status each time.</p>
       <div class="tbl" role="table">
         <div class="row head" role="row"><span>Command</span><span>What it does</span></div>
-        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot">/buybot</button></div><div class="d">Status: token, pools, settings and the command list.</div></div>
-        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot set ">/buybot set &lt;contract&gt; [pair]</button></div><div class="d">Track a token in this group. Running it again switches to another token and keeps your settings.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot">/buybot</button></div><div class="d">Status: token, pool, settings and the command list.</div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot set ">/buybot set &lt;mint&gt; [pool]</button></div><div class="d">Track a token in this group. Running it again switches to another token and keeps your settings.</div></div>
         <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot on">/buybot on</button><button class="cmd" data-copy="/buybot off">/buybot off</button></div><div class="d">Pause or resume the alerts.</div></div>
-        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot min 20">/buybot min 20</button></div><div class="d">The smallest buy shown, in dollars.<small>default $10</small></div></div>
+        <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot min 20">/buybot min 20</button></div><div class="d">The smallest buy shown, in dollars.<small>default $20</small></div></div>
         <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot ttl 10">/buybot ttl 10</button></div><div class="d">Minutes before small alerts poof. <code>0</code> keeps every alert. Big poofs always stay.<small>default 10 min</small></div></div>
         <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot tiers auto">/buybot tiers auto</button><button class="cmd" data-copy="/buybot tiers 100 500 1500">/buybot tiers 100 500 1500</button></div><div class="d">Automatic tiers, or where Puff, Poof and Big poof start, in dollars.<small>default auto</small></div></div>
         <div class="row" role="row"><div class="c"><button class="cmd" data-copy="/buybot emoji off">/buybot emoji on | off</button></div><div class="d">Poof animated emoji, or plain emoji.<small>default on</small></div></div>
@@ -526,14 +538,14 @@ details .a p:first-child{margin-top:0}
           <div class="b media"><video data-src="media/puff.mp4" poster="media/puff.jpg" muted loop playsinline preload="none"></video>
             <div class="tx"><img class="em" src="media/e-mark.webp" alt=""><b>$POOF buy</b> · Puff
               <div class="rowe" data-n="18" data-e="coin-ink"></div>
-              <img class="em" src="media/e-fox-dollar.webp" alt=""><b>0.107 ETH</b> ($268)<br>
+              <img class="em" src="media/e-fox-dollar.webp" alt=""><b>1.29 SOL</b> ($268)<br>
               <img class="em" src="media/e-coin-ink.webp" alt=""><b>482,903 POOF</b> · <a>Tx</a><br>
-              <img class="em" src="media/e-fox-wave.webp" alt=""><a>0x2cae…ce3b</a> · Position +18%<br>
+              <img class="em" src="media/e-fox-wave.webp" alt=""><a>4Nd1…kV2s</a> · Position +18%<br>
               <img class="em" src="media/e-coin-stone.webp" alt="">MCap $1.43M<div class="gap"></div>
               <b>+3 more buys</b> · $151<br>
-              <img class="em" src="media/e-mark.webp" alt="">0.030 ETH ($74) · <a>Tx</a><br>
-              <img class="em" src="media/e-mark.webp" alt="">0.021 ETH ($52) · <a>Tx</a><br>
-              <img class="em" src="media/e-mark.webp" alt="">0.010 ETH ($25) · <a>Tx</a><div class="gap"></div>
+              <img class="em" src="media/e-mark.webp" alt="">0.36 SOL ($74) · <a>Tx</a><br>
+              <img class="em" src="media/e-mark.webp" alt="">0.25 SOL ($52) · <a>Tx</a><br>
+              <img class="em" src="media/e-mark.webp" alt="">0.12 SOL ($25) · <a>Tx</a><div class="gap"></div>
               <img class="em" src="media/e-poof.webp" alt=""><i>poofs in 10 min</i><span class="t">13:24</span></div></div>
           <div class="kb"><div><span><img src="media/e-coin-stone.webp" alt="">Chart</span><span><img src="media/e-fox-dollar.webp" alt="">Buy</span><span><img src="media/e-mark.webp" alt="">usepoof.chat</span></div></div>
         </div></div>
@@ -545,15 +557,15 @@ details .a p:first-child{margin-top:0}
       <div class="faqs">
         <details><summary>No alerts are showing up</summary><div class="a">
           <p>Send <code>/buybot</code> and check:</p>
-          <ul class="list"><li>It says <b>on</b>. If not, <code>/buybot on</code>.</li><li><b>Min buy</b> isn't higher than the buys coming in.</li><li>The pool is Uniswap <b>v2, v3 or v4</b> on Robinhood Chain.</li><li>The pool has at least $500 liquidity and is listed on DexScreener. For a very new pool, use <code>/buybot set &lt;token&gt; &lt;pair&gt;</code>.</li></ul>
+          <ul class="list"><li>It says <b>on</b>. If not, <code>/buybot on</code>.</li><li><b>Min buy</b> isn't higher than the buys coming in.</li><li>The token trades on <b>Meteora</b> (bonding curve or DAMM v2), paired with SOL.</li><li>If the token just launched or just graduated and <code>/buybot set</code> says it can't find the pool, try again in a minute.</li></ul>
         </div></details>
-        <details><summary>Does it show sells?</summary><div class="a"><p>No. Only buys: a swap where someone pays ETH (or the pool's other token) and receives the tracked token.</p></div></details>
+        <details><summary>Does it show sells?</summary><div class="a"><p>No. Only buys: a swap where someone pays SOL and receives the tracked token.</p></div></details>
         <details><summary>Why are some buys listed under another alert?</summary><div class="a"><p>They landed in the same few seconds. Telegram limits how many messages a bot can send per minute, so the biggest buy gets the full alert and the rest are listed under it. See <a class="inl" href="#live">Live and grouped</a>.</p></div></details>
-        <details><summary>Where does the price come from?</summary><div class="a"><p>The dollar value is what the buyer paid, at the current ETH price. Market cap and token price come from DexScreener. If no price is available, the bot waits and posts the buy as soon as it has one.</p></div></details>
+        <details><summary>Where does the price come from?</summary><div class="a"><p>The dollar value is the SOL the buyer paid, times the current SOL price. Market cap and token price are read from the pool, on chain. If the SOL price isn't available, the bot waits and posts the buy at the next check.</p></div></details>
         <details><summary>The emoji look plain on my phone</summary><div class="a"><p>Poof animated emoji show in the Telegram apps. If an admin turns them off with <code>/buybot emoji off</code>, the alert uses plain emoji instead.</p></div></details>
         <details><summary>Our group became a supergroup. Do we set it up again?</summary><div class="a"><p>No. The bot follows the group to its new id with every setting.</p></div></details>
-        <details><summary>Which chains are supported?</summary><div class="a"><p>Robinhood Chain today, with Uniswap v2, v3 and v4 pools and pons launches. More chains can come later.</p></div></details>
-        <details><summary>Does it work with pons launches?</summary><div class="a"><p>Yes. Send <code>/buybot set</code> with the token address while it is still on its bonding curve. Every curve buy gets an alert, the MCap line says bonding curve, and Chart and Buy open the token on ponsfamily.com. When the curve fills and the token graduates, the bot posts a graduation alert and keeps going on the new Uniswap v4 pool by itself.</p></div></details>
+        <details><summary>Which chains are supported?</summary><div class="a"><p>Solana, with Meteora pools paired with SOL: the bonding curve and DAMM v2.</p></div></details>
+        <details><summary>Does it follow a token from the bonding curve to DAMM v2?</summary><div class="a"><p>Yes. Every buy on the curve gets an alert labelled bonding curve. When the curve migrates to DAMM v2, the bot posts a graduated alert and keeps going on the new pool by itself. Admins don't need to do anything.</p></div></details>
         <details><summary>Will the bot ever DM me?</summary><div class="a"><p>No. The bot never sends the first message, never asks for a seed phrase, a private key or wallet access, and never asks you to connect a wallet. Anyone who does is a scammer. Admins never DM first either.</p></div></details>
       </div>
     </section>
