@@ -5574,36 +5574,96 @@ function formatUsd(micros) {
 var CHAINS = [
 	"ethereum",
 	"base",
-	"robinhood"
+	"robinhood",
+	"solana"
 ];
-/** USD stablecoins (6 decimals) and ETH, the chains' own coin (18 decimals). */
-var TOKENS = [
-	"USDC",
-	"USDG",
-	"ETH"
-];
-/** "0.000217 ETH": wei shown with up to 6 decimals, rounded up. */
-function formatEth(wei) {
-	const step = 10n ** 12n;
-	const units = (wei + step - 1n) / step;
-	const whole = units / 1000000n;
-	const frac = (units % 1000000n).toString().padStart(6, "0").replace(/0+$/, "");
-	return `${whole}${frac ? `.${frac}` : ""} ETH`;
+/** USD stablecoins, 6 decimals on every chain: one unit is one micro-dollar. */
+var TOKENS = ["USDC", "USDG"];
+/** How a chain works: EVM (Ethereum and its kin, 0x… addresses) or Solana (base58 addresses). */
+var CHAIN_KINDS = ["evm", "solana"];
+/** Mainnet only: payments are never accepted on a testnet. */
+var CHAIN_CONFIG = {
+	ethereum: {
+		name: "ethereum",
+		kind: "evm",
+		label: "Ethereum",
+		chainId: 1,
+		confirmations: 2,
+		rpcUrls: [
+			"https://ethereum-rpc.publicnode.com",
+			"https://eth.drpc.org",
+			"https://cloudflare-eth.com"
+		],
+		explorer: "https://etherscan.io",
+		tokens: { USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }
+	},
+	base: {
+		name: "base",
+		kind: "evm",
+		label: "Base",
+		chainId: 8453,
+		confirmations: 1,
+		rpcUrls: [
+			"https://mainnet.base.org",
+			"https://base-rpc.publicnode.com",
+			"https://base.drpc.org"
+		],
+		explorer: "https://basescan.org",
+		tokens: { USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" }
+	},
+	robinhood: {
+		name: "robinhood",
+		kind: "evm",
+		label: "Robinhood Chain",
+		chainId: 4663,
+		confirmations: 1,
+		rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],
+		explorer: "https://robinhoodchain.blockscout.com",
+		tokens: { USDG: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168" }
+	},
+	solana: {
+		name: "solana",
+		kind: "solana",
+		label: "Solana",
+		chainId: null,
+		confirmations: 32,
+		rpcUrls: ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"],
+		explorer: "https://solscan.io",
+		tokens: { USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" }
+	}
+};
+/** 0x and 40 hex digits: an EVM address. */
+var EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
+/** 0x and 64 hex digits: an EVM transaction hash. */
+var EVM_TX_HASH = /^0x[0-9a-fA-F]{64}$/;
+var EVM_SIGNATURE = /^0x[0-9a-fA-F]+$/;
+/** base58 of 32 bytes: a Solana address. */
+var SOLANA_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+/** base58 of 64 bytes: a Solana transaction signature (its id), or an ed25519 signature. */
+var SOLANA_SIGNATURE = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;
+/** Do the transaction id, the payer and the wallet signature have the chain's own formats? */
+function paymentIdsFit(r) {
+	return CHAIN_CONFIG[r.chain].kind === "evm" ? EVM_TX_HASH.test(r.txHash) && EVM_ADDRESS.test(r.payer) && EVM_SIGNATURE.test(r.signature) : SOLANA_SIGNATURE.test(r.txHash) && SOLANA_ADDRESS.test(r.payer) && SOLANA_SIGNATURE.test(r.signature);
+}
+/**
+* The transaction id as it goes into messages and the ledger: EVM hashes in lower case, Solana
+* signatures as they are (base58 is case-sensitive).
+*/
+function canonicalTxId(chain, txHash) {
+	return CHAIN_CONFIG[chain].kind === "evm" ? txHash.toLowerCase() : txHash;
 }
 var B64URL = /^[A-Za-z0-9_-]+$/;
-var hexHash = string().regex(/^0x[0-9a-fA-F]{64}$/);
-var hexAddress = string().regex(/^0x[0-9a-fA-F]{40}$/);
-var hexSignature = string().regex(/^0x[0-9a-fA-F]+$/).max(2e4);
 var b64url = (max) => string().min(1).max(max).regex(B64URL);
 /**
-* The text the paying wallet signs (EIP-191 personal_sign). It ties this redemption to the address
-* the payment came from, so a transaction hash seen on-chain can't be redeemed by someone else.
+* The text the paying wallet signs (EVM: EIP-191 personal_sign; Solana: ed25519 over the UTF-8
+* bytes). It ties this redemption to the address the payment came from, so a transaction seen
+* on-chain can't be redeemed by someone else.
 */
 function redeemMessage(r) {
 	return [
 		"Poof: unlock a Super Quant-Room",
 		`Chain: ${r.chain}`,
-		`Transaction: ${r.txHash.toLowerCase()}`,
+		`Transaction: ${canonicalTxId(r.chain, r.txHash)}`,
 		`Quant-room: ${variantId(r.variant)}`,
 		`Pass: ${r.blindedHash}`
 	].join("\n");
@@ -5611,31 +5671,17 @@ function redeemMessage(r) {
 object({
 	chain: _enum(CHAINS),
 	token: _enum(TOKENS),
-	txHash: hexHash,
+	/** The transaction: its hash (EVM) or its signature (Solana). */
+	txHash: string().min(1).max(100),
 	variant: variantSchema,
 	keyId: b64url(64),
 	/** The blinded pass message (RFC 9474 Blind), base64url. */
 	blindedMsg: b64url(400),
-	/** personal_sign of `redeemMessage(...)` by the address the payment came from. */
-	payer: hexAddress,
-	signature: hexSignature,
-	/** ETH only: the quote the payment was made against (from /api/pay/quote). */
-	quote: string().min(1).max(1e3).optional()
-});
-/** GET /api/pay/quote?chain=…&variant=…: what to send in ETH right now, signed by Poof. */
-var quoteResponseSchema = object({
-	chain: _enum(CHAINS),
-	variant: string(),
-	usdMicros: number().int().positive(),
-	/** USD per ETH, 8 decimals (Chainlink), as a decimal string. */
-	ethUsd: string().regex(/^\d+$/),
-	/** The amount to send, in wei, as a decimal string. */
-	wei: string().regex(/^\d+$/),
-	/** Unix ms: the payment must be mined before this. */
-	expiresAt: number().int(),
-	/** Opaque, signed by Poof: send it back with the redemption. */
-	quote: string().min(1).max(1e3)
-});
+	/** The address the payment came from, which signed `redeemMessage(...)`. */
+	payer: string().min(1).max(64),
+	/** EVM: the personal_sign signature (hex). Solana: the ed25519 signature (base58). */
+	signature: string().min(1).max(2e4)
+}).refine(paymentIdsFit, "the ids don't fit the chain");
 var redeemResponseSchema = discriminatedUnion("status", [object({
 	status: literal("pending"),
 	confirmations: number().int().nonnegative(),
@@ -5650,21 +5696,28 @@ var payKeySchema = object({
 	keyId: b64url(64),
 	spki: b64url(1200)
 });
+var chainAddress = string().min(1).max(64);
 var payConfigSchema = object({
-	treasury: hexAddress,
 	chains: array(object({
 		name: _enum(CHAINS),
+		kind: _enum(CHAIN_KINDS),
 		label: string(),
-		chainId: number().int(),
+		/** EIP-155 chain id; null on Solana. */
+		chainId: number().int().nullable(),
 		confirmations: number().int(),
 		explorer: string(),
+		/** Poof's address on this chain: where to pay. */
+		treasury: chainAddress,
 		tokens: array(object({
 			symbol: _enum(TOKENS),
-			/** null for ETH (the chain's own coin). */
-			address: hexAddress.nullable(),
+			/** The stablecoin's contract (EVM) or mint (Solana). */
+			address: chainAddress,
 			decimals: number().int()
 		}))
-	})),
+	}).refine((c) => {
+		const fits = c.kind === "evm" ? EVM_ADDRESS : SOLANA_ADDRESS;
+		return fits.test(c.treasury) && c.tokens.every((t) => fits.test(t.address));
+	}, "the addresses don't fit the chain")),
 	keys: array(payKeySchema)
 });
 /** A finished pass: what the browser keeps until it is spent. */
@@ -12346,10 +12399,12 @@ async function finishPass(pending, blindSignature) {
 /**
 * Paying for a Super Quant-Room, from the browser:
 *
-*   1. fetchPayConfig → where to pay, in what, and the pass keys
+*   1. fetchPayConfig → the chains (each with Poof's address on it and its stablecoins), and the
+*      pass keys
 *   2. startPass (pass.ts) → a blinded pass for the chosen variant; keep it until it's spent
-*   3. the wallet sends `transferData(...)` to the token contract (the price, to `config.treasury`)
-*   4. the wallet signs `paymentMessage(...)` (personal_sign)
+*   3. the wallet pays the price to the chain's `treasury`: on an EVM chain it sends
+*      `transferData(...)` to the token contract; on Solana it sends an SPL token transfer
+*   4. the wallet signs `paymentMessage(...)` (EVM: personal_sign; Solana: signMessage)
 *   5. redeemPayment until it says "ok" (it says "pending" while the transfer confirms) → a Pass
 *   6. createRoom({ pass }) or session.upgrade(pass)
 */
@@ -12366,27 +12421,11 @@ async function fetchPayConfig(opts) {
 	if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
 	return parsed.data;
 }
-/** ERC-20 `transfer(to, amount)` calldata: what the wallet sends to the token contract. */
+/** ERC-20 `transfer(to, amount)` calldata: what the wallet sends to the token contract (EVM). */
 function transferData(to, micros) {
 	if (!/^0x[0-9a-fA-F]{40}$/.test(to) || !Number.isSafeInteger(micros) || micros <= 0) throw new PoofError("pay_failed", "Not a valid payment.");
 	const pad = (hex) => hex.padStart(64, "0");
 	return `0xa9059cbb${pad(to.slice(2).toLowerCase())}${pad(micros.toString(16))}`;
-}
-/**
-* ETH only: what to send right now for `variant` on `chain`, at the market price. The payment must
-* be mined before `expiresAt`; send `quote` back with the redemption.
-*/
-async function fetchEthQuote(opts) {
-	let res;
-	try {
-		res = await opts.fetch(`${opts.origin}/api/pay/quote?chain=${opts.chain}&variant=${variantId(opts.variant)}`);
-	} catch {
-		throw new PoofError("connection_failed", "Could not reach the server.");
-	}
-	if (!res.ok) throw serverError(res.status, await res.json().catch(() => null));
-	const parsed = quoteResponseSchema.safeParse(await res.json().catch(() => null));
-	if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
-	return parsed.data;
 }
 /** The text the paying wallet signs: it ties this transaction to this blinded pass. */
 async function paymentMessage(chain, txHash, pending) {
@@ -12412,8 +12451,7 @@ async function redeemPayment(opts) {
 				keyId: opts.pending.keyId,
 				blindedMsg: opts.pending.blindedMsg,
 				payer: opts.payer,
-				signature: opts.signature,
-				...opts.quote ? { quote: opts.quote } : {}
+				signature: opts.signature
 			})
 		});
 	} catch {
@@ -19209,4 +19247,4 @@ function detectBrowserSupport(env = globalThis) {
 	};
 }
 //#endregion
-export { AI_CONTEXT_MAX_BYTES, AI_SYSTEM_PROMPT, AiClient, DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, buildAiPrompt, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, decryptAiChunk, deriveAiToken, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, encryptForModel, equalBytes, fetchEthQuote, fetchPayConfig, finishPass, formatEth, formatUsd, fromBase64, fromBase64Url, fromUtf8, generateAiSessionKeys, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, memberName, mentionsAi, newAttestationNonce, normalizeAiText, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readAiStream, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, stripMention, toBase64, toBase64Url, transferData, u64be, utf8, variantId, verifyAttestation, wipe };
+export { AI_CONTEXT_MAX_BYTES, AI_SYSTEM_PROMPT, AiClient, DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, buildAiPrompt, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, decryptAiChunk, deriveAiToken, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, encryptForModel, equalBytes, fetchPayConfig, finishPass, formatUsd, fromBase64, fromBase64Url, fromUtf8, generateAiSessionKeys, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, memberName, mentionsAi, newAttestationNonce, normalizeAiText, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readAiStream, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, stripMention, toBase64, toBase64Url, transferData, u64be, utf8, variantId, verifyAttestation, wipe };

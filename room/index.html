@@ -33,7 +33,7 @@
   --ground:#0c0e16; --surface:#141a2a; --ink:#ecebe6; --ink-2:#bcc2d6; --ink-3:#8e96b0;
   --line:rgba(157,180,255,.16); --line-strong:rgba(236,235,230,.8); --rust-text:#f08a4b;
   --panel:#1b2136; --panel-ink:#f3f1ea; --panel-ink-2:#aab3cf; --panel-line:rgba(157,180,255,.2); --frost:#9db4ff;
-  --rust:#e8661f; --on-rust:#1d1f2b;
+  --rust:#e8661f; --on-rust:#1d1f2b; --err:#ff6b6b;
   --nav-h:68px;
   --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -44,11 +44,11 @@
 /* inside a quant-room the theme switch is back: light ground there */
 :root.in-room[data-theme="light"]{
   --ground:#e8e9e4; --surface:#fbf7ef; --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
-  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85); --rust-text:#9c3b14;
+  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85); --rust-text:#9c3b14; --err:#c62828;
   --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14); --frost:#3c55a8; color-scheme:light}
 @media (prefers-color-scheme:light){:root.in-room:not([data-theme="dark"]){
   --ground:#e8e9e4; --surface:#fbf7ef; --ink:#1d1f2b; --ink-2:#454753; --ink-3:#5a5c66;
-  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85); --rust-text:#9c3b14;
+  --line:rgba(29,31,43,.14); --line-strong:rgba(29,31,43,.85); --rust-text:#9c3b14; --err:#c62828;
   --panel:#1d1f2b; --panel-ink:#f3f1ea; --panel-ink-2:#b6b5af; --panel-line:rgba(255,255,255,.14); --frost:#3c55a8; color-scheme:light}}
 :root.in-room.room-light .t-light{display:block} :root.in-room.room-light .t-dark{display:none}
 :root.in-room.room-light body{background-image:radial-gradient(60vmax 50vmax at 82% 12%,rgba(60,85,168,.12),transparent 70%)}
@@ -162,6 +162,7 @@ button{font:inherit}
 .sumlist .total{padding-top:12px;border-top:1px solid var(--line);font-size:24px;letter-spacing:-.03em}
 .sumlist dt.total{font-size:12px;letter-spacing:0;line-height:3}
 .genlog{font:400 13.5px/1.9 var(--mono);color:var(--ink-2);white-space:pre-wrap;margin:16px 0 0;min-height:1.9em}
+.genlog .err{color:var(--err)}
 
 /* sealing */
 .busy{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,4vw,48px);align-items:center;margin-top:24px}
@@ -1449,7 +1450,7 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=194cf5f92289'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=63b1a8246383'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0, E:null, names:new Map(), shownAs:new Map(), sealedAt:new Map()};
   // The quant-room this tab is in, so a reload brings you straight back into it. sessionStorage: this
   // tab only, gone when the tab closes, and wiped as soon as the quant-room ends.
@@ -1994,7 +1995,8 @@ window.VeilFox = (function(){
   /* ---------- paying for a Super Quant-Room: stablecoins → a one-time blind pass ---------- */
   // Reown / WalletConnect project id (public). Phone wallets connect through WalletConnect's relay.
   const WC_PROJECT_ID = 'c743fcb3e2c4a2afaa842252425e4fd6';
-  const RPC = {ethereum:'https://ethereum-rpc.publicnode.com', base:'https://mainnet.base.org', robinhood:'https://rpc.mainnet.chain.robinhood.com'};
+  // Public RPCs this page may call: the EVM ones for WalletConnect and for adding a network to a wallet, Solana's to build the payment.
+  const RPC = {ethereum:'https://ethereum-rpc.publicnode.com', base:'https://mainnet.base.org', robinhood:'https://rpc.mainnet.chain.robinhood.com', solana:'https://solana-rpc.publicnode.com'};
   const PAY_KEY = 'poof-pay', PASSES_KEY = 'poof-passes';   // this browser only: a payment in progress, unused passes
   const store = {
     get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
@@ -2008,7 +2010,9 @@ window.VeilFox = (function(){
   const realSleep = ms => new Promise(r=>setTimeout(r, ms));
   const utf8Hex = t => '0x' + Array.from(new TextEncoder().encode(t), b=>b.toString(16).padStart(2, '0')).join('');
   const shortHex = h => h.slice(0, 10) + '…' + h.slice(-6);
-  function payLog(l){ $('#payLog').textContent += l + '\n'; }
+  const sameAddress = (chain, a, b) => chain.kind === 'evm' ? a.toLowerCase() === b.toLowerCase() : a === b;
+  /* one line in the payment log; errors in red */
+  function payLog(l, err){ const s = document.createElement('span'); if(err) s.className = 'err'; s.textContent = l + '\n'; $('#payLog').appendChild(s); }
 
   async function payConfig(){
     if(pay.cfg) return pay.cfg;
@@ -2017,7 +2021,7 @@ window.VeilFox = (function(){
   }
   async function payOptions(){
     let cfg;
-    try{ cfg = await payConfig(); }catch(e){ $('#payOpts').hidden = true; payLog('› Super Quant-Rooms can’t be bought right now. Try again later.'); $('#payBtn').disabled = true; return; }
+    try{ cfg = await payConfig(); }catch(e){ $('#payOpts').hidden = true; payLog('› Super Quant-Rooms can’t be bought right now. Try again later.', true); $('#payBtn').disabled = true; return; }
     $('#payOpts').hidden = false;
     const chains = $('#payChain'), tokens = $('#payToken');
     chains.querySelectorAll('label').forEach(l=>l.remove()); tokens.querySelectorAll('label').forEach(l=>l.remove());
@@ -2038,8 +2042,8 @@ window.VeilFox = (function(){
     if(a && a.txHash) payLog('› a payment from this browser is waiting: ' + shortHex(a.txHash) + '. Pay and unlock picks it up.');
   }
 
-  /* wallets: the browser's own (EIP-6963), or a phone wallet through WalletConnect */
-  function chooseWallet(){
+  /* wallets: the browser's own (EIP-6963 on the Ethereum-like networks, Wallet Standard on Solana), or a phone wallet through WalletConnect */
+  function chooseWallet(options){
     return new Promise((resolve, reject)=>{
       const box = $('#payWallets'); box.innerHTML = ''; box.hidden = false;
       const add = (label, icon, pick)=>{
@@ -2049,10 +2053,7 @@ window.VeilFox = (function(){
         b.addEventListener('click', ()=>{ box.hidden = true; pick(); });
         box.appendChild(b);
       };
-      const list = [...injected.values()];
-      if(!list.length && window.ethereum) list.push({info:{name:'Browser wallet', icon:''}, provider: window.ethereum});
-      for(const d of list) add(d.info.name, /^data:image\//.test(d.info.icon || '') ? d.info.icon : '', ()=>resolve({kind:'injected', provider:d.provider}));
-      add('WalletConnect · phone wallet', '', ()=>resolve({kind:'walletconnect'}));
+      for(const o of options) add(o.label, /^data:image\//.test(o.icon || '') ? o.icon : '', ()=>resolve(o.value));
       add('Cancel', '', ()=>reject(Object.assign(new Error('cancelled'), {code:4001})));
     });
   }
@@ -2064,26 +2065,72 @@ window.VeilFox = (function(){
       await p.request({method:'wallet_addEthereumChain', params:[{chainId:hex, chainName:chain.label, nativeCurrency:{name:'Ether', symbol:'ETH', decimals:18}, rpcUrls:[RPC[chain.name]], blockExplorerUrls:[chain.explorer]}]});
     }
   }
-  async function connectWallet(cfg, chain){
-    const choice = await chooseWallet();
+  /* every wallet, one shape: balances(token), pay(token, micros) → transaction id, sign(text) → signature */
+  function evmWallet(address, request, disconnect, chain){
+    return {
+      address, fee:'ETH',
+      async balances(token){
+        const gas = await request({method:'eth_getBalance', params:[address, 'latest']}).then(BigInt).catch(()=>null);
+        const data = '0x70a08231' + address.slice(2).toLowerCase().padStart(64, '0');
+        const bal = await request({method:'eth_call', params:[{to: token.address, data}, 'latest']}).then(BigInt).catch(()=>null);
+        return {gas, token: bal};
+      },
+      pay: (E, token, micros) => request({method:'eth_sendTransaction', params:[{from: address, to: token.address, data: E.transferData(chain.treasury, micros), value:'0x0'}]}),
+      sign: text => request({method:'personal_sign', params:[utf8Hex(text), address]}),
+      disconnect,
+    };
+  }
+  async function connectEvm(cfg, chain){
+    const list = [...injected.values()];
+    if(!list.length && window.ethereum) list.push({info:{name:'Browser wallet', icon:''}, provider: window.ethereum});
+    const options = list.map(d=>({label:d.info.name, icon:d.info.icon, value:{kind:'injected', provider:d.provider}}));
+    options.push({label:'WalletConnect · phone wallet', icon:'', value:{kind:'walletconnect'}});
+    const choice = await chooseWallet(options);
     if(choice.kind === 'injected'){
       payLog('› connecting your wallet …');
       const p = choice.provider;
       const [address] = await p.request({method:'eth_requestAccounts'});
       payLog('› switching to ' + chain.label + ' …');
       await switchChain(p, chain);
-      return {address, request: args=>p.request(args), disconnect: async()=>{}};
+      return evmWallet(address, args=>p.request(args), async()=>{}, chain);
     }
     payLog('› connecting a phone wallet …');
     const WC = await import('/wallet/poof-walletconnect.js?v=1ea79b534366');
     const c = await WC.connectWalletConnect({
       projectId: WC_PROJECT_ID,
-      chains: cfg.chains.map(x=>({chainId:x.chainId, rpcUrl:RPC[x.name]})),
+      chains: cfg.chains.filter(x=>x.kind === 'evm').map(x=>({chainId:x.chainId, rpcUrl:RPC[x.name]})),
       onUri: showWcUri,
     });
     $('#wcPop').hidden = true;
-    return {address:c.address, request: args=>c.request(args, chain.chainId), disconnect: ()=>c.disconnect()};
+    return evmWallet(c.address, args=>c.request(args, chain.chainId), ()=>c.disconnect(), chain);
   }
+  async function connectSolana(chain){
+    const S = await import('/wallet/poof-solana.js?v=98dcaae78131');
+    const wallets = S.listSolanaWallets();
+    if(!wallets.length){
+      // Nothing to pick: say where to get one, and give a phone a way in through its wallet's own browser.
+      const here = encodeURIComponent(location.href), ref = encodeURIComponent(location.origin);
+      const box = $('#payWallets'); box.innerHTML = '';
+      const p = document.createElement('p'); p.className = 'small';
+      p.append('No Solana wallet in this browser. Install one (Phantom, Solflare, Backpack), or on a phone open this page inside your wallet: ');
+      for(const [name, url] of [['Phantom', 'https://phantom.app/ul/browse/' + here + '?ref=' + ref], ['Solflare', 'https://solflare.com/ul/v1/browse/' + here + '?ref=' + ref]]){
+        const a = document.createElement('a'); a.href = url; a.textContent = name; p.append(a, ' ');
+      }
+      box.appendChild(p); box.hidden = false;
+      throw Object.assign(new Error('no Solana wallet found in this browser.'), {keepWallets:true});
+    }
+    const w = await chooseWallet(wallets.map(x=>({label:x.name, icon:x.icon, value:x})));
+    payLog('› connecting ' + w.name + ' …');
+    const c = await w.connect({rpcUrl: RPC.solana});
+    return {
+      address: c.address, fee:'SOL',
+      balances: token => c.balances(token.address).then(b=>({gas:b.sol, token:b.token})),
+      pay: (E, token, micros) => c.pay({mint: token.address, to: chain.treasury, amount: BigInt(micros), decimals: token.decimals}),
+      sign: text => c.signMessage(text),
+      disconnect: () => c.disconnect(),
+    };
+  }
+  const connectWallet = (cfg, chain) => chain.kind === 'solana' ? connectSolana(chain) : connectEvm(cfg, chain);
   async function showWcUri(uri){
     $('#wcPop').hidden = false; $('#wcLink').href = uri;
     try{
@@ -2099,14 +2146,6 @@ window.VeilFox = (function(){
   function keepPass(pass){ store.set(PASSES_KEY, [...(store.get(PASSES_KEY) || []), pass]); }
   function dropPass(pass){ store.set(PASSES_KEY, (store.get(PASSES_KEY) || []).filter(p=>p.msg !== pass.msg)); }
 
-  /** The wallet's balance of a 6-decimal token (micro-dollars), or null if the wallet can't say. */
-  async function tokenBalance(w, tokenAddress){
-    try{
-      const data = '0x70a08231' + w.address.slice(2).toLowerCase().padStart(64, '0');
-      const out = await w.request({method:'eth_call', params:[{to: tokenAddress, data}, 'latest']});
-      return BigInt(out);
-    }catch(e){ return null; }
-  }
   function payErrorText(err){
     if(err && (err.code === 4001 || err.code === 'ACTION_REJECTED' || /reject|denied|cancel/i.test(err.message || ''))) return 'cancelled in the wallet. Nothing was charged.';
     return (err && err.message) ? err.message : 'something went wrong.';
@@ -2127,45 +2166,35 @@ window.VeilFox = (function(){
           a = {vid, chain: pay.chain, token: pay.token, pending: await E.startPass(cfg.keys, v)};
         }else if(a.txHash) payLog('› finishing the payment you already sent (' + a.token + ' on ' + a.chain + ')');
         store.set(PAY_KEY, a);
-        const chain = cfg.chains.find(c=>c.name === a.chain), token = chain.tokens.find(t=>t.symbol === a.token);
+        const chain = cfg.chains.find(c=>c.name === a.chain), token = chain && chain.tokens.find(t=>t.symbol === a.token);
+        if(!token){
+          if(!a.txHash){ store.set(PAY_KEY, null); throw new Error(a.token + ' on ' + a.chain + ' isn’t offered any more. Pick again and press Pay and unlock.'); }
+          throw new Error(a.token + ' on ' + a.chain + ' isn’t accepted any more, and this browser holds a payment in it (' + shortHex(a.txHash) + '). Write to contact@usepoof.chat with the transaction.');
+        }
         const w = await connectWallet(cfg, chain); if(id !== payRun) return;
-        if(a.txHash && a.payer && w.address.toLowerCase() !== a.payer.toLowerCase()){
+        if(a.txHash && a.payer && !sameAddress(chain, w.address, a.payer)){
           throw new Error('connect the wallet that paid (' + shortHex(a.payer) + ') to finish.');
         }
         if(!a.txHash){
-          const eth = token.symbol === 'ETH';
-          // ETH: the dollar price at today's ETH price, held 15 minutes (refreshed if it's about to run out).
-          if(eth && (!a.quote || a.quote.expiresAt - Date.now() < 3 * 60 * 1000)){
-            a.quote = await E.fetchEthQuote({fetch: fetch.bind(window), origin: API, chain: a.chain, variant: v});
-            store.set(PAY_KEY, a);
-          }
-          const due = eth ? BigInt(a.quote.wei) : BigInt(price);
-          const show = units => eth ? E.formatEth(units) : E.formatUsd(Number(units)) + ' ' + token.symbol;
+          const due = BigInt(price), show = units => E.formatUsd(Number(units)) + ' ' + token.symbol;
           // Check first, so the wallet isn't asked for a transfer that can only fail.
-          const gas = await w.request({method:'eth_getBalance', params:[w.address, 'latest']}).then(BigInt).catch(()=>null);
-          if(eth){
-            if(gas !== null && gas <= due) throw new Error('this wallet has ' + E.formatEth(gas) + ' on ' + chain.label + '; the quant-room costs ' + E.formatEth(due) + ' plus the network fee.');
-          }else{
-            const bal = await tokenBalance(w, token.address);
-            if(bal !== null && bal < due) throw new Error('this wallet has ' + show(bal) + ' on ' + chain.label + '; the quant-room costs ' + show(due) + '.');
-            if(gas !== null && gas === 0n) throw new Error('this wallet has no ETH on ' + chain.label + ' for the network fee. Add a little, then try again.');
-          }
-          payLog('› paying ' + (eth ? E.formatEth(due) + ' (' + E.formatUsd(price) + ' at $' + (Number(a.quote.ethUsd) / 1e8).toLocaleString('en-US', {maximumFractionDigits: 0}) + '/ETH)' : show(due)) + ' on ' + chain.label + ' …');
-          a.txHash = await w.request({method:'eth_sendTransaction', params:[eth
-            ? {from: w.address, to: cfg.treasury, value: '0x' + due.toString(16)}
-            : {from: w.address, to: token.address, data: E.transferData(cfg.treasury, price), value:'0x0'}]});
+          const b = await w.balances(token);
+          if(b.token !== null && b.token < due) throw new Error('this wallet has ' + show(b.token) + ' on ' + chain.label + '; the quant-room costs ' + show(due) + '.');
+          if(b.gas !== null && b.gas === 0n) throw new Error('this wallet has no ' + w.fee + ' on ' + chain.label + ' for the network fee. Add a little, then try again.');
+          payLog('› paying ' + show(due) + ' on ' + chain.label + ' …');
+          a.txHash = await w.pay(E, token, price);
           a.payer = w.address; store.set(PAY_KEY, a);
           payLog('› sent: ' + shortHex(a.txHash));
         }
         if(!a.signature){
           payLog('› sign once in your wallet: it shows the payment is yours (no gas)');
-          a.signature = await w.request({method:'personal_sign', params:[utf8Hex(await E.paymentMessage(a.chain, a.txHash, a.pending)), w.address]});
+          a.signature = await w.sign(await E.paymentMessage(a.chain, a.txHash, a.pending));
           store.set(PAY_KEY, a);
         }
         payLog('› waiting for ' + chain.label + ' to confirm …');
         const started = Date.now();
         for(;;){
-          const r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature, ...(a.quote ? {quote: a.quote.quote} : {})});
+          const r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature});
           if(id !== payRun) return;
           if(r.status === 'ok'){ pass = r.pass; break; }
           if(Date.now() - started > 20 * 60 * 1000) throw new Error('the payment hasn’t confirmed yet. Come back and press Pay and unlock to check again.');
@@ -2180,8 +2209,8 @@ window.VeilFox = (function(){
       if(st.upgrading) await upgradeLive(pass); else await sealSuper(pass);
     }catch(err){
       if(id !== payRun) return;
-      $('#wcPop').hidden = true; $('#payWallets').hidden = true;
-      payLog('› ' + payErrorText(err)); $('#payBtn').disabled = false;
+      $('#wcPop').hidden = true; if(!(err && err.keepWallets)) $('#payWallets').hidden = true;
+      payLog('› ' + payErrorText(err), true); $('#payBtn').disabled = false;
     }
   }
 

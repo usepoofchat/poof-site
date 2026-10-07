@@ -7,6 +7,7 @@ Landing page and documentation for [usepoof.chat](https://usepoof.chat): a priva
 - `room/index.html`: create and use a quant-room; `join/index.html` opens invite links
 - `engine/poof-engine.js`: the client engine for live quant-rooms (encryption, WebRTC, signaling), copied from a build of [usepoofchat/poof-app](https://github.com/usepoofchat/poof-app) (`pnpm build:engine`); `poof-engine.js.sha256` says which commit. Cloudflare caches `.js` files, so pages import it as `poof-engine.js?v=<first 12 characters of its SHA-256>`: after replacing the engine, update `?v=` in `index.html` and `room/index.html`
 - `wallet/poof-walletconnect.js`: WalletConnect (phone wallets) for Super Quant-Room payments, built from `walletconnect/index.ts` with `npm run build:walletconnect` (no UI of its own, telemetry off); loaded only when someone picks it. Pages import it with `?v=<first 12 characters of its SHA-256>`: update that after a rebuild
+- `wallet/poof-solana.js`: Solana wallets (Wallet Standard) and the USDC transfer for Super Quant-Room payments, built from `solana/index.ts` with `npm run build:solana`; loaded only when someone picks Solana. Same `?v=` rule
 - `favicon.svg`, `apple-touch-icon.png`, `og-image.png`, `robots.txt`
 - `.htaccess`: cache rules (HTML always revalidated, images cached for a day)
 - `brand/`: logo, mark and social assets; the files offered in the docs brand kit are deployed to `/brand/`
