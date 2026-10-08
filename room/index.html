@@ -2231,9 +2231,12 @@ window.VeilFox = (function(){
         payLog('› waiting for ' + chain.label + ' to confirm …');
         const started = Date.now();
         for(;;){
-          const r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature});
+          let r = null;
+          // A chain read that failed once (a public RPC refusing for a moment) is worth another try.
+          try{ r = await E.redeemPayment({fetch: fetch.bind(window), origin: API, chain: a.chain, token: a.token, txHash: a.txHash, pending: a.pending, payer: a.payer, signature: a.signature}); }
+          catch(err){ if(!(err && err.code === 'connection_failed')) throw err; }
           if(id !== payRun) return;
-          if(r.status === 'ok'){ pass = r.pass; break; }
+          if(r && r.status === 'ok'){ pass = r.pass; break; }
           if(Date.now() - started > 20 * 60 * 1000) throw new Error('the payment hasn’t confirmed yet. Come back and press Pay and unlock to check again.');
           await realSleep(4000);
         }
