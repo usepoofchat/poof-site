@@ -214,7 +214,7 @@ body.menu-open{overflow:hidden}
 .assure{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-wrap:wrap;gap:12px 28px;font:500 12px/1 var(--mono);color:var(--ink-3)}
 .assure li{display:flex;align-items:center;gap:9px}
 .assure li::before{content:"";width:8px;height:8px;flex:none;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4px 4px}
-.f-shard{right:5vw;top:15vh;width:150px;height:190px}
+.f-shard{right:5vw;top:15vh;width:170px;height:170px}
 .scrollcue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);font:500 11.5px var(--mono);color:var(--ink-3);display:flex;flex-direction:column;align-items:center;gap:10px}
 .scrollcue i{width:1px;height:42px;background:linear-gradient(var(--ink-3),transparent);animation:cue 2.2s var(--ease) infinite}
 @keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
@@ -709,7 +709,7 @@ footer .brand{font-size:18px}
 <section class="hero" id="top" data-tone="light" data-bg="#e7e8e3" data-bg-dark="#13141b" data-glow="232,102,31,.26" data-glow-pos="18,44" aria-labelledby="h1">
   <canvas class="field" id="heroField" data-cell="15" data-fx=".2" data-fy=".46" data-sigma=".3" aria-hidden="true"></canvas>
   <div class="fox-slot hero-fox" id="foxHero" data-frame="bust" data-yaw="0.55" data-pose="idle" data-look data-lookbias="0.12" data-lookmax="0.2" data-bleed="0 .2 0 0" data-px="4" role="img" aria-label="Close-up of Poof's fox mascot looking toward the headline"><div class="hero-chat" aria-hidden="true"><p class="hc-msg" id="hcMsg">Create a quant-room.</p></div></div>
-  <div class="fox-slot frag f-shard" data-scene="frag" data-shape="shard" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
+  <div class="fox-slot frag f-shard" data-scene="frag" data-shape="sol" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
       <h1 id="h1" data-split>A private, quantum-safe chatroom that doesn't need to know who you are.</h1>
@@ -1265,6 +1265,19 @@ window.VeilFox = (function(){
   });
   frag('cube', g=>{ mesh(g, new THREE.BoxGeometry(1,1,1), M.rust); });
   frag('shard', g=>{ mesh(g, new THREE.OctahedronGeometry(0.55,0), M.cream, null, null, [0.8,1.45,0.8]); });
+  // the Solana mark: three slanted bars (top and bottom lean one way, the middle the other), in brand cream
+  frag('sol', g=>{
+    const w = 1.15, h = 0.27, k = 0.19, gap = 0.44;
+    const bar = lean => {
+      const sh = new THREE.Shape();
+      if(lean > 0){ sh.moveTo(-w/2, -h/2); sh.lineTo(w/2 - k, -h/2); sh.lineTo(w/2, h/2); sh.lineTo(-w/2 + k, h/2); }
+      else { sh.moveTo(-w/2 + k, -h/2); sh.lineTo(w/2, -h/2); sh.lineTo(w/2 - k, h/2); sh.lineTo(-w/2, h/2); }
+      sh.closePath();
+      const geo = new THREE.ExtrudeGeometry(sh, {depth:0.16, bevelEnabled:true, bevelThickness:0.025, bevelSize:0.025, bevelSegments:2});
+      geo.center(); return geo;
+    };
+    [[gap, 1], [0, -1], [-gap, 1]].forEach(([y, lean]) => mesh(g, bar(lean), M.cream, [0, y, 0]));
+  });
   frag('ring', g=>{ mesh(g, new THREE.TorusGeometry(0.52,0.17,24,64), M.rust); });
   frag('card', g=>{
     mesh(g, new THREE.BoxGeometry(1.5,0.95,0.06), M.cream);
@@ -1479,7 +1492,7 @@ window.VeilFox = (function(){
     if(s.shape === 'lock'){
       g.rotation.set(0.12, Math.sin(t*0.5)*0.55 + rot, 0);
       g.userData.shackle.position.y = (s.p.open || 0)*0.3;
-    } else if(s.shape === 'card' || s.shape === 'bubble'){
+    } else if(s.shape === 'card' || s.shape === 'bubble' || s.shape === 'sol'){   // flat marks sway instead of spinning, so they stay readable
       g.rotation.set(0.15 + Math.sin(t*0.6)*0.08, Math.sin(t*0.5 + s.seed)*0.5 + rot, Math.sin(t*0.4)*0.06);
     } else {
       g.rotation.set(0.4 + Math.sin(t*0.6)*0.15, t*s.spin + rot + s.seed, Math.sin(t*0.4)*0.1);
