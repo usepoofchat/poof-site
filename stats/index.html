@@ -1113,7 +1113,7 @@ const DataSources = {
     const ZERO = {today:{amount:0, count:0}, all:{amount:0, count:0}};
     const fetchSnap = () => fetch(CONFIG.api, {cache:'no-store'})
       .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(s => ({price:null, txs:[], activity:[], burns:{super:structuredClone(ZERO), ai:structuredClone(ZERO)}, ...s}));
+      .then(s => { const rooms = s.roomsV2 || s.rooms; return {price:null, txs:[], activity:[], burns:{super:structuredClone(ZERO), ai:structuredClone(ZERO)}, ...s, rooms}; });
     return {
       load: () => Promise.all([fetchSnap(), sim && sim.load()]).then(([s, m]) => {
         last = s;
