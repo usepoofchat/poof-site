@@ -1011,12 +1011,14 @@ window.VeilFox = (function(){
    CONFIG: the only place to change when the token goes live
    ===================================================================== */
 const CONFIG = {
-  source: 'mock',            // 'mock' (simulated, for development) | 'api' (indexer REST + WebSocket)
+  source: 'api',             // 'mock' (simulated, for development) | 'api' (Poof API, polled; or indexer REST + WebSocket)
   token: 'POOF',             // token symbol shown next to every amount
   network: 'preview',        // chain name shown in the header, e.g. 'Base'
   explorerTx: null,          // e.g. 'https://basescan.org/tx/' ; null hides the explorer link
-  api: null,                 // e.g. 'https://api.usepoof.chat/stats'   (GET -> Snapshot)
-  ws: null,                  // e.g. 'wss://api.usepoof.chat/stats/live' (messages -> Event)
+  api: 'https://api.usepoof.chat/api/stats',   // GET -> Snapshot (quant-rooms only until burns are indexed)
+  ws: null,                  // e.g. 'wss://api.usepoof.chat/stats/live' (messages -> Event); null = poll `api`
+  pollMs: 30000,             // how often to ask `api` again when there is no WebSocket
+  burnsMock: true,           // true = burns, price and burn transactions stay simulated (labelled on the page) until the token is live
   priceMaxAge: 120,          // seconds; an older price is shown as unavailable, never as live
   feedSize: 25
 };
@@ -1039,6 +1041,7 @@ const CONFIG = {
             | {type:'burn', tx}                      a new burn (usually pending)
             | {type:'tx', hash, status, block, at}   a burn confirmed or failed
             | {type:'price', usd, at}
+            | {type:'rooms', rooms, added:[kind]}  new totals from a poll, and the rooms opened since the last one
    Activity = {type:'room'|'burn', kind, amount?, life?, people?, at}
    Totals only ever count confirmed burns. Times are milliseconds since epoch; "today" is the UTC day.
    ===================================================================== */
@@ -1101,13 +1104,37 @@ const DataSources = {
     };
   },
 
-  /* Real data: an indexer that serves the Snapshot as JSON and streams Events over a WebSocket. */
+  /* Real data: the Poof API's quant-room counts, polled; or an indexer that also streams Events over a WebSocket.
+     The API answers {rooms, at}. With burnsMock, burns, price and burn transactions come from the simulation and
+     only its burn side is used: its rooms never reach the page. Otherwise what the API leaves out starts empty. */
   api(){
-    let ws = null, retry = 1000;
+    let ws = null, retry = 1000, last = null;
+    const sim = CONFIG.burnsMock ? DataSources.mock() : null;
+    const ZERO = {today:{amount:0, count:0}, all:{amount:0, count:0}};
+    const fetchSnap = () => fetch(CONFIG.api, {cache:'no-store'})
+      .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(s => ({price:null, txs:[], activity:[], burns:{super:structuredClone(ZERO), ai:structuredClone(ZERO)}, ...s}));
     return {
-      load: () => fetch(CONFIG.api, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+      load: () => Promise.all([fetchSnap(), sim && sim.load()]).then(([s, m]) => {
+        last = s;
+        return m ? {...s, price:m.price, burns:m.burns, txs:m.txs, activity:m.activity.filter(a => a.type === 'burn')} : s;
+      }),
       subscribe(fn){
         let closed = false;
+        const unsim = sim ? sim.subscribe(e => { if(e.type !== 'room') fn(e); }) : () => {};
+        if(!CONFIG.ws){   // poll: new totals, plus one activity entry per room opened since the last answer
+          let timer = null;
+          const tick = async () => {
+            try{
+              const s = await fetchSnap(), added = [];
+              ['classic', 'super', 'ai'].forEach(k => { for(let n = s.rooms[k].all - last.rooms[k].all; n > 0; n--) added.push(k); });
+              last = s; fn({type:'status', state:'live'}); fn({type:'rooms', rooms:s.rooms, added});
+            }catch(e){ fn({type:'status', state:'connecting'}); }
+            if(!closed) timer = setTimeout(tick, CONFIG.pollMs);
+          };
+          timer = setTimeout(tick, CONFIG.pollMs);
+          return () => { closed = true; clearTimeout(timer); unsim(); };
+        }
         const open = () => {
           ws = new WebSocket(CONFIG.ws);
           ws.onopen = () => { retry = 1000; fn({type:'status', state:'live'}); };
@@ -1115,7 +1142,7 @@ const DataSources = {
           ws.onclose = () => { if(closed) return; fn({type:'status', state:'connecting'}); setTimeout(open, retry = Math.min(retry*2, 30000)); };
         };
         open();
-        return () => { closed = true; ws && ws.close(); };
+        return () => { closed = true; ws && ws.close(); unsim(); };
       }
     };
   }
@@ -1129,7 +1156,10 @@ const DataSources = {
   const Fox = window.VeilFox || NOOP;
   $$('.sym').forEach(s => s.textContent = CONFIG.token);
   $('#chain').textContent = CONFIG.network;
-  if(CONFIG.source !== 'mock') $('#previewNote').hidden = true;
+  if(CONFIG.source !== 'mock'){
+    if(CONFIG.burnsMock) $('#previewNote').textContent = 'Quant-room numbers are real. Burn numbers, the token price and burn transactions are simulated in your browser until the Poof token launches; then this page reads the chain.';
+    else $('#previewNote').hidden = true;
+  }
 
   /* theme (same key as the site) */
   const darkMQ = matchMedia('(prefers-color-scheme: dark)'), themeBtn = $('#themeBtn');
@@ -1238,7 +1268,9 @@ const DataSources = {
   const COPY = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6" y="6" width="9.5" height="9.5" rx="2"/><path d="M12 3.5H4.5a1 1 0 0 0-1 1V12"/></svg>';
   const typeLabel = k => k === 'ai' ? 'SUPER + AI BURN' : 'SUPER QUANT-ROOM BURN';
   const lifeTxt = s => s === 86400 ? '24 hours' : '1 hour';
+  // the polled API doesn't say how long a room lives or how many fit: then only what every room of that kind has
   const roomSub = a => a.kind === 'classic' ? '10 minutes, 2 people'
+    : !a.life && !a.people ? (a.kind === 'ai' ? 'with the AI model' : 'paid, up to 10 people')
     : a.kind === 'ai' ? (a.life ? lifeTxt(a.life) + ', ' : '') + (a.people > 1 ? 'up to ' + a.people + ' people' : '1 person') + ' + the AI model'
     : (a.life ? lifeTxt(a.life) + ', ' : '') + 'up to ' + (a.people || 10) + ' people';
   function usdLine(amount){ return priceOk() ? '≈ ' + fUsd(amount*S.price.usd) + ' USD' : 'USD unavailable'; }
@@ -1318,7 +1350,10 @@ const DataSources = {
     if(e.type === 'status'){ setLive(e.state); return; }
     if(!S.ready) return;
     S.lastAt = Date.now(); if(state !== 'live') setLive('live');
-    if(e.type === 'room'){
+    if(e.type === 'rooms'){
+      S.rooms = e.rooms;
+      e.added.slice(-10).forEach(kind => addAct({type:'room', kind, at:e.at || Date.now()}));
+    } else if(e.type === 'room'){
       S.rooms[e.kind].today++; S.rooms[e.kind].all++;
       addAct({type:'room', kind:e.kind, life:e.life, people:e.people, at:e.at});
     } else if(e.type === 'burn'){
