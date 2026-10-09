@@ -489,6 +489,20 @@ body.menu-open{overflow:hidden}
 .msg.bot::before{content:"AI";display:block;font:600 10.5px var(--mono);letter-spacing:.08em;color:var(--rust-text);margin-bottom:3px}
 .ai-on{color:var(--rust-text)}
 @media (max-width:900px){.ai-grid{grid-template-columns:1fr}}
+/* Poof Note: a small section after the pricing */
+.pnote-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(28px,5vw,80px);align-items:center}
+.pnote h2{font-size:clamp(36px,4.2vw,68px);line-height:1;letter-spacing:-.05em;margin:0 0 20px;max-width:17ch}
+.pnote-acts{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin-top:28px}
+.pnote-more{font:500 14px var(--mono);color:var(--ink-2);text-decoration:underline;text-underline-offset:4px}
+.pnote-more:hover{color:var(--ink)}
+.pnote-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,2.6vw,34px);box-shadow:0 30px 70px -40px rgba(0,0,0,.45)}
+.pc-k{display:flex;align-items:center;gap:9px;font:500 12px var(--mono);color:var(--rust-text);margin:0 0 14px}
+.pc-k::before{content:"";width:9px;height:9px;background:repeating-conic-gradient(var(--rust) 0 25%,transparent 0 50%) 0 0/4.5px 4.5px}
+.pc-t{font-size:clamp(19px,1.7vw,24px);line-height:1.3;letter-spacing:-.02em;margin:0 0 22px;color:var(--ink)}
+.pc-btn{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 20px;border-radius:999px;background:var(--rust);color:#1d1f2b;font:550 15px var(--sans)}
+.pc-btn i{width:11px;height:11px;background:repeating-conic-gradient(currentColor 0 25%,transparent 0 50%) 0 0/5.5px 5.5px}
+.pc-s{font:500 11.5px var(--mono);color:var(--ink-3);margin:16px 0 0}
+@media (max-width:900px){.pnote-grid{grid-template-columns:1fr}}
 /* AI switch in the Super Quant-Room card */
 .ai-toggle{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
 .ai-toggle input{position:absolute;opacity:0;width:1px;height:1px}
@@ -970,6 +984,27 @@ footer .brand{font-size:18px}
   </div>
 </section>
 
+<!-- POOF NOTE -->
+<section class="pnote" id="note" data-tone="dark" data-bg="#14151c" data-glow="232,102,31,.16" data-glow-pos="80,40" aria-labelledby="pnh">
+  <div class="wrap pnote-grid">
+    <div class="pnote-copy">
+      <p class="ai-kick">Poof Note</p>
+      <h2 id="pnh" data-split>Not a conversation? Send a note that opens once.</h2>
+      <p class="ai-lede" data-reveal>Write it and send the link. It's encrypted in your browser, read once, then gone from the server. Add a password, or say it as four words.</p>
+      <div class="pnote-acts">
+        <a class="btn" href="/note/" data-magnetic><span class="pip" aria-hidden="true"></span>Write a Poof Note</a>
+        <a class="pnote-more" href="/docs/note/">How it works</a>
+      </div>
+    </div>
+    <div class="pnote-card" aria-hidden="true" data-reveal>
+      <p class="pc-k">poof note</p>
+      <p class="pc-t">This note can be read once. After you open it, it's gone.</p>
+      <span class="pc-btn"><i></i>Reveal note</span>
+      <p class="pc-s">read once · then poof</p>
+    </div>
+  </div>
+</section>
+
 <!-- AI -->
 <section class="ai" id="ai" data-tone="dark" data-bg="#101118" data-glow="232,102,31,.22" data-glow-pos="78,44" aria-labelledby="aih">
   <div class="wrap ai-grid">
@@ -1060,6 +1095,7 @@ footer .brand{font-size:18px}
         <a class="soc" href="https://t.me/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Telegram</a>
         <a class="soc" href="https://github.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>GitHub</a>
         <a class="soc" href="/docs/"><span class="pip" aria-hidden="true"></span>Docs</a>
+        <a class="soc" href="/note/"><span class="pip" aria-hidden="true"></span>Poof Note</a>
         <a class="soc" href="mailto:contact@usepoof.chat"><span class="pip" aria-hidden="true"></span>Contact</a>
       </nav>
     </div>
