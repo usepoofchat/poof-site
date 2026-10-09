@@ -1071,7 +1071,7 @@ var ipv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|(
 var cidrv4 = /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/;
 var cidrv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
 var base64 = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/;
-var base64url$1 = /^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-]{2,3})?$/;
+var base64url$2 = /^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-]{2,3})?$/;
 var httpProtocol = /^https?$/;
 var e164 = /^\+[1-9]\d{6,14}$/;
 var dateSource = `(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))`;
@@ -4185,7 +4185,7 @@ var formatMap = {
 	json_string: "json-string",
 	regex: ""
 };
-var exactPatterns = /* @__PURE__ */ new Map([[base64Charset, base64], [base64urlCharset, base64url$1]]);
+var exactPatterns = /* @__PURE__ */ new Map([[base64Charset, base64], [base64urlCharset, base64url$2]]);
 var exactPattern = (p) => exactPatterns.get(p) ?? p;
 var stringProcessor = (schema, ctx, _json, _params) => {
 	const json = _json;
@@ -5431,17 +5431,17 @@ var TERMINAL_CLOSE_CODES = /* @__PURE__ */ new Set([
 ]);
 //#endregion
 //#region packages/protocol/src/ids.ts
-var base64url = (len) => new RegExp(`^[A-Za-z0-9_-]{${len}}$`);
-var roomIdSchema = string().regex(base64url(22), "invalid room id");
-var peerIdSchema = string().regex(base64url(22), "invalid peer id");
-string().regex(base64url(43), "invalid handshake id");
+var base64url$1 = (len) => new RegExp(`^[A-Za-z0-9_-]{${len}}$`);
+var roomIdSchema = string().regex(base64url$1(22), "invalid room id");
+var peerIdSchema = string().regex(base64url$1(22), "invalid peer id");
+string().regex(base64url$1(43), "invalid handshake id");
 /** One file transfer: 16 random bytes, base64url. Also the chat item id on every screen. */
-var fileIdSchema = string().regex(base64url(22), "invalid file id");
-var roomKeySchema = string().regex(base64url(43), "invalid room key");
+var fileIdSchema = string().regex(base64url$1(22), "invalid file id");
+var roomKeySchema = string().regex(base64url$1(43), "invalid room key");
 /** base64url(32 random bytes), kept by the creator's browser. */
-var ownerSecretSchema = string().regex(base64url(43), "invalid owner secret");
+var ownerSecretSchema = string().regex(base64url$1(43), "invalid owner secret");
 /** base64url(SHA-256(owner secret bytes)), stored by the server. */
-var ownerHashSchema = string().regex(base64url(43), "invalid owner hash");
+var ownerHashSchema = string().regex(base64url$1(43), "invalid owner hash");
 //#endregion
 //#region packages/protocol/src/ai.ts
 /**
@@ -5763,7 +5763,10 @@ var errorBodySchema = object({ error: object({
 		"ai_not_ready",
 		"ai_forbidden",
 		"ai_budget_exhausted",
-		"ai_unavailable"
+		"ai_unavailable",
+		"note_gone",
+		"note_exists",
+		"wrong_secret"
 	]),
 	message: string()
 }) });
@@ -5794,6 +5797,25 @@ object({ blob: string().min(1).max(HANDSHAKE_BLOB_MAX_BYTES).regex(/^[A-Za-z0-9+
 var putHandshakeResponseSchema = object({ expiresAt: number().int() });
 /** POST /api/handshakes/:id/take */
 var takeHandshakeResponseSchema = object({ blob: string().max(HANDSHAKE_BLOB_MAX_BYTES) });
+_enum([
+	"classic",
+	"super",
+	"ai"
+]);
+var roomCountSchema = object({
+	today: number().int().nonnegative(),
+	all: number().int().nonnegative()
+});
+var roomCountsSchema = object({
+	classic: roomCountSchema,
+	super: roomCountSchema,
+	ai: roomCountSchema
+});
+object({
+	rooms: roomCountsSchema,
+	roomsV2: roomCountsSchema,
+	at: number().int()
+});
 object({
 	ok: literal(true),
 	version: string(),
@@ -6083,6 +6105,61 @@ var fileAbortSchema = object({
 var fileAckSchema = object({
 	fileId: fileIdSchema,
 	ok: boolean()
+});
+//#endregion
+//#region packages/protocol/src/note.ts
+/**
+* Poof Note: a one-time message, encrypted in the browser, deleted from the server by its first
+* reading. The server stores ciphertext it can't open and two hashes; the key lives only in the
+* link's fragment (`/note/#<id>.<key>`, `.p` at the end when a password is also needed).
+*/
+/** Note lifetimes: 10 minutes, 1 hour or 24 hours. */
+var NOTE_TTLS_SECONDS = [
+	600,
+	3600,
+	86400
+];
+/** The encrypted note as stored: header + IV + ciphertext + tag. */
+var NOTE_CIPHERTEXT_MAX_BYTES = 16384;
+/** PBKDF2-SHA-256 iterations for the optional password. */
+var NOTE_PASSWORD_ITERATIONS = 2e5;
+/** Where note links open on the web app. Everything note-specific stays in the fragment. */
+var NOTE_PATH = "/note/";
+var base64url = (len) => new RegExp(`^[A-Za-z0-9_-]{${len}}$`);
+var B64URL_MAX = Math.ceil(NOTE_CIPHERTEXT_MAX_BYTES * 4 / 3);
+/** 16 random bytes, base64url, made by the creator's browser (it is part of the encryption's AAD). */
+var noteIdSchema = string().regex(base64url(22), "invalid note id");
+/** base64url(32 bytes): a secret the browser keeps, or the SHA-256 the server keeps of one. */
+var token = string().regex(base64url(43), "invalid token");
+var noteTtlSchema = union([
+	literal(NOTE_TTLS_SECONDS[0]),
+	literal(NOTE_TTLS_SECONDS[1]),
+	literal(NOTE_TTLS_SECONDS[2])
+]);
+var noteCiphertextSchema = string().min(1).max(B64URL_MAX).regex(/^[A-Za-z0-9_-]+$/, "invalid ciphertext");
+object({
+	id: noteIdSchema,
+	ciphertext: noteCiphertextSchema,
+	ttl: noteTtlSchema,
+	creatorHash: token,
+	revealHash: token
+});
+var createNoteResponseSchema = object({
+	id: noteIdSchema,
+	expiresAt: number().int()
+});
+object({ revealToken: token });
+var revealNoteResponseSchema = object({ ciphertext: noteCiphertextSchema });
+object({ creatorSecret: token });
+var noteStatusResponseSchema = object({
+	state: _enum([
+		"waiting",
+		"read",
+		"deleted",
+		"expired"
+	]),
+	/** When the note (or what's left of it) disappears. Absent once it's gone. */
+	expiresAt: number().int().optional()
 });
 //#endregion
 //#region packages/core/src/text.ts
@@ -17774,6 +17851,21 @@ async function createPhraseInvite(opts) {
 * and be a well-formed room link, so a malicious blob can't redirect the person elsewhere.
 */
 async function joinByPhrase(opts) {
+	const target = await takePhraseUrl(opts, "That code doesn't open a room.");
+	let room;
+	try {
+		room = parseRoomLocation(target.pathname, target.hash);
+	} catch {
+		throw new PoofError("decrypt_failed", "That code doesn't open a room.");
+	}
+	return roomPath(room.roomId, room.key);
+}
+/**
+* Open a phrase's one-time mailbox and return the link inside it, checked to be on the web app's own
+* origin with no query string, so a malicious blob can't send the person elsewhere. What the link
+* must look like beyond that (a room, a note) is up to the caller.
+*/
+async function takePhraseUrl(opts, wrongMessage) {
 	const phrase = normalizePhrase(opts.code);
 	if (!phrase) throw new PoofError("invalid_code", "Enter the four words you were given.");
 	const { id, key } = await derivePhraseKeys(phrase);
@@ -17792,21 +17884,20 @@ async function joinByPhrase(opts) {
 	if (!res.ok) throw new PoofError("connection_failed", `Server error ${res.status}.`);
 	const parsed = takeHandshakeResponseSchema.safeParse(await res.json().catch(() => null));
 	if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
-	const url = await openInvite(key, parsed.data.blob);
+	let url;
+	try {
+		url = await openInvite(key, parsed.data.blob);
+	} catch {
+		throw new PoofError("decrypt_failed", wrongMessage);
+	}
 	let target;
 	try {
 		target = new URL(url);
 	} catch {
-		throw new PoofError("decrypt_failed", "That code doesn't open a room.");
+		throw new PoofError("decrypt_failed", wrongMessage);
 	}
-	if (target.origin !== new URL(opts.appOrigin ?? opts.origin).origin || target.search !== "") throw new PoofError("decrypt_failed", "That code doesn't open a room.");
-	let room;
-	try {
-		room = parseRoomLocation(target.pathname, target.hash);
-	} catch {
-		throw new PoofError("decrypt_failed", "That code doesn't open a room.");
-	}
-	return roomPath(room.roomId, room.key);
+	if (target.origin !== new URL(opts.appOrigin ?? opts.origin).origin || target.search !== "") throw new PoofError("decrypt_failed", wrongMessage);
+	return target;
 }
 //#endregion
 //#region packages/core/src/session.ts
@@ -19198,6 +19289,231 @@ var RoomSession = class {
 	}
 };
 //#endregion
+//#region packages/core/src/note.ts
+/**
+* Poof Note: a one-time message, encrypted here, in the browser.
+*
+*   link      = <app>/note/#<id>.<key>        (".p" at the end when a password is needed too)
+*   id        = 16 random bytes (public: the server's address for the note, and part of the AAD)
+*   key       = 32 random bytes, only ever in the link's fragment
+*   master    = HKDF-SHA256(key [‖ PBKDF2-SHA256(password, 200,000)], salt = id)
+*   aes key   = HKDF(master, "aes")            → AES-256-GCM
+*   token     = HKDF(master, "reveal")         → the server keeps SHA-256(token), never the token
+*   stored    = header(version, flags) ‖ IV(12) ‖ AES-GCM(text), AAD = label ‖ header ‖ id
+*
+* Reading a note needs the token, so neither someone holding only the id nor a wrong password can
+* use the note up; the server hands the ciphertext over once and erases it in the same step.
+*/
+var VERSION = 1;
+var FLAG_PASSWORD = 1;
+var HEADER_BYTES = 2;
+var IV_BYTES = 12;
+var ID_BYTES = 16;
+var KEY_BYTES = 32;
+var LABEL = utf8("poof/note/v1");
+var INFO = {
+	master: utf8("poof/v1/note/master"),
+	aes: utf8("poof/v1/note/aes"),
+	reveal: utf8("poof/v1/note/reveal"),
+	password: utf8("poof/v1/note/password")
+};
+var NOTE_FRAGMENT = /^#?([A-Za-z0-9_-]{22})\.([A-Za-z0-9_-]{43})(\.p)?$/;
+/** `<id>.<key>` or `<id>.<key>.p`, with or without the leading "#". Throws invalid_link otherwise. */
+function parseNoteFragment(fragment) {
+	const m = NOTE_FRAGMENT.exec(fragment);
+	if (!m?.[1] || !m[2]) throw new PoofError("invalid_link", "Not a note link.");
+	return {
+		id: m[1],
+		key: fromBase64Url(m[2]),
+		hasPassword: m[3] === ".p"
+	};
+}
+function notePath(link) {
+	return `${NOTE_PATH}#${link.id}.${toBase64Url(link.key)}${link.hasPassword ? ".p" : ""}`;
+}
+function noteUrl(appOrigin, link) {
+	return `${appOrigin.replace(/\/+$/, "")}${notePath(link)}`;
+}
+/** The length the UI counts against. */
+function noteTextLength(text) {
+	return [...text].length;
+}
+/** Will this text fit once encrypted? (Characters outside ASCII take more room.) */
+function noteFits(text) {
+	const n = noteTextLength(text);
+	return n > 0 && n <= 1e4 && 14 + utf8(text).length + 16 <= 16384;
+}
+async function deriveNoteKeys(link, password) {
+	const id = fromBase64Url(link.id);
+	let ikm = link.key;
+	if (link.hasPassword) {
+		const pw = (password ?? "").normalize("NFKC");
+		if (!pw) throw new PoofError("wrong_password", "This note needs a password.");
+		const base = await crypto.subtle.importKey("raw", utf8(pw), "PBKDF2", false, ["deriveBits"]);
+		const stretched = new Uint8Array(await crypto.subtle.deriveBits({
+			name: "PBKDF2",
+			hash: "SHA-256",
+			salt: concat(INFO.password, id),
+			iterations: NOTE_PASSWORD_ITERATIONS
+		}, base, 256));
+		ikm = concat(link.key, stretched);
+	}
+	const master = await hkdf(ikm, id, INFO.master);
+	const [aesRaw, token] = await Promise.all([hkdf(master, /* @__PURE__ */ new Uint8Array(0), INFO.aes), hkdf(master, /* @__PURE__ */ new Uint8Array(0), INFO.reveal)]);
+	return {
+		aes: await crypto.subtle.importKey("raw", aesRaw, {
+			name: "AES-GCM",
+			length: 256
+		}, false, ["encrypt", "decrypt"]),
+		token: toBase64Url(token)
+	};
+}
+var headerFor = (link) => new Uint8Array([VERSION, link.hasPassword ? FLAG_PASSWORD : 0]);
+var aadFor = (header, id) => concat(LABEL, header, fromBase64Url(id));
+/** Encrypt a note's text for this link. Exposed for tests; createNote() is what the app uses. */
+async function sealNote(link, text, password) {
+	const { aes, token } = await deriveNoteKeys(link, password);
+	const header = headerFor(link);
+	const iv = randomBytes(IV_BYTES);
+	const blob = concat(header, iv, new Uint8Array(await crypto.subtle.encrypt({
+		name: "AES-GCM",
+		iv,
+		additionalData: aadFor(header, link.id)
+	}, aes, utf8(text))));
+	if (blob.length > 16384) throw new PoofError("note_too_long", "This note is too long.");
+	return {
+		ciphertext: toBase64Url(blob),
+		revealToken: token
+	};
+}
+/** Decrypt what the server handed over. Throws decrypt_failed if it isn't this note's ciphertext. */
+async function openNote(link, ciphertext, password) {
+	const { aes } = await deriveNoteKeys(link, password);
+	let blob;
+	try {
+		blob = fromBase64Url(ciphertext);
+	} catch {
+		throw new PoofError("decrypt_failed", "This note couldn't be opened.");
+	}
+	const header = blob.subarray(0, HEADER_BYTES);
+	if (blob.length <= 14 || header[0] !== VERSION) throw new PoofError("decrypt_failed", "This note couldn't be opened.");
+	try {
+		const plain = await crypto.subtle.decrypt({
+			name: "AES-GCM",
+			iv: blob.subarray(HEADER_BYTES, 14),
+			additionalData: aadFor(header, link.id)
+		}, aes, blob.subarray(14));
+		return fromUtf8(new Uint8Array(plain));
+	} catch {
+		throw new PoofError("decrypt_failed", "This note couldn't be opened.");
+	}
+}
+async function call(fetchFn, url, init) {
+	try {
+		return await fetchFn(url, init);
+	} catch {
+		throw new PoofError("connection_failed", "Could not reach the server.");
+	}
+}
+async function errorCode(res) {
+	const body = errorBodySchema.safeParse(await res.json().catch(() => null));
+	return body.success ? body.data.error.code : null;
+}
+var jsonInit = (method, body) => ({
+	method,
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify(body)
+});
+/** Write a note: encrypt it here, store the ciphertext, get the link to share. */
+async function createNote(opts) {
+	if (!noteFits(opts.text)) throw new PoofError(opts.text.length ? "note_too_long" : "invalid_message", opts.text.length ? "This note is too long." : "The note is empty.");
+	const secret = randomBytes(32);
+	const creatorHash = toBase64Url(await sha256$1(secret));
+	const hasPassword = Boolean(opts.password);
+	for (let attempt = 0; attempt < 3; attempt++) {
+		const link = {
+			id: toBase64Url(randomBytes(ID_BYTES)),
+			key: randomBytes(KEY_BYTES),
+			hasPassword
+		};
+		const { ciphertext, revealToken } = await sealNote(link, opts.text, opts.password);
+		const revealHash = toBase64Url(await sha256$1(fromBase64Url(revealToken)));
+		const res = await call(opts.fetch, `${opts.origin}/api/notes`, jsonInit("POST", {
+			id: link.id,
+			ciphertext,
+			ttl: opts.ttl,
+			creatorHash,
+			revealHash
+		}));
+		if (res.status === 409) continue;
+		if (res.status === 429) throw new PoofError("rate_limited", "Too many notes. Try again soon.");
+		if (!res.ok) throw new PoofError("connection_failed", `Server error ${res.status}.`);
+		const parsed = createNoteResponseSchema.safeParse(await res.json().catch(() => null));
+		if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
+		return {
+			...link,
+			url: noteUrl(opts.appOrigin ?? opts.origin, link),
+			creatorSecret: toBase64Url(secret),
+			expiresAt: parsed.data.expiresAt
+		};
+	}
+	throw new PoofError("connection_failed", "Could not create the note. Try again.");
+}
+/**
+* Read a note, once. Only call this when the person asks to see it: the server erases the note as it
+* answers. A wrong password throws wrong_password and leaves the note in place.
+*/
+async function revealNote(opts) {
+	const { token } = await deriveNoteKeys(opts.link, opts.password);
+	const res = await call(opts.fetch, `${opts.origin}/api/notes/${opts.link.id}/reveal`, jsonInit("POST", { revealToken: token }));
+	if (res.status === 429) throw new PoofError("rate_limited", "Too many tries. Try again soon.");
+	if (!res.ok) {
+		const code = await errorCode(res);
+		if (code === "wrong_secret") throw new PoofError("wrong_password", "That password doesn't open this note.");
+		if (code === "note_gone" || res.status === 410) throw new PoofError("note_gone", "This note is gone.");
+		throw new PoofError("connection_failed", `Server error ${res.status}.`);
+	}
+	const parsed = revealNoteResponseSchema.safeParse(await res.json().catch(() => null));
+	if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
+	return openNote(opts.link, parsed.data.ciphertext, opts.password);
+}
+async function creatorCall(opts, method) {
+	const path = method === "POST" ? `/api/notes/${opts.id}/status` : `/api/notes/${opts.id}`;
+	const res = await call(opts.fetch, `${opts.origin}${path}`, jsonInit(method, { creatorSecret: opts.creatorSecret }));
+	if (res.status === 429) throw new PoofError("rate_limited", "Too many requests. Try again soon.");
+	if (res.status === 403) throw new PoofError("not_owner", "Only the person who wrote the note can do that.");
+	if (!res.ok) throw new PoofError("connection_failed", `Server error ${res.status}.`);
+	const parsed = noteStatusResponseSchema.safeParse(await res.json().catch(() => null));
+	if (!parsed.success) throw new PoofError("connection_failed", "Unexpected server response.");
+	return parsed.data;
+}
+/** For the writer: waiting, read, deleted or expired. Never any content. */
+function noteStatus(opts) {
+	return creatorCall(opts, "POST");
+}
+/** For the writer: delete the note before anyone reads it. */
+function deleteNote(opts) {
+	return creatorCall(opts, "DELETE");
+}
+/** Put a note's link behind a fresh 4-word phrase (the same one-time mailbox as room invites). */
+function createNotePhrase(opts) {
+	return createPhraseInvite({
+		fetch: opts.fetch,
+		origin: opts.origin,
+		inviteUrl: opts.url
+	});
+}
+/** Four words in, the note's link out (still unread: reading it is a separate, deliberate step). */
+async function openNoteByPhrase(opts) {
+	const target = await takePhraseUrl(opts, "Those words don't open a note.");
+	if (!/^\/note\/?$/.test(target.pathname)) throw new PoofError("decrypt_failed", "Those words don't open a note.");
+	try {
+		return parseNoteFragment(target.hash);
+	} catch {
+		throw new PoofError("decrypt_failed", "Those words don't open a note.");
+	}
+}
+//#endregion
 //#region packages/core/src/support.ts
 /** Order matters: Messenger's UA also says FBAN, so it's checked before Facebook. */
 var IN_APP = [
@@ -19247,4 +19563,4 @@ function detectBrowserSupport(env = globalThis) {
 	};
 }
 //#endregion
-export { AI_CONTEXT_MAX_BYTES, AI_SYSTEM_PROMPT, AiClient, DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, buildAiPrompt, bytes, chunkCount, concat, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, decryptAiChunk, deriveAiToken, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, encryptForModel, equalBytes, fetchPayConfig, finishPass, formatUsd, fromBase64, fromBase64Url, fromUtf8, generateAiSessionKeys, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, memberName, mentionsAi, newAttestationNonce, normalizeAiText, normalizeChatText, normalizeNickname, normalizePhrase, openInvite, parseInviteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readAiStream, readU64be, redeemPayment, roomPath, sanitizeFileName, sanitizeMime, sealInvite, serverError, startPass, stripMention, toBase64, toBase64Url, transferData, u64be, utf8, variantId, verifyAttestation, wipe };
+export { AI_CONTEXT_MAX_BYTES, AI_SYSTEM_PROMPT, AiClient, DEFAULT_FILE_ACK_TIMEOUT_MS, FileLane, FrameCodec, INVITE_PATH, InitiatorHandshake, LABELS, MemberLink, PHRASE_KDF_ITERATIONS, PHRASE_WORDS, PeerLink, PoofError, ResponderHandshake, RoomSession, SignalingClient, WS_OPEN, blindedHash, browserRtcFactory, browserSocketFactory, buildAiPrompt, bytes, chunkCount, concat, createNote, createNotePhrase, createPhraseInvite, createRoom, decodeChunk, decodeRoomKey, decryptAiChunk, deleteNote, deriveAiToken, derivePhraseKeys, detectBrowserSupport, detectInAppBrowser, detectPlatform, encodeChunk, encodeRoomKey, encryptForModel, equalBytes, fetchPayConfig, finishPass, formatUsd, fromBase64, fromBase64Url, fromUtf8, generateAiSessionKeys, generatePhrase, generateRoomKey, hashFile, inviteFragment, inviteUrl, isValidVariant, joinByPhrase, lengthPrefixed, memberLabel, memberName, mentionsAi, newAttestationNonce, normalizeAiText, normalizeChatText, normalizeNickname, normalizePhrase, noteFits, notePath, noteStatus, noteTextLength, noteUrl, openInvite, openNote, openNoteByPhrase, parseInviteFragment, parseNoteFragment, parseRoomLocation, passKeyId, paymentMessage, priceMicros, purchasableVariants, randomBytes, readAiStream, readU64be, redeemPayment, revealNote, roomPath, sanitizeFileName, sanitizeMime, sealInvite, sealNote, serverError, startPass, stripMention, takePhraseUrl, toBase64, toBase64Url, transferData, u64be, utf8, variantId, verifyAttestation, wipe };

@@ -1454,7 +1454,7 @@ window.VeilFox = (function(){
   // Keys are made in this browser and never leave it; the API only relays connection details.
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://api.usepoof.chat';
   let enginePromise = null;
-  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=63b1a8246383'));
+  const loadEngine = () => enginePromise || (enginePromise = import('/engine/poof-engine.js?v=52784de708df'));
   const live = {session:null, unsub:null, owner:false, shown:new Set(), phraseTimer:null, phraseExp:0, E:null, names:new Map(), shownAs:new Map(), sealedAt:new Map()};
   // The quant-room this tab is in, so a reload brings you straight back into it. sessionStorage: this
   // tab only, gone when the tab closes, and wiped as soon as the quant-room ends.
