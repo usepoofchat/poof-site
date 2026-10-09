@@ -205,6 +205,14 @@ body.menu-open{overflow:hidden}
 .hero-fox{position:absolute;left:-24vw;top:4vh;width:68vw;height:94vh;will-change:transform}
 .hero-grid{display:grid;grid-template-columns:1fr 1fr;width:100%}
 .hero-copy{grid-column:2;padding-block:14vh 12vh;will-change:transform}
+/* hero: "NEW · Poof Secretz" label above the headline */
+.hero-new{display:inline-flex;align-items:center;gap:10px;max-width:100%;margin:0 0 24px;padding:4px 14px 4px 4px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line-strong);color:var(--ink-2);text-decoration:none;font:500 12.5px/1.2 var(--mono);transition:background-color .25s,color .25s}
+.hero-new b{flex:none;padding:5px 9px;border-radius:999px;background:var(--rust);color:#1d1f2b;font-weight:600;letter-spacing:.05em}
+.hero-new span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-new i{flex:none;font-style:normal;transition:transform .25s}
+.hero-new:hover,.hero-new:focus-visible{background:var(--ink);color:var(--ground)}
+.hero-new:hover i,.hero-new:focus-visible i{transform:translateX(3px)}
+@media (max-width:760px){.hero-new{font-size:11.5px;gap:8px;margin-bottom:18px;padding-right:12px}}
 .lede{font-size:clamp(19px,1.6vw,23px);color:var(--ink-2);margin:28px 0 38px;letter-spacing:-.015em}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
 /* the fox's chat bubble: cycles Create a quant-room / Share the link / Talk privately / Then poof (desktop + phones) */
@@ -489,7 +497,7 @@ body.menu-open{overflow:hidden}
 .msg.bot::before{content:"AI";display:block;font:600 10.5px var(--mono);letter-spacing:.08em;color:var(--rust-text);margin-bottom:3px}
 .ai-on{color:var(--rust-text)}
 @media (max-width:900px){.ai-grid{grid-template-columns:1fr}}
-/* Poof Note: a small section after the pricing */
+/* Poof Secretz: a small section after the pricing */
 .pnote-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(28px,5vw,80px);align-items:center}
 .pnote h2{font-size:clamp(36px,4.2vw,68px);line-height:1;letter-spacing:-.05em;margin:0 0 20px;max-width:17ch}
 .pnote-acts{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin-top:28px}
@@ -682,6 +690,7 @@ footer .brand{font-size:18px}
       <a href="#rooms">Quant-Rooms</a>
       <a href="#protocol">Protocol</a>
       <a href="/docs/">Docs</a>
+      <a href="/secretz/">Poof Secretz</a>
       <a href="/stats/">Stats</a>
     </nav>
     <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode">
@@ -726,6 +735,7 @@ footer .brand{font-size:18px}
   <div class="fox-slot frag f-shard" data-scene="frag" data-shape="sol" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
+      <a class="hero-new" href="/secretz/"><b>NEW</b><span>Poof Secretz: read once. Then poof.</span><i aria-hidden="true">→</i></a>
       <h1 id="h1" data-split>A private, quantum-safe chatroom that doesn't need to know who you are.</h1>
       <p class="lede" data-reveal>No email. No phone number. No account.</p>
       <div class="actions" data-reveal>
@@ -984,22 +994,22 @@ footer .brand{font-size:18px}
   </div>
 </section>
 
-<!-- POOF NOTE -->
+<!-- POOF SECRETZ -->
 <section class="pnote" id="note" data-tone="dark" data-bg="#14151c" data-glow="232,102,31,.16" data-glow-pos="80,40" aria-labelledby="pnh">
   <div class="wrap pnote-grid">
     <div class="pnote-copy">
-      <p class="ai-kick">Poof Note</p>
-      <h2 id="pnh" data-split>Not a conversation? Send a note that opens once.</h2>
+      <p class="ai-kick">Poof Secretz</p>
+      <h2 id="pnh" data-split>Not a conversation? Send a secret that opens once.</h2>
       <p class="ai-lede" data-reveal>Write it and send the link. It's encrypted in your browser, read once, then gone from the server. Add a password, or say it as four words.</p>
       <div class="pnote-acts">
-        <a class="btn" href="/note/" data-magnetic><span class="pip" aria-hidden="true"></span>Write a Poof Note</a>
-        <a class="pnote-more" href="/docs/note/">How it works</a>
+        <a class="btn" href="/secretz/" data-magnetic><span class="pip" aria-hidden="true"></span>Write a secret</a>
+        <a class="pnote-more" href="/docs/secretz/">How it works</a>
       </div>
     </div>
     <div class="pnote-card" aria-hidden="true" data-reveal>
-      <p class="pc-k">poof note</p>
-      <p class="pc-t">This note can be read once. After you open it, it's gone.</p>
-      <span class="pc-btn"><i></i>Reveal note</span>
+      <p class="pc-k">poof secretz</p>
+      <p class="pc-t">This secret can be read once. After you open it, it's gone.</p>
+      <span class="pc-btn"><i></i>Reveal secret</span>
       <p class="pc-s">read once · then poof</p>
     </div>
   </div>
@@ -1095,7 +1105,7 @@ footer .brand{font-size:18px}
         <a class="soc" href="https://t.me/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>Telegram</a>
         <a class="soc" href="https://github.com/usepoofchat" target="_blank" rel="noopener"><span class="pip" aria-hidden="true"></span>GitHub</a>
         <a class="soc" href="/docs/"><span class="pip" aria-hidden="true"></span>Docs</a>
-        <a class="soc" href="/note/"><span class="pip" aria-hidden="true"></span>Poof Note</a>
+        <a class="soc" href="/secretz/"><span class="pip" aria-hidden="true"></span>Poof Secretz</a>
         <a class="soc" href="mailto:contact@usepoof.chat"><span class="pip" aria-hidden="true"></span>Contact</a>
       </nav>
     </div>
