@@ -205,14 +205,16 @@ body.menu-open{overflow:hidden}
 .hero-fox{position:absolute;left:-24vw;top:4vh;width:68vw;height:94vh;will-change:transform}
 .hero-grid{display:grid;grid-template-columns:1fr 1fr;width:100%}
 .hero-copy{grid-column:2;padding-block:14vh 12vh;will-change:transform}
-/* hero: "NEW · Poof Secretz" label above the headline */
-.hero-new{display:inline-flex;align-items:center;gap:10px;max-width:100%;margin:0 0 24px;padding:4px 14px 4px 4px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line-strong);color:var(--ink-2);text-decoration:none;font:500 12.5px/1.2 var(--mono);transition:background-color .25s,color .25s}
-.hero-new b{flex:none;padding:5px 9px;border-radius:999px;background:var(--rust);color:#1d1f2b;font-weight:600;letter-spacing:.05em}
-.hero-new span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hero-new i{flex:none;font-style:normal;transition:transform .25s}
-.hero-new:hover,.hero-new:focus-visible{background:var(--ink);color:var(--ground)}
-.hero-new:hover i,.hero-new:focus-visible i{transform:translateX(3px)}
-@media (max-width:760px){.hero-new{font-size:11.5px;gap:8px;margin-bottom:18px;padding-right:12px}}
+/* top bar above the header: "NEW · Poof Secretz is now live" */
+.topbar{position:relative;z-index:41;display:flex;align-items:center;justify-content:center;gap:12px;min-height:38px;padding:calc(6px + env(safe-area-inset-top,0px)) 16px 6px;background:var(--rust);color:#1d1f2b;text-decoration:none;font:500 13px/1.2 var(--mono)}
+.topbar b{flex:none;padding:3px 8px;border-radius:999px;background:#1d1f2b;color:#e8661f;font-size:11.5px;font-weight:600;letter-spacing:.06em}
+.topbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-underline-offset:3px}
+.topbar i{flex:none;font-style:normal;transition:transform .25s}
+.topbar:hover span,.topbar:focus-visible span{text-decoration:underline}
+.topbar:hover i,.topbar:focus-visible i{transform:translateX(3px)}
+.topbar:focus-visible{outline:2px solid #1d1f2b;outline-offset:-5px}
+body.menu-open .topbar{display:none}
+@media (max-width:760px){.topbar{gap:9px;min-height:36px;font-size:12px}}
 .lede{font-size:clamp(19px,1.6vw,23px);color:var(--ink-2);margin:28px 0 38px;letter-spacing:-.015em}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
 /* the fox's chat bubble: cycles Create a quant-room / Share the link / Talk privately / Then poof (desktop + phones) */
@@ -682,6 +684,7 @@ footer .brand{font-size:18px}
 <canvas id="foxFront" class="foxc" aria-hidden="true"></canvas>
 <div id="cur" aria-hidden="true"></div>
 
+<a class="topbar" href="/secretz/"><b>NEW</b><span>Poof Secretz is now live</span><i aria-hidden="true">→</i></a>
 <header class="nav" id="nav" data-tone="dark">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="Poof, back to top"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.0 3082.0 700.0" class="logo" aria-hidden="true" focusable="false"><g fill="#e8661f" shape-rendering="crispEdges"><rect x="175.0" y="0.0" width="175.0" height="175.0"/><rect x="525.0" y="0.0" width="175.0" height="175.0"/><rect x="0.0" y="175.0" width="175.0" height="175.0"/><rect x="350.0" y="175.0" width="175.0" height="175.0"/><rect x="175.0" y="350.0" width="175.0" height="175.0"/><rect x="525.0" y="350.0" width="175.0" height="175.0"/><rect x="0.0" y="525.0" width="175.0" height="175.0"/><rect x="350.0" y="525.0" width="175.0" height="175.0"/></g><g fill="currentColor"><path d="M1022 700L1022 0L1448 0L1550 103L1550 341L1447 445L1138 445L1138 700L1022 700ZM1138 347L1396 347L1436 307L1436 138L1396 98L1138 98L1138 347ZM1709 700L1610 600L1610 302L1709 202L1985 202L2085 302L2085 600L1985 700L1709 700ZM1763 605L1932 605L1972 565L1972 337L1932 297L1763 297L1723 337L1723 565L1763 605ZM2284 700L2185 600L2185 302L2284 202L2560 202L2660 302L2660 600L2560 700L2284 700ZM2338 605L2507 605L2547 565L2547 337L2507 297L2338 297L2298 337L2298 565L2338 605ZM2815 700L2815 298L2725 298L2725 202L2815 202L2815 99L2911 3L3082 3L3082 97L2960 97L2926 130L2926 202L3082 202L3082 298L2928 298L2928 700L2815 700Z"/><rect x="934.5" y="0.0" width="93.5" height="87.5"/><rect x="2994.5" y="196.0" width="87.5" height="93.5"/><rect x="1841.5" y="346.3" width="100.6" height="100.6"/><rect x="2416.5" y="346.3" width="100.6" height="100.6"/></g></svg></a>
@@ -735,7 +738,6 @@ footer .brand{font-size:18px}
   <div class="fox-slot frag f-shard" data-scene="frag" data-shape="sol" data-speed="0.2" data-spin=".5" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy" id="heroCopy">
-      <a class="hero-new" href="/secretz/"><b>NEW</b><span>Poof Secretz: read once. Then poof.</span><i aria-hidden="true">→</i></a>
       <h1 id="h1" data-split>A private, quantum-safe chatroom that doesn't need to know who you are.</h1>
       <p class="lede" data-reveal>No email. No phone number. No account.</p>
       <div class="actions" data-reveal>
